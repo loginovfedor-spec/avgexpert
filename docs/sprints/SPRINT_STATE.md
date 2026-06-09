@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S10` (closed) |
+| **current_sprint** | `—` (миграция RAG v2 завершена, S0…S10) |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -18,21 +18,13 @@
 
 ## Прогресс текущего спринта
 
-_Задачи и DoD — в плане §6. Здесь только статус._
-
-| ID | Статус |
-|----|--------|
-| S10-1 | done |
-| S10-2 | done |
-| S10-3 | done |
-| S10-4 | done |
-| S10-5 | done |
+_Нет активного спринта. Последний: S10 (2026-06-10)._
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
-| S10 | 2026-06-10 | — | 0 critical, 1 high (fixed) |
+| S10 | 2026-06-10 | `f7bcfc5` | 0 critical, 1 high (fixed) |
 | S9 | 2026-06-10 | `9c2be8d` | 0 critical, 0 high, 2 medium (tech debt) |
 | S8 | 2026-06-10 | `cdb9e92` | 0 critical, 0 high, 2 medium (fixed), 1 medium (tech debt) |
 | S7b | 2026-06-10 | — | не запускался |
