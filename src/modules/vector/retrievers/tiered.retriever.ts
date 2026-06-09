@@ -4,8 +4,10 @@ import type { VectorStore } from '../ports/vector.store';
 import type { Retriever, RetrievalContext } from '../ports/retriever';
 import type { IRetrievalChunk } from '../../../types/knowledge.types';
 import type { VectorFilter, VectorHit, VectorScope } from '../types';
+import type { SemanticGraphService } from '../../semantic/semantic-graph.service';
 import { getTopK } from '../../rag/tier.policy';
 import { applyMetadataScoring, candidateTopK } from '../../rag/metadata-scoring';
+import { applyDomainTagsFilter } from '../../rag/domain-tags-filter';
 import { applyCrossEncoderRerank } from '../../rag/rerank-scoring';
 import { shouldRerankTier } from '../reranker.service';
 
@@ -61,7 +63,8 @@ export class TieredRetriever implements Retriever {
     private readonly embedding: EmbeddingProvider,
     private readonly store: VectorStore,
     private readonly namespace: string,
-    private readonly reranker: RerankerProvider | null = null
+    private readonly reranker: RerankerProvider | null = null,
+    private readonly semanticGraph: SemanticGraphService | null = null
   ) {}
 
   async retrieve(query: string, ctx: RetrievalContext): Promise<IRetrievalChunk[]> {
@@ -97,6 +100,13 @@ export class TieredRetriever implements Retriever {
 
     const searchMs = Date.now() - searchStart;
     let ranked = applyMetadataScoring(allHits, query, ctx.tier);
+    ranked = applyDomainTagsFilter(ranked, query, ctx.tier);
+
+    if (this.semanticGraph && ctx.semanticGraphEnabled && ctx.tier === 'sage') {
+      ranked = await this.semanticGraph.expand(ranked, 1, ctx);
+      ranked = applyDomainTagsFilter(ranked, query, ctx.tier);
+    }
+
     let rerankMs = 0;
 
     if (this.reranker && shouldRerankTier(ctx.tier)) {

@@ -37,16 +37,24 @@ export async function runVectorMigrations(options: {
       );
     `);
 
-    const migrationId = '001_kb_schema';
-    const existing = await client.query(
-      'SELECT id FROM vector_migrations WHERE id = $1',
-      [migrationId]
-    );
-    if (existing.rowCount === 0) {
-      const sql = loadMigrationSql('001_kb_schema.sql', dims);
-      await client.query(sql);
-      await client.query('INSERT INTO vector_migrations (id) VALUES ($1)', [migrationId]);
-      applied.push(migrationId);
+    const migrations: Array<{ id: string; file: string; needsDims?: boolean }> = [
+      { id: '001_kb_schema', file: '001_kb_schema.sql', needsDims: true },
+      { id: '002_semantic_graph', file: '002_semantic_graph.sql' },
+    ];
+
+    for (const migration of migrations) {
+      const existing = await client.query(
+        'SELECT id FROM vector_migrations WHERE id = $1',
+        [migration.id]
+      );
+      if (existing.rowCount === 0) {
+        const sql = migration.needsDims
+          ? loadMigrationSql(migration.file, dims)
+          : fs.readFileSync(path.join(MIGRATIONS_DIR, migration.file), 'utf8');
+        await client.query(sql);
+        await client.query('INSERT INTO vector_migrations (id) VALUES ($1)', [migration.id]);
+        applied.push(migration.id);
+      }
     }
 
     await client.query('COMMIT');

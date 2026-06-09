@@ -1,5 +1,6 @@
 import type { RetrievalContext } from '../vector/ports/retriever';
 import type { RetrievalTier } from '../vector/types';
+import { resolveSemanticGraphEnabled } from '../semantic/semantic-graph.connection';
 import { normalizeTier, resolveScopes } from './tier.policy';
 
 export type DocumentContextInput = {
@@ -20,6 +21,7 @@ export class DocumentContextResolver {
       tier,
       scopes,
       globalKbEnabled: scopes.includes('global'),
+      semanticGraphEnabled: resolveSemanticGraphEnabled(tier, input.extraParams || {}),
     };
   }
 }

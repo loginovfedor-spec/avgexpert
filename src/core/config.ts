@@ -47,6 +47,7 @@ const envSchema = z.object({
   SANDBOX_FORGE_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   TEMPORAL_RUNTIME_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   RAG_V2_ENABLED: z.string().default('false').transform((v: string) => v === 'true'),
+  SEMANTIC_GRAPH_ENABLED: z.string().default('false').transform((v: string) => v === 'true'),
   CONVERSATION_MAX_TOKENS: z.string().transform(Number).default('100000'),
   KB_USER_MAX_DOCS: z.string().transform(Number).default('0'),
   KB_USER_MAX_FILE_BYTES: z.string().transform(Number).default('5242880'),
@@ -165,6 +166,7 @@ const FEATURE_FLAGS = {
   SANDBOX_FORGE_ENABLED: env.SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED: env.TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED: env.RAG_V2_ENABLED,
+  SEMANTIC_GRAPH_ENABLED: env.SEMANTIC_GRAPH_ENABLED,
 };
 const {
   SEMANTIC_LAYER_ENABLED,
@@ -176,6 +178,7 @@ const {
   SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED,
+  SEMANTIC_GRAPH_ENABLED,
 } = FEATURE_FLAGS;
 const CONVERSATION_MAX_TOKENS = env.CONVERSATION_MAX_TOKENS;
 const KB_USER_MAX_DOCS = env.KB_USER_MAX_DOCS > 0 ? env.KB_USER_MAX_DOCS : undefined;
@@ -204,6 +207,7 @@ module.exports = {
   SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED,
+  SEMANTIC_GRAPH_ENABLED,
   CONVERSATION_MAX_TOKENS,
   KB_USER_MAX_DOCS,
   KB_USER_MAX_FILE_BYTES,

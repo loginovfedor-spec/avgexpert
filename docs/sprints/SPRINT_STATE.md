@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S8` |
+| **current_sprint** | `S9` |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -22,16 +22,17 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S8-1 | pending |
-| S8-2 | pending |
-| S8-3 | pending |
-| S8-4 | pending |
-| S8-5 | pending |
+| S9-1 | pending |
+| S9-2 | pending |
+| S9-3 | pending |
+| S9-4 | pending |
+| S9-5 | pending |
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| S8 | 2026-06-10 | — | 0 critical, 0 high, 2 medium (fixed), 1 medium (tech debt) |
 | S7b | 2026-06-10 | — | не запускался |
 | S7 | 2026-06-10 | `85fc199` | 0 critical, 0 high, 1 medium (fixed) |
 | S6 | 2026-06-09 | — | 0 critical, 4 high (fixed) |
@@ -75,6 +76,37 @@ _Задачи и DoD — в плане §6. Здесь только статус
 ## RETRO (последний сверху)
 
 
+
+### RETRO S8 — 2026-06-10
+
+**Выполнение:** S8-1…S8-5 done
+
+**Артефакты:** `002_semantic_graph.sql`, `entity-extraction.service.ts`, `semantic-graph.service.ts`, `semantic-graph.repository.ts`, `domain-tags-filter.ts`, `semantic_graph_spike.ts`, `SEMANTIC_GRAPH_ENABLED`, `npm run test:s8`, `npm run spike:semantic-graph`, §11.6 go/no-go
+
+**Соответствие плану:** нет расхождений с §6 S8; graph — R&D spike, не production gate; domain_tags filter — production (expert/sage)
+
+**Качество:** `tsc --noEmit` PASS; `test:s8` 14/14 PASS; `test:rag` 38/38 PASS; `spike:semantic-graph` PASS
+
+**Метрики:** plan_accuracy ~97%; spike: 5 docs, 20 chunks, avg 12.85 entities/chunk, 151 unique; go/no-go: defer mandatory graph to v2; tech debt: populate `entity_ids` at ingest — v2
+
+**Bugbot-review:** findings 5 (0 critical, 2 high fixed, 2 medium fixed, 1 medium tech debt)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | semantic-graph.repository | Graph expansion bypassed tenant scope — **fixed** (access clause) |
+| high | rag.orchestrator | SemanticGraphService not wired — **fixed** (`createTieredRetrieverFromEnv`) |
+| medium | pgvector.store | `entity_ids` missing from search hits — **fixed** (SELECT + metadata) |
+| medium | scoped.cache | Cache ignored `semanticGraphEnabled` — **fixed** |
+| medium | tiered.retriever | Expanded chunks skipped domain filter — **fixed** (re-filter after expand) |
+| medium | ingestion pipeline | `entity_ids` not populated at ingest — **tech debt (v2)** |
+
+**Уроки:** graph expansion must respect RetrievalContext scopes; opt-in flags belong in cache key; entity_ids populate — отдельный v2 pipeline
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S7b — 2026-06-10
 

@@ -7,6 +7,8 @@ export interface RetrievalContext {
   tier: RetrievalTier;
   scopes: VectorScope[];
   globalKbEnabled: boolean;
+  /** Sage opt-in: 1-hop graph expansion (S8-3). */
+  semanticGraphEnabled?: boolean;
 }
 
 export interface Retriever {

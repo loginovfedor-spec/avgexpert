@@ -17,14 +17,14 @@ export function candidateTopK(tier: RetrievalTier, finalTopK: number): number {
   return Math.max(finalTopK, finalTopK * CANDIDATE_MULTIPLIER);
 }
 
-function tokenize(text: string): string[] {
+export function tokenize(text: string): string[] {
   return text
     .toLowerCase()
     .split(/[^\p{L}\p{N}]+/u)
     .filter((token) => token.length >= 3);
 }
 
-function normalizeTags(tags: unknown): string[] {
+export function normalizeTags(tags: unknown): string[] {
   if (!tags) return [];
   if (Array.isArray(tags)) {
     return tags.map((tag) => String(tag).toLowerCase()).filter(Boolean);
@@ -32,7 +32,7 @@ function normalizeTags(tags: unknown): string[] {
   return [String(tags).toLowerCase()];
 }
 
-function tagMatchesQuery(tag: string, queryTokens: string[]): boolean {
+export function tagMatchesQuery(tag: string, queryTokens: string[]): boolean {
   const normalizedTag = tag.toLowerCase();
   const tagTokens = tokenize(tag);
   for (const token of queryTokens) {
@@ -130,6 +130,9 @@ module.exports = {
   applyMetadataScoring,
   computeMetadataBoost,
   candidateTopK,
+  tokenize,
+  normalizeTags,
+  tagMatchesQuery,
   DOC_TYPE_BOOST,
   MAX_METADATA_BOOST,
 };

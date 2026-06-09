@@ -3,6 +3,7 @@ import type { VectorStore } from './ports/vector.store';
 import type { EmbeddingConfig, VectorStoreConfig } from './types';
 import { createEmbeddingProvider, loadEmbeddingConfig } from './embedding.service';
 import { createRerankerProviderFromEnv } from './reranker.service';
+import { createSemanticGraphServiceFromEnv } from '../semantic/semantic-graph.connection';
 import { TieredRetriever } from './retrievers/tiered.retriever';
 import { resolvePgConnectionString } from './pg/connection';
 import { PgVectorStore } from './stores/pgvector.store';
@@ -60,11 +61,13 @@ export function createTieredRetrieverFromEnv(
   env: NodeJS.ProcessEnv = process.env
 ): TieredRetriever {
   const stack = createVectorStackFromEnv(env);
+  const semanticGraph = createSemanticGraphServiceFromEnv(stack.embeddingConfig.namespace, env);
   return new TieredRetriever(
     stack.embedding,
     stack.store,
     stack.embeddingConfig.namespace,
-    stack.reranker
+    stack.reranker,
+    semanticGraph
   );
 }
 

@@ -9,6 +9,7 @@ export interface ScopedCacheKeyInput {
   scopes: VectorScope[];
   userId: string;
   sessionId?: string;
+  semanticGraphEnabled?: boolean;
 }
 
 type CacheEntry = {
@@ -33,6 +34,7 @@ export function buildScopedCacheKey(input: ScopedCacheKeyInput): string {
     [...input.scopes].sort().join(','),
     input.userId,
     input.sessionId || '',
+    input.semanticGraphEnabled ? '1' : '0',
   ].join('|');
 
   return crypto.createHash('sha256').update(payload).digest('hex');

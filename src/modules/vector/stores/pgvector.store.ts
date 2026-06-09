@@ -64,6 +64,7 @@ function mapRowToHit(row: Record<string, unknown>): VectorHit {
       doc_type: row.doc_type ?? jsonMeta.doc_type,
       domain_tags: row.domain_tags ?? jsonMeta.domain_tags,
       indexed_at: row.indexed_at ?? jsonMeta.indexed_at,
+      entity_ids: row.entity_ids ?? jsonMeta.entity_ids,
     },
   };
 }
@@ -189,7 +190,7 @@ export class PgVectorStore implements VectorStore {
       `
       SELECT
         id, namespace, scope, owner_user_id, session_id, doc_id,
-        body, title, metadata, doc_type, domain_tags, indexed_at,
+        body, title, metadata, doc_type, domain_tags, indexed_at, entity_ids,
         1 - (embedding <=> $1::vector) AS score
       FROM kb_chunks
       WHERE ${clause}

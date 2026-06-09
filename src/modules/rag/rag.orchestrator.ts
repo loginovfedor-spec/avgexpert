@@ -2,7 +2,7 @@ import type { RetrievalContext } from '../vector/ports/retriever';
 import { RetrievalResult } from '../knowledge/knowledge.types';
 import { TieredRetriever } from '../vector/retrievers/tiered.retriever';
 import { DegradedRetriever } from '../vector/retrievers/degraded.retriever';
-import { createVectorStackFromEnv } from '../vector/registry';
+import { createTieredRetrieverFromEnv } from '../vector/registry';
 import { loadEmbeddingConfig } from '../vector/embedding.service';
 import {
   buildScopedCacheKey,
@@ -118,14 +118,8 @@ export class RagOrchestrator {
       this.retriever = deps.retriever;
       this.namespace = deps.namespace || loadEmbeddingConfig().namespace;
     } else {
-      const stack = createVectorStackFromEnv();
-      this.namespace = stack.embeddingConfig.namespace;
-      const tiered = new TieredRetriever(
-        stack.embedding,
-        stack.store,
-        this.namespace,
-        stack.reranker
-      );
+      const tiered = createTieredRetrieverFromEnv();
+      this.namespace = loadEmbeddingConfig().namespace;
       // @ts-ignore legacy JS adapter default export
       const SQLiteFTSRetriever = require('../knowledge/adapters/sqlite_fts.adapter');
       this.retriever = new DegradedRetriever(tiered, new SQLiteFTSRetriever());
@@ -164,6 +158,7 @@ export class RagOrchestrator {
       scopes: ctx.scopes,
       userId: ctx.userId,
       sessionId: ctx.sessionId,
+      semanticGraphEnabled: ctx.semanticGraphEnabled,
     });
 
     const cached = this.cache.get(cacheKey);
