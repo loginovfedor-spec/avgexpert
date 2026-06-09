@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S9` |
+| **current_sprint** | `S10` |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -22,16 +22,17 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S9-1 | done |
-| S9-2 | done |
-| S9-3 | done |
-| S9-4 | done |
-| S9-5 | done |
+| S10-1 | pending |
+| S10-2 | pending |
+| S10-3 | pending |
+| S10-4 | pending |
+| S10-5 | pending |
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| S9 | 2026-06-10 | `9c2be8d` | 0 critical, 0 high, 2 medium (tech debt) |
 | S8 | 2026-06-10 | `cdb9e92` | 0 critical, 0 high, 2 medium (fixed), 1 medium (tech debt) |
 | S7b | 2026-06-10 | — | не запускался |
 | S7 | 2026-06-10 | `85fc199` | 0 critical, 0 high, 1 medium (fixed) |
@@ -76,7 +77,34 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 ## RETRO (последний сверху)
 
+### RETRO S9 — 2026-06-10
 
+**Выполнение:** S9-1…S9-5 done
+
+**Артефакты:** `yandex_file_search.js` (delegator, no embed/search), `AVGEXPERT_DEPLOY_ENV` + staging RAG v2 default, `.env.staging.example`, `tests/rag/retrieval.load.test.ts`, `scripts/rag_retrieval_load.ts`, upload rate limit (`kb.routes.ts`), `docs/ops/RAG_OPS_RUNBOOK.md`, `npm run test:s9`, `npm run load:rag-retrieval`
+
+**Соответствие плану:** нет расхождений с §6 S9; rollback §5.2 обновлён (legacy adapter без embed)
+
+**Качество:** `tsc --noEmit` PASS; `test:s9` 11/11 PASS; mock load p95 2 ms vs NFR-1 300 ms
+
+**Метрики:** plan_accuracy ~98%; tech debt: upload rate limit in-memory (multi-instance); `kb_reindex_books` recall smoke JSON format (S2 carry-over)
+
+**Bugbot-review:** findings 4 total (0 critical, 0 high, 2 medium fixed at commit, 2 medium tech debt)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| medium | yandex_file_search.js | Missing getModels + wrong adapter config on delegate — **fixed** (`9c2be8d`) |
+| medium | yandex.js | Hardcoded `getAdapterConfig('yandex')` — **fixed** (uses `categoryConfig.provider`) |
+| medium | kb.routes uploadLimiter | In-memory store — per-replica bypass — **tech debt (S10/multi-instance)** |
+| medium | kb_reindex_books loadQueries | Wrong JSON shape → empty recall smoke — **tech debt (S2 carry-over)** |
+
+**Уроки:** deprecated adapter must delegate config + getModels; staging default via `AVGEXPERT_DEPLOY_ENV` keeps local dev safe; live NFR-1 gate — `load:rag-retrieval` against TEI+PG
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S8 — 2026-06-10
 
