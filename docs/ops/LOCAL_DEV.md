@@ -8,12 +8,16 @@
 | Сервис | Где | Порт | Назначение |
 |--------|-----|------|------------|
 | **TEI bge-m3** | Docker (`local-dev/`) | `8090` | Self-hosted embeddings (§11.1) |
+| **TEI bge-reranker-v2-m3** | Docker (`local-dev/`) | `8091` | Cross-encoder rerank expert/sage (§11.2 S7b) |
 | **AvgExpert Gateway** | `npm start` | `8200` | API + WebUI (production UI из `webui_dist`) |
 | **Vite dev UI** | `npm run dev:web` | `5173` | Только фронт; нужен `npm start` на `8200` (прокси `/api`) |
 | **Llama.cpp** | `llama_cpp/start_windows.cmd` | `8201` | Локальный LLM (опционально) |
 | **PostgreSQL** | удалённый | `5432` | VectorKB + cache |
 
 Конфиг embedder для локали: `VECTOR_EMBEDDING_CONFIG=bge_m3.local` → `vector/config/bge_m3.local.env`.
+
+Конфиг reranker: `VECTOR_RERANKER_CONFIG=bge_reranker_v2_m3.local` → `vector/config/bge_reranker_v2_m3.local.env`.  
+Включение: `RERANK_ENABLED=true` (по умолчанию `false`; для тестов без TEI — `RERANK_MOCK=true`).
 
 ## Быстрый старт (Windows)
 

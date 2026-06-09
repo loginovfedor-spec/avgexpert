@@ -2,6 +2,8 @@ import type { EmbeddingProvider } from './ports/embedding.provider';
 import type { VectorStore } from './ports/vector.store';
 import type { EmbeddingConfig, VectorStoreConfig } from './types';
 import { createEmbeddingProvider, loadEmbeddingConfig } from './embedding.service';
+import { createRerankerProviderFromEnv } from './reranker.service';
+import { TieredRetriever } from './retrievers/tiered.retriever';
 import { resolvePgConnectionString } from './pg/connection';
 import { PgVectorStore } from './stores/pgvector.store';
 
@@ -43,13 +45,27 @@ export function createVectorStackFromEnv(env: NodeJS.ProcessEnv = process.env): 
   embedding: EmbeddingProvider;
   store: VectorStore;
   embeddingConfig: EmbeddingConfig;
+  reranker: ReturnType<typeof createRerankerProviderFromEnv>;
 } {
   const embeddingConfig = loadEmbeddingConfig(env);
   return {
     embeddingConfig,
     embedding: createEmbeddingProvider(embeddingConfig),
     store: createVectorStoreFromEnv(env),
+    reranker: createRerankerProviderFromEnv(env),
   };
+}
+
+export function createTieredRetrieverFromEnv(
+  env: NodeJS.ProcessEnv = process.env
+): TieredRetriever {
+  const stack = createVectorStackFromEnv(env);
+  return new TieredRetriever(
+    stack.embedding,
+    stack.store,
+    stack.embeddingConfig.namespace,
+    stack.reranker
+  );
 }
 
 module.exports = {
@@ -57,4 +73,5 @@ module.exports = {
   loadVectorStoreConfig,
   createVectorStoreFromEnv,
   createVectorStackFromEnv,
+  createTieredRetrieverFromEnv,
 };

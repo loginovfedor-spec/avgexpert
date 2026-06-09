@@ -123,7 +123,8 @@ export class RagOrchestrator {
       const tiered = new TieredRetriever(
         stack.embedding,
         stack.store,
-        this.namespace
+        this.namespace,
+        stack.reranker
       );
       // @ts-ignore legacy JS adapter default export
       const SQLiteFTSRetriever = require('../knowledge/adapters/sqlite_fts.adapter');
@@ -193,7 +194,7 @@ export class RagOrchestrator {
 
     try {
       const timing = await this.retriever.retrieveWithTiming(query, ctx);
-      const { chunks, embedMs, searchMs } = timing;
+      const { chunks, embedMs, searchMs, rerankMs = 0 } = timing;
       const retrieverId = ('retrieverId' in timing && typeof timing.retrieverId === 'string')
         ? timing.retrieverId
         : 'tiered-vector';
@@ -208,6 +209,13 @@ export class RagOrchestrator {
         chunkCount: chunks.length,
         degraded: Boolean(degraded),
       });
+      if (rerankMs > 0) {
+        traceBus.emitTrace('RagOrchestrator', 'rag.rerank_ms', {
+          rerankMs,
+          tier: ctx.tier,
+          chunkCount: chunks.length,
+        });
+      }
 
       const result = new RetrievalResult({
         query,
@@ -217,6 +225,7 @@ export class RagOrchestrator {
           retrieverId,
           embedMs,
           searchMs,
+          rerankMs,
           degraded: Boolean(degraded),
           latencyMs: Date.now() - startTime,
         },
@@ -238,6 +247,7 @@ export class RagOrchestrator {
         cacheHit: false,
         embedMs,
         searchMs,
+        rerankMs,
         latencyMs: finalResult.metadata.latencyMs,
       });
 

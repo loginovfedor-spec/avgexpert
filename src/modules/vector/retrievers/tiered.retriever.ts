@@ -1,15 +1,19 @@
 import type { EmbeddingProvider } from '../ports/embedding.provider';
+import type { RerankerProvider } from '../ports/reranker.provider';
 import type { VectorStore } from '../ports/vector.store';
 import type { Retriever, RetrievalContext } from '../ports/retriever';
 import type { IRetrievalChunk } from '../../../types/knowledge.types';
 import type { VectorFilter, VectorHit, VectorScope } from '../types';
 import { getTopK } from '../../rag/tier.policy';
 import { applyMetadataScoring, candidateTopK } from '../../rag/metadata-scoring';
+import { applyCrossEncoderRerank } from '../../rag/rerank-scoring';
+import { shouldRerankTier } from '../reranker.service';
 
 export interface TieredRetrieveResult {
   chunks: IRetrievalChunk[];
   embedMs: number;
   searchMs: number;
+  rerankMs?: number;
 }
 
 function hitToChunk(hit: VectorHit): IRetrievalChunk {
@@ -56,7 +60,8 @@ export class TieredRetriever implements Retriever {
   constructor(
     private readonly embedding: EmbeddingProvider,
     private readonly store: VectorStore,
-    private readonly namespace: string
+    private readonly namespace: string,
+    private readonly reranker: RerankerProvider | null = null
   ) {}
 
   async retrieve(query: string, ctx: RetrievalContext): Promise<IRetrievalChunk[]> {
@@ -91,12 +96,20 @@ export class TieredRetriever implements Retriever {
     }
 
     const searchMs = Date.now() - searchStart;
-    const ranked = applyMetadataScoring(allHits, query, ctx.tier);
+    let ranked = applyMetadataScoring(allHits, query, ctx.tier);
+    let rerankMs = 0;
+
+    if (this.reranker && shouldRerankTier(ctx.tier)) {
+      const rerankStart = Date.now();
+      ranked = await applyCrossEncoderRerank(ranked, query, this.reranker);
+      rerankMs = Date.now() - rerankStart;
+    }
+
     const chunks = ranked
       .slice(0, topK)
       .map(hitToChunk);
 
-    return { chunks, embedMs, searchMs };
+    return { chunks, embedMs, searchMs, rerankMs };
   }
 }
 

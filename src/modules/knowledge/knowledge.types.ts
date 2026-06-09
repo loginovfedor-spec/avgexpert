@@ -67,7 +67,8 @@ export class RetrievalResult implements IRetrievalResult {
       error: metadata.error || null,
       cacheHit: metadata.cacheHit || false,
       embedMs: metadata.embedMs || 0,
-      searchMs: metadata.searchMs || 0
+      searchMs: metadata.searchMs || 0,
+      rerankMs: metadata.rerankMs || 0,
     };
   }
 

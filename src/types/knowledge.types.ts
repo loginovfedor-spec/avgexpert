@@ -27,6 +27,7 @@ export interface RetrievalMetadata {
   cacheHit?: boolean;
   embedMs?: number;
   searchMs?: number;
+  rerankMs?: number;
   degraded?: boolean;
 }
 

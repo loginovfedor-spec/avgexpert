@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S7b` |
+| **current_sprint** | `S8` |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -22,14 +22,17 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S7b-1 | pending |
-| S7b-2 | pending |
-| S7b-3 | pending |
+| S8-1 | pending |
+| S8-2 | pending |
+| S8-3 | pending |
+| S8-4 | pending |
+| S8-5 | pending |
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| S7b | 2026-06-10 | — | не запускался |
 | S7 | 2026-06-10 | `85fc199` | 0 critical, 0 high, 1 medium (fixed) |
 | S6 | 2026-06-09 | — | 0 critical, 4 high (fixed) |
 | S5 | 2026-06-09 | `ad2f65b` `206c9ab` `de704db` | 0 critical, 1 high (fixed), 6 medium (1 fixed, 5 tech debt) |
@@ -72,6 +75,28 @@ _Задачи и DoD — в плане §6. Здесь только статус
 ## RETRO (последний сверху)
 
 
+
+### RETRO S7b — 2026-06-10
+
+**Выполнение:** S7b-1…S7b-3 done
+
+**Артефакты:** `selfhosted.reranker.ts`, `mock.reranker.ts`, `reranker.service.ts`, `rerank-scoring.ts`, `TieredRetriever` (optional reranker), `rag.orchestrator` (`rag.rerank_ms` trace), docker `tei-bge-reranker:8091`, `rag_expert_rerank.eval.js`, `npm run test:s7b`, `npm run eval:expert-rerank`
+
+**Соответствие плану:** нет расхождений с §6 S7b / §11.2; `RERANK_ENABLED=false` по умолчанию (opt-in)
+
+**Качество:** `tsc --noEmit` PASS; `test:s7b` 10/10 PASS; `test:rag` 32/32 PASS; `eval:expert-rerank` PASS (metadata@7: 0.139 → rerank@7: 0.315)
+
+**Метрики:** mock rerank p95 ≤150 ms PASS; expert recall delta +0.176 (offline mock); live TEI rerank — `RERANK_ENABLED=true` + `local:up`
+
+**Bugbot-review:** не запускался
+
+**Уроки:** reranker — optional 4-й аргумент TieredRetriever; consultant tier не rerank; TEI `/rerank` endpoint; trace `rag.rerank_ms` в orchestrator
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S7 — 2026-06-10
 
