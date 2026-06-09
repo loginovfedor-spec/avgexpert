@@ -392,9 +392,16 @@ export async function handleLogin(e) {
     try {
       d = await r.json();
     } catch {
-      errEl.textContent = r.ok
-        ? 'Сервер вернул некорректный ответ'
-        : `Ошибка сервера (${r.status})`;
+      if (r.status === 404) {
+        const port = window.location.port;
+        errEl.textContent = port === '5173'
+          ? 'API не найден. Запустите npm start (порт 8200) — Vite проксирует /api автоматически.'
+          : 'API не найден (404). Откройте приложение на http://127.0.0.1:8200 и выполните npm start.';
+      } else {
+        errEl.textContent = r.ok
+          ? 'Сервер вернул некорректный ответ'
+          : `Ошибка сервера (${r.status})`;
+      }
       errEl.classList.remove('hidden');
       return;
     }
@@ -403,7 +410,7 @@ export async function handleLogin(e) {
       localStorage.setItem('avgexpert_token', state.authToken);
       await checkAuth();
     } else {
-      errEl.textContent = d.detail || 'Ошибка авторизации';
+      errEl.textContent = d.detail || d.error?.message || `Ошибка сервера (${r.status})`;
       errEl.classList.remove('hidden');
     }
   } catch (e) {

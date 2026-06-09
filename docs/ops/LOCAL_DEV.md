@@ -8,7 +8,8 @@
 | Сервис | Где | Порт | Назначение |
 |--------|-----|------|------------|
 | **TEI bge-m3** | Docker (`local-dev/`) | `8090` | Self-hosted embeddings (§11.1) |
-| **AvgExpert Gateway** | `npm start` | `8200` | API + WebUI |
+| **AvgExpert Gateway** | `npm start` | `8200` | API + WebUI (production UI из `webui_dist`) |
+| **Vite dev UI** | `npm run dev:web` | `5173` | Только фронт; нужен `npm start` на `8200` (прокси `/api`) |
 | **Llama.cpp** | `llama_cpp/start_windows.cmd` | `8201` | Локальный LLM (опционально) |
 | **PostgreSQL** | удалённый | `5432` | VectorKB + cache |
 
