@@ -4,7 +4,7 @@
 
 | Поле | Значение |
 |------|----------|
-| **current_sprint** | `S0` |
+| **current_sprint** | `S1` |
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
 ## Прогресс текущего спринта
@@ -13,28 +13,27 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S0-1 | done |
-| S0-2 | done |
-| S0-3 | done |
-| S0-4 | done |
-| S0-5 | done |
-| S0-6 | done |
-| S0-7 | done |
+| S1-1 | done |
+| S1-2 | done |
+| S1-3 | done |
+| S1-4 | done |
+| S1-5 | done |
+| S1-6 | done |
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
-| — | — | — | — |
+| S0 | 2026-06-09 | — | 0 critical, 1 high (fixed), 2 medium (fixed) |
 
 ## Параметры (заполняет агент по ходу работы)
 
 | Параметр | Значение |
 |----------|----------|
-| `EMBEDDING_PROVIDER` | TBD |
-| `EMBEDDING_MODEL` | TBD |
-| `EMBEDDING_DIMS` | TBD |
-| `EMBEDDING_NAMESPACE` | TBD |
+| `EMBEDDING_PROVIDER` | `self-hosted` (default; gate S0-6 pending live API) |
+| `EMBEDDING_MODEL` | `bge-m3` (default) |
+| `EMBEDDING_DIMS` | `1024` (default; фиксация после S0-6 gate) |
+| `EMBEDDING_NAMESPACE` | `bge-m3-v1` (default; фиксация после S0-6 gate) |
 | `RAG_V2_ENABLED` | `false` (config + `.env.example`) |
 
 ## RETRO (последний сверху)
@@ -83,3 +82,18 @@ _Шаблон:_
 ## Блокеры
 
 _Нет._
+
+---
+
+### RETRO S1 — 2026-06-09
+
+**Выполнение:** S1-1…S1-6 done
+**Артефакты:** `src/modules/vector/` (ports, providers, stores, pg migrate), `scripts/kb_pg_migrate.ts`, `scripts/pgvector_smoke.ts`, `docs/ops/PGVECTOR_CHECKLIST.md`, env/config, `npm run test:vector`
+**Соответствие плану:** нет расхождений с §6 S1; `EMBEDDING_*` defaults до gate S0-6 live API
+**Качество:** `tsc --noEmit` PASS; `test:vector` 13/13 PASS; `kb:pg:smoke` PASS на 83.166.253.250 (pgvector 0.8.2); `test:pr` 64/66 (express.json 2mb — pre-existing)
+**Метрики:** plan_accuracy ~98%; tech debt: ONNX runtime in-process — HTTP endpoint only
+
+**Bugbot-review:** diff недоступен (git); ручная проверка: guard на delete без фильтра
+**Уроки:** pg импорт только через dynamic import в integration test; dims фиксируются при первой миграции
+**OPT предложены:** нет
+**Вопросы пользователю:** нет

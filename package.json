@@ -30,6 +30,9 @@
     "eval:full": "npm run eval:rag && npm run eval:recall",
     "test:policy": "tsx --test tests/policy/*.test.js",
     "test:knowledge": "tsx --test tests/knowledge/*.test.js tests/knowledge/*.test.ts",
+    "test:vector": "tsx --test tests/vector/*.test.ts",
+    "kb:pg:migrate": "tsx scripts/kb_pg_migrate.ts",
+    "kb:pg:smoke": "tsx scripts/pgvector_smoke.ts",
     "test:pr": "tsx --test tests/provider_events.test.js tests/errors.test.js tests/deterministic_provider.test.js tests/contract_canonical_event.test.js tests/fast_path_guardrail.test.js tests/security_assertions.test.js tests/health.test.js",
     "test:nightly": "tsx --test --test-concurrency=1 tests/*.test.js tests/policy/*.test.js tests/knowledge/*.test.js",
     "test:release": "tsx --test --test-concurrency=1 tests/*.test.js tests/policy/*.test.js tests/knowledge/*.test.js"
@@ -48,6 +51,7 @@
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^2.7.0",
     "openai": "^6.35.0",
+    "pg": "^8.21.0",
     "tsx": "^4.22.4",
     "uuid": "^14.0.0",
     "zod": "^4.4.2"
@@ -62,6 +66,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
     "@typescript-eslint/parser": "^8.60.1",
