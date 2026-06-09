@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "updated": "2026-06-09",
+  "description": "Целевая карта категорий → retrieval_tier + provider + KB scopes (§7 RAG_MIGRATION_PLAN)",
+  "tiers": {
+    "consultant": {
+      "top_k": 3,
+      "global_kb": false,
+      "user_kb": true,
+      "session_kb": true
+    },
+    "expert": {
+      "top_k": 7,
+      "global_kb": true,
+      "user_kb": true,
+      "session_kb": true
+    },
+    "sage": {
+      "top_k": 12,
+      "global_kb": true,
+      "user_kb": true,
+      "session_kb": true
+    }
+  },
+  "mappings": [
+    {
+      "ui_category": "Консультант",
+      "retrieval_tier": "consultant",
+      "provider": "yandex",
+      "model_name": "aliceai-llm-flash/latest",
+      "rag_enabled": true
+    },
+    {
+      "ui_category": "Консультант",
+      "retrieval_tier": "consultant",
+      "provider": "openai_gpt4_1",
+      "model_name": "gpt-4.1-mini",
+      "rag_enabled": true
+    },
+    {
+      "ui_category": "Консультант",
+      "retrieval_tier": "consultant",
+      "provider": "grok",
+      "model_name": "grok-4-1-fast-non-reasoning",
+      "rag_enabled": true
+    },
+    {
+      "ui_category": "Эксперт",
+      "retrieval_tier": "expert",
+      "provider": "openai_gpt4_1",
+      "model_name": "gpt-4.1",
+      "rag_enabled": true
+    },
+    {
+      "ui_category": "Эксперт",
+      "retrieval_tier": "expert",
+      "provider": "grok",
+      "model_name": "grok-4-1-fast-reasoning",
+      "rag_enabled": true
+    },
+    {
+      "ui_category": "Мудрец",
+      "retrieval_tier": "sage",
+      "provider": "openai_gpt5_5",
+      "model_name": "gpt-5.5",
+      "rag_enabled": true
+    },
+    {
+      "ui_category": "Мудрец",
+      "retrieval_tier": "sage",
+      "provider": "grok",
+      "model_name": "grok-4.3",
+      "rag_enabled": true
+    }
+  ]
+}

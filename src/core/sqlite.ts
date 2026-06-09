@@ -79,13 +79,21 @@ function seed() {
       VALUES (@name, @provider, @model_name, @temperature, @top_p, @top_k, @min_p, @repeat_penalty, @input_context_default, @input_context_max, @max_tokens, @system_prompt)
     `);
 
+    const tierByName: Record<string, string> = {
+      'Консультант': 'consultant',
+      'Эксперт': 'expert',
+      'Мудрец': 'sage',
+    };
     const defaultCategories = ['Администратор', 'Консультант', 'Эксперт', 'Мудрец'];
     for (const name of defaultCategories) {
       insertCat.run({
         name,
         ...DEFAULT_CATEGORY_PARAMS,
-        system_prompt: DEFAULT_CATEGORY_PARAMS.system_prompt || null
+        system_prompt: DEFAULT_CATEGORY_PARAMS.system_prompt || null,
       });
+      if (tierByName[name]) {
+        db.prepare('UPDATE categories SET retrieval_tier = ? WHERE name = ?').run(tierByName[name], name);
+      }
     }
 
     // 2. Seed Default Admin

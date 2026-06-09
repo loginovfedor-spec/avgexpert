@@ -18,6 +18,7 @@
  *   node scratch/compare_rag_models.js
  *   node scratch/compare_rag_models.js --only=qwen-max,alice-flash
  *   node scratch/compare_rag_models.js --json=scratch/rag_model_results.json --quiet
+ *   node scratch/compare_rag_models.js --mode=inject-only --json=scratch/rag_tier_baseline.json
  */
 
 const fs = require('fs');
@@ -41,6 +42,8 @@ const ONLY_MODELS = FLAG('only') ? new Set(FLAG('only').split(',').map(s => s.tr
 const JSON_OUT = FLAG('json');
 const QUIET = HAS_FLAG('quiet');
 const SKIP_CACHE = HAS_FLAG('no-cache');
+const MODE = FLAG('mode') || 'full';
+const INJECT_ONLY = MODE === 'inject-only' || HAS_FLAG('tier-baseline');
 
 // ─── Конфиг ──────────────────────────────────────────────────────────────────
 
@@ -62,6 +65,7 @@ const SYSTEM_RAG = `Ты ассистент службы поддержки. О�
 const MODELS = [
   { id: 'gpt-5.5',       label: 'GPT-5.5',            provider: 'openai', model: 'gpt-5.5',                    fallbacks: ['gpt-4.1'] },
   { id: 'gpt-4.1',       label: 'GPT-4.1',            provider: 'openai', model: 'gpt-4.1' },
+  { id: 'gpt-4.1-mini',  label: 'GPT-4.1 Mini',       provider: 'openai', model: 'gpt-4.1-mini' },
   { id: 'gpt-5-nano',    label: 'GPT-5-nano',         provider: 'openai', model: 'gpt-5-nano',                 fallbacks: ['gpt-4.1-nano'] },
   { id: 'alice-llm',     label: 'Alice AI LLM',       provider: 'yandex', model: 'aliceai-llm/latest' },
   { id: 'alice-flash',   label: 'Alice AI LLM Flash', provider: 'yandex', model: 'aliceai-llm-flash/latest' },
@@ -69,12 +73,22 @@ const MODELS = [
   { id: 'qwen-plus',     label: 'Qwen3.7-Plus',       provider: 'qwen',   model: 'qwen-plus' },
   { id: 'qwen-flash',    label: 'Qwen3.6-Flash',      provider: 'qwen',   model: 'qwen-flash',                 fallbacks: ['qwen-turbo'] },
   { id: 'grok-41-fast',  label: 'Grok 4.1 Fast',      provider: 'grok',   model: 'grok-4-1-fast-non-reasoning', fallbacks: ['grok-4-fast-non-reasoning'], costIn: 0.20, costOut: 0.50 },
+  { id: 'grok-41-reasoning', label: 'Grok 4.1 Reasoning', provider: 'grok', model: 'grok-4-1-fast-reasoning', fallbacks: ['grok-4-fast-reasoning'], costIn: 0.20, costOut: 0.50 },
+  { id: 'grok-43',       label: 'Grok 4.3',           provider: 'grok',   model: 'grok-4.3',                   fallbacks: ['grok-4'], costIn: 3.0, costOut: 15.0 },
   { id: 'grok-3-mini',   label: 'Grok 3 Mini',        provider: 'grok',   model: 'grok-3-mini',                fallbacks: ['grok-3-mini-beta'], costIn: 0.30, costOut: 0.50 },
 ];
+
+/** Tier baseline LLMs (§7) — единый inject, разные модели */
+const TIER_BASELINE = {
+  consultant: ['alice-flash', 'gpt-4.1-mini', 'grok-41-fast'],
+  expert: ['gpt-4.1', 'grok-41-reasoning'],
+  sage: ['gpt-5.5', 'grok-43'],
+};
 
 const COST_PER_1M = {
   'gpt-5.5': { in: 5.0, out: 15.0 },
   'gpt-4.1': { in: 2.0, out: 8.0 },
+  'gpt-4.1-mini': { in: 0.4, out: 1.6 },
   'gpt-5-nano': { in: 0.10, out: 0.40 },
   'alice-llm': { in: 0.5, out: 1.5 },
   'alice-flash': { in: 0.15, out: 0.45 },
@@ -82,6 +96,8 @@ const COST_PER_1M = {
   'qwen-plus': { in: 0.4, out: 1.2 },
   'qwen-flash': { in: 0.05, out: 0.40 },
   'grok-41-fast': { in: 0.20, out: 0.50 },
+  'grok-41-reasoning': { in: 0.20, out: 0.50 },
+  'grok-43': { in: 3.0, out: 15.0 },
   'grok-3-mini': { in: 0.30, out: 0.50 },
 };
 
@@ -555,16 +571,26 @@ async function benchmarkModel(modelDef) {
 }
 
 async function main() {
-  const models = ONLY_MODELS ? MODELS.filter(m => ONLY_MODELS.has(m.id)) : MODELS;
+  let models;
+  if (INJECT_ONLY) {
+    const tierIds = [...new Set(Object.values(TIER_BASELINE).flat())];
+    models = MODELS.filter(m => tierIds.includes(m.id));
+    if (ONLY_MODELS) models = models.filter(m => ONLY_MODELS.has(m.id));
+  } else {
+    models = ONLY_MODELS ? MODELS.filter(m => ONLY_MODELS.has(m.id)) : MODELS;
+  }
+
   if (models.length === 0) {
     console.error('Нет моделей. IDs:', MODELS.map(m => m.id).join(', '));
     process.exit(1);
   }
 
+  log(`Режим: ${INJECT_ONLY ? 'inject-only (tier baseline)' : 'full'}`);
   log(`RAG-тестов: ${RAG_TESTS.length}, моделей: ${models.length}`);
   log(`Кеш: ${SKIP_CACHE ? 'ВЫКЛ' : 'локальный LLM-кеш + OpenAI prompt_cache_key'}\n`);
 
   const results = {};
+  const tierResults = INJECT_ONLY ? {} : null;
 
   for (const model of models) {
     log(`\n${'═'.repeat(60)}`);
@@ -582,6 +608,14 @@ async function main() {
     try {
       results[model.id] = await benchmarkModel(model);
       results[model.id].elapsedSec = parseFloat(((Date.now() - t0) / 1000).toFixed(1));
+      if (tierResults) {
+        for (const [tier, ids] of Object.entries(TIER_BASELINE)) {
+          if (ids.includes(model.id)) {
+            if (!tierResults[tier]) tierResults[tier] = {};
+            tierResults[tier][model.id] = results[model.id];
+          }
+        }
+      }
       log(`\n  Accuracy: ${(results[model.id].accuracy * 100).toFixed(0)}%  Score: ${results[model.id].score}`);
       log(`  Latency: cold=${results[model.id].avgColdMs}ms warm=${results[model.id].avgWarmMs < 1 ? '<1ms (cache HIT)' : results[model.id].avgWarmMs + 'ms'}`);
     } catch (err) {
@@ -666,9 +700,11 @@ async function main() {
 
   const payload = {
     generatedAt: new Date().toISOString(),
+    mode: INJECT_ONLY ? 'inject-only' : 'full',
     tests: RAG_TESTS.length,
     cacheEnabled: !SKIP_CACHE,
     models: results,
+    ...(tierResults ? { tierBaseline: tierResults, tierMap: TIER_BASELINE } : {}),
   };
 
   if (JSON_OUT) {

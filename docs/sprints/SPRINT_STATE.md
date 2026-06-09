@@ -13,13 +13,13 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S0-1 | pending |
-| S0-2 | pending |
-| S0-3 | pending |
-| S0-4 | pending |
-| S0-5 | pending |
-| S0-6 | pending |
-| S0-7 | pending |
+| S0-1 | done |
+| S0-2 | done |
+| S0-3 | done |
+| S0-4 | done |
+| S0-5 | done |
+| S0-6 | done |
+| S0-7 | done |
 
 ## Завершённые спринты
 
@@ -35,11 +35,32 @@ _Задачи и DoD — в плане §6. Здесь только статус
 | `EMBEDDING_MODEL` | TBD |
 | `EMBEDDING_DIMS` | TBD |
 | `EMBEDDING_NAMESPACE` | TBD |
-| `RAG_V2_ENABLED` | `false` |
+| `RAG_V2_ENABLED` | `false` (config + `.env.example`) |
 
 ## RETRO (последний сверху)
 
-_Заполняется агентом в конце каждого спринта. Шаблон:_
+### RETRO S0 — 2026-06-09
+
+**Выполнение:** S0-1…S0-7 done
+**Артефакты:** `RAG_V2_ENABLED` (config), migration v026, `category_tier_map.json`, RU recall corpus/queries (52/36), `scratch/recall_at_k_eval.js`, `compare_rag_models.js --mode=inject-only`, eval metrics/tests
+**Соответствие плану:** v024→v026 в §6 (v024 уже занят индексами); gate recall@k — скрипт готов, полный прогон с API — `npm run eval:recall-at-k`
+**Качество:** migration/config/recall dataset tests PASS; test:pr 64/66 (express.json 2mb — pre-existing)
+**Метрики:** plan_accuracy ~95%; tech debt: self-hosted embedder gate ждёт S1; OPT: seed tier в sqlite.ts исправлен post-Bugbot
+
+**Bugbot-review:** findings 3 (critical/high/medium/low) — 0/1/2/0
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | v026 + sqlite seed | Fresh install tier mapping — **fixed** (seed UPDATE) |
+| medium | v026 migration | Invalid tier from extra_params — **fixed** (CHECK + normalize) |
+| medium | rag.eval.js | Citation skip without retrieval — **fixed** |
+
+**Уроки:** v024 в плане устарел; tier seed должен идти после миграции; recall gate требует live API для Yandex/Qwen
+**OPT предложены:** нет
+**Вопросы пользователю:** нет
+
+---
+
+_Шаблон:_
 
 ```markdown
 ### RETRO S{N} — YYYY-MM-DD

@@ -83,23 +83,27 @@ class RAGEvalRunner {
   }
 
   _validate(testCase, response) {
-    const answer = response.choices[0].message.content;
+    const answer = (response.choices[0].message.content || '').toLowerCase();
     const retrieval = response._retrieval;
 
-    // Check refusal
+    const RU_REFUSAL_MARKERS = [
+      'недостаточно', 'не указан', 'не содержит', 'не упомина', 'не могу', 'отсутств',
+      "don't have enough information", 'not provided', 'context does not mention',
+    ];
+
     if (testCase.expected_behavior === 'refuse') {
-      const isRefusal = answer.toLowerCase().includes("don't have enough information") || 
-                        answer.toLowerCase().includes("not provided") ||
-                        answer.toLowerCase().includes("context does not mention");
-      return { 
-        id: testCase.id, 
-        passed: isRefusal, 
-        message: isRefusal ? 'Correct refusal' : 'Failed to refuse' 
+      const isRefusal = RU_REFUSAL_MARKERS.some(m => answer.includes(m));
+      return {
+        id: testCase.id,
+        passed: isRefusal,
+        message: isRefusal ? 'Correct refusal' : 'Failed to refuse',
       };
     }
 
-    // Check citations
     if (testCase.required_citations) {
+      if (!retrieval?.chunks) {
+        return { id: testCase.id, passed: false, message: 'Missing retrieval metadata for citation check' };
+      }
       const foundCitations = retrieval.chunks.map(c => c.sourceId);
       const missing = testCase.required_citations.filter(id => !foundCitations.includes(id));
       if (missing.length > 0) {
@@ -107,17 +111,28 @@ class RAGEvalRunner {
       }
     }
 
-    // Check content (Heuristic: keyword match)
+    if (Array.isArray(testCase.must_include) && testCase.must_include.length > 0) {
+      const missing = testCase.must_include.filter(k => !answer.includes(k.toLowerCase()));
+      const passed = missing.length === 0;
+      return {
+        id: testCase.id,
+        passed,
+        message: passed ? 'must_include OK' : `Missing: ${missing.join(', ')}`,
+      };
+    }
+
     if (testCase.expected_answer) {
-      const keywords = testCase.expected_answer.split(' ').filter(w => w.length > 3);
-      const matchCount = keywords.filter(k => answer.toLowerCase().includes(k.toLowerCase())).length;
-      const matchRatio = matchCount / keywords.length;
-      
-      const passed = matchRatio >= 0.5; // Simple threshold
-      return { 
-        id: testCase.id, 
-        passed, 
-        message: passed ? `Matched ${matchRatio.toFixed(2)}` : `Poor match ${matchRatio.toFixed(2)} | Expected: ${testCase.expected_answer}`
+      const tokens = testCase.expected_answer
+        .split(/[\s(),./]+/)
+        .map(w => w.trim())
+        .filter(w => w.length > 2);
+      const matchCount = tokens.filter(k => answer.includes(k.toLowerCase())).length;
+      const matchRatio = tokens.length ? matchCount / tokens.length : 0;
+      const passed = matchRatio >= 0.5;
+      return {
+        id: testCase.id,
+        passed,
+        message: passed ? `Matched ${matchRatio.toFixed(2)}` : `Poor match ${matchRatio.toFixed(2)} | Expected: ${testCase.expected_answer}`,
       };
     }
 

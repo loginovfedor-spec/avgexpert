@@ -28,6 +28,8 @@ class CategoryRepository {
       complexity: row.complexity != null ? parseFloat(row.complexity) : 1.0,
       suggested_questions: row.suggested_questions || '',
       sort_index: row.sort_index != null ? parseInt(row.sort_index, 10) : 0,
+      rag_enabled: !!row.rag_enabled,
+      retrieval_tier: row.retrieval_tier || 'consultant',
     };
   }
 
@@ -46,14 +48,14 @@ class CategoryRepository {
         temperature, top_p, top_k, min_p, repeat_penalty, 
         input_context_default, input_context_max, max_tokens, system_prompt, extra_params, routing_mode, 
         fallback_provider, yandex_folder_id, debug_mode, complexity,
-        suggested_questions, sort_index
+        suggested_questions, sort_index, rag_enabled, retrieval_tier
       )
       VALUES (
         @name, @provider, @endpoint_url, @model_name, @api_key, 
         @temperature, @top_p, @top_k, @min_p, @repeat_penalty, 
         @input_context_default, @input_context_max, @max_tokens, @system_prompt, @extra_params, @routing_mode, 
         @fallback_provider, @yandex_folder_id, @debug_mode, @complexity,
-        @suggested_questions, @sort_index
+        @suggested_questions, @sort_index, @rag_enabled, @retrieval_tier
       )
       ON CONFLICT(name) DO UPDATE SET
         provider=excluded.provider,
@@ -76,7 +78,9 @@ class CategoryRepository {
         debug_mode=excluded.debug_mode,
         complexity=excluded.complexity,
         suggested_questions=excluded.suggested_questions,
-        sort_index=excluded.sort_index
+        sort_index=excluded.sort_index,
+        rag_enabled=excluded.rag_enabled,
+        retrieval_tier=excluded.retrieval_tier
     `).run({
       name,
       provider: category.provider || null,
@@ -100,6 +104,8 @@ class CategoryRepository {
       complexity,
       suggested_questions: category.suggested_questions || '',
       sort_index: category.sort_index != null ? parseInt(category.sort_index, 10) : 0,
+      rag_enabled: category.rag_enabled ? 1 : 0,
+      retrieval_tier: category.retrieval_tier || 'consultant',
     });
   }
 
@@ -130,6 +136,8 @@ class CategoryRepository {
         complexity: row.complexity != null ? parseFloat(row.complexity) : 1.0,
         suggested_questions: row.suggested_questions || '',
         sort_index: row.sort_index != null ? parseInt(row.sort_index, 10) : 0,
+        rag_enabled: !!row.rag_enabled,
+        retrieval_tier: row.retrieval_tier || 'consultant',
       };
     }
     return result;

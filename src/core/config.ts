@@ -46,6 +46,7 @@ const envSchema = z.object({
   TOOL_GATEWAY_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   SANDBOX_FORGE_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   TEMPORAL_RUNTIME_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
+  RAG_V2_ENABLED: z.string().default('false').transform((v: string) => v === 'true'),
   TEMPORAL_URL: z.string().default('localhost:7233'),
   PUBLIC_BASE_URL: z.string().optional().default(''),
   ROBOKASSA_MERCHANT_LOGIN: z.string().optional().default(''),
@@ -146,6 +147,7 @@ const FEATURE_FLAGS = {
   TOOL_GATEWAY_ENABLED: env.TOOL_GATEWAY_ENABLED,
   SANDBOX_FORGE_ENABLED: env.SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED: env.TEMPORAL_RUNTIME_ENABLED,
+  RAG_V2_ENABLED: env.RAG_V2_ENABLED,
 };
 const {
   SEMANTIC_LAYER_ENABLED,
@@ -156,6 +158,7 @@ const {
   TOOL_GATEWAY_ENABLED,
   SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED,
+  RAG_V2_ENABLED,
 } = FEATURE_FLAGS;
 
 module.exports = {
@@ -180,6 +183,7 @@ module.exports = {
   TOOL_GATEWAY_ENABLED,
   SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED,
+  RAG_V2_ENABLED,
   TEMPORAL_URL: env.TEMPORAL_URL,
   FEATURE_FLAGS,
   isDev: env.NODE_ENV === 'development',

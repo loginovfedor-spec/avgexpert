@@ -23,6 +23,7 @@
   require('./v022_add_user_context_generation_limits'),
   require('./v023_convert_category_input_limits_to_token_scale'),
   require('./v024_add_query_performance_indexes'),
-  require('./v025_add_user_token_history_indexes')
+  require('./v025_add_user_token_history_indexes'),
+  require('./v026_add_category_rag_fields')
 ];
 

@@ -197,7 +197,8 @@ const CATEGORY_FIELDS = [
   'provider', 'model_name', 'endpoint_url', 'api_key', 'yandex_folder_id',
   'temperature', 'top_p', 'top_k', 'min_p', 'repeat_penalty',
   'input_context_default', 'input_context_max', 'max_tokens', 'system_prompt', 'routing_mode', 'fallback_provider',
-  'extra_params', 'debug_mode', 'complexity', 'suggested_questions', 'sort_index'
+  'extra_params', 'debug_mode', 'complexity', 'suggested_questions', 'sort_index',
+  'rag_enabled', 'retrieval_tier'
 ];
 
 router.get('/categories', asyncHandler(async (req, res) => {
@@ -245,6 +246,8 @@ const categorySchema = z.object({
   complexity: z.number().min(0.01).max(99.99).optional().nullable(),
   suggested_questions: z.string().max(16000).optional().nullable(),
   sort_index: z.number().int().optional().nullable(),
+  rag_enabled: z.boolean().optional().nullable(),
+  retrieval_tier: z.enum(['consultant', 'expert', 'sage']).optional().nullable(),
 });
 
 router.post('/categories/:category_name', asyncHandler(async (req, res) => {

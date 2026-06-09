@@ -371,7 +371,7 @@ DATABASE_URL=postgresql://...
 | S0-1 | Зафиксировать архитектурные решения §11 в этом документе | Решения §11.1–§11.6 отмечены Approved |
 | S0-2 | Расширить `compare_rag_models.js`: режим inject-only | Baseline JSON для 3 tier LLM |
 | S0-3 | Feature flag `RAG_V2_ENABLED` в config | env + config.ts |
-| S0-4 | Миграция categories: `retrieval_tier`, `rag_enabled` schema | SQLite migration v024 |
+| S0-4 | Миграция categories: `retrieval_tier`, `rag_enabled` schema | SQLite migration v026 |
 | S0-5 | Карта категорий → provider + tier + model | Таблица §7 |
 | S0-6 | **Recall@k eval** на реальном корпусе (≥30 запросов, ≥50 docs) | Отчёт: self-hosted vs Yandex baseline; gate до фиксации namespace (§11.3) |
 | S0-7 | Доменный RU eval-набор (замена keyword-only `rag.eval.js`) | ≥30 размеченных query→chunk pairs |
@@ -638,6 +638,8 @@ src/modules/
 
 ### 11.1 Embedding-провайдер и приватность (C3, H1)
 
+**Статус:** Approved (S0-1, 2026-06-09)
+
 **Решение:** ☑ **Вариант C** — полностью self-hosted embedder для всех scope (global, user, session).
 
 | Аспект | Self-hosted (ONNX / bge-m3 / multilingual-e5) |
@@ -654,6 +656,8 @@ src/modules/
 
 ### 11.2 Rerank vs metadata-weighted scoring (H3)
 
+**Статус:** Approved (S0-1, 2026-06-09)
+
 **Решение:** ☑ **Вариант B** — двухэтапный подход.
 
 | Этап | Что делаем |
@@ -662,6 +666,8 @@ src/modules/
 | Follow-up (S7b) | Self-hosted **bge-reranker-v2-m3** для expert/sage после baseline eval |
 
 ### 11.3 Валидация выбора embedder (H2)
+
+**Статус:** Approved (S0-1, 2026-06-09)
 
 **Решение:** ☑ Gate criteria утверждены.
 
@@ -676,6 +682,8 @@ src/modules/
 `compare_embeddings.js` — вспомогательный pairwise-бенчмарк, **не** gate.
 
 ### 11.4 Миграция данных и канонические книги (C1)
+
+**Статус:** Approved (S0-1, 2026-06-09)
 
 **Решение:** ☑ **Re-indexing канонического корпуса** — не ETL векторов.
 
@@ -699,6 +707,8 @@ src/modules/
 
 ### 11.5 Изоляция retrieval cache (C2)
 
+**Статус:** Approved (S0-1, 2026-06-09)
+
 **Решение:** ☑ Утверждено. Задача **S3-6**.
 
 Ключ кеша RAG v2:
@@ -710,6 +720,8 @@ hash(normalize(query) + namespace + tier + scopes.join() + userId + sessionId)
 Текущий `knowledge.cache.ts` (ключ только по query) — **блокер** для user/session scope; заменить до prod cutover.
 
 ### 11.6 Семантический граф (H4)
+
+**Статус:** Approved (S0-1, 2026-06-09)
 
 **Решение:** ☑ Утверждено — **R&D spike**, не production gate v1.
 
