@@ -617,6 +617,8 @@ src/modules/
 
 ### B. Связанные документы
 
+- `docs/sprints/README.md` — протокол работы агентов по спринтам (отдельный чат = отдельный handoff)
+- `docs/sprints/SPRINT_STATE.md` — текущий статус миграции (обновляется в конце каждого спринта)
 - `scratch/compare_embeddings.js` — pairwise/margin бенчмарк (не recall gate; см. §11.3)
 - `scratch/compare_rag_models.js` — eval LLM при inject
 - `src/modules/knowledge/knowledge.gateway.ts` — legacy gateway (fallback)

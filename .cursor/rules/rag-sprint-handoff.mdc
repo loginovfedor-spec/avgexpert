@@ -1,0 +1,34 @@
+---
+description: RAG v2 sprint handoff — читать STATE и бриф спринта в начале каждого чата
+alwaysApply: true
+---
+
+# RAG v2 Sprint Handoff
+
+При работе над миграцией RAG (спринты S0–S10):
+
+## В начале чата (обязательно)
+
+1. Прочитать `docs/sprints/SPRINT_STATE.md`
+2. Прочитать бриф текущего спринта `docs/sprints/S{NN}-*.md`
+3. Прочитать `docs/sprints/HANDOFF-{N-1}.md` если существует
+4. Сверить с `docs/architecture/RAG_MIGRATION_PLAN.md` §6 и §11
+5. Кратко сообщить пользователю: текущий спринт, prereqs, план по задачам
+
+## Во время работы
+
+- Выполнять **только** задачи текущего спринта (Sx-y из брифа)
+- Не менять §11 без явного согласования
+- Коммиты с префиксом `S{N}:`
+
+## В конце спринта (обязательно)
+
+1. Прогнать тесты из брифа
+2. Создать `docs/sprints/HANDOFF-{NN}.md` (шаблон: `_HANDOFF_TEMPLATE.md`)
+3. Обновить `docs/sprints/SPRINT_STATE.md` (status, decisions, env, next_agent_notes)
+4. commit + push
+5. Не начинать задачи следующего спринта
+
+## Источник правды
+
+`docs/architecture/RAG_MIGRATION_PLAN.md` — архитектура; `SPRINT_STATE.md` — оперативное состояние.
