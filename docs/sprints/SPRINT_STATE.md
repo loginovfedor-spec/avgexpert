@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S4` |
+| **current_sprint** | `S5` |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -18,44 +18,27 @@
 
 ## Прогресс текущего спринта
 
-
-
 _Задачи и DoD — в плане §6. Здесь только статус._
 
-
-
 | ID | Статус |
-
 |----|--------|
-
-| S4-1 | pending |
-
-| S4-2 | pending |
-
-| S4-3 | pending |
-
-| S4-4 | pending |
-
-| S4-5 | pending |
-
-| S4-6 | pending |
-
-
+| S5-1 | pending |
+| S5-2 | pending |
+| S5-3 | pending |
+| S5-4 | pending |
+| S5-5 | pending |
+| S5-6 | pending |
+| S5-7 | pending |
+| S5-8 | pending |
 
 ## Завершённые спринты
 
-
-
 | Спринт | Дата | Коммиты | Bugbot |
-
 |--------|------|---------|--------|
-
+| S4 | 2026-06-09 | — | 0 critical, 2 high (fixed), 2 medium (fixed) |
 | S3 | 2026-06-09 | `91be257` | не запускался |
-
 | S2 | 2026-06-09 | — | ручная проверка |
-
 | S1 | 2026-06-09 | — | ручная проверка |
-
 | S0 | 2026-06-09 | — | 0 critical, 1 high (fixed), 2 medium (fixed) |
 
 
@@ -91,6 +74,35 @@ _Задачи и DoD — в плане §6. Здесь только статус
 ## RETRO (последний сверху)
 
 
+
+### RETRO S4 — 2026-06-09
+
+**Выполнение:** S4-1…S4-6 done
+
+**Артефакты:** `yandex.js` (Responses + stream + inject-only + `llm_response_cache`), deprecation `yandex_file_search.js`, `v027`, `DegradedRetriever`, `eval:consultant-recall`, tests S4
+
+**Соответствие плану:** нет расхождений с §6 S4; FTS fallback — только global scope (legacy corpus)
+
+**Качество:** `tsc --noEmit` PASS; `test:rag` 13/13 PASS; `test:s4` 8/8 PASS; `eval:consultant-recall` PASS
+
+**Метрики:** plan_accuracy ~97%; tech debt: live recall gate — `eval:recall-at-k`; staging E2E — `RAG_V2_ENABLED=true`
+
+**Bugbot-review:** findings 4 (0 critical, 2 high fixed, 2 medium fixed)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | rag.orchestrator cache | Degraded FTS cached — **fixed** |
+| high | degraded.retriever FTS | Ignored scopes — **fixed** (global only) |
+| medium | yandex.js cache key | Missing gen params — **fixed** |
+| medium | degraded.retriever health | Probe every query — **fixed** (30s TTL) |
+
+**Уроки:** degraded path не кэшировать; offline eval = parity TieredRetriever vs direct rank
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S3 — 2026-06-09
 

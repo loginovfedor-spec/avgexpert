@@ -2,6 +2,7 @@ import type { RetrievalContext } from '../vector/ports/retriever';
 import type { RetrievalTier } from '../vector/types';
 import { RetrievalResult } from '../knowledge/knowledge.types';
 import { TieredRetriever } from '../vector/retrievers/tiered.retriever';
+import { DegradedRetriever } from '../vector/retrievers/degraded.retriever';
 import { createVectorStackFromEnv } from '../vector/registry';
 import { loadEmbeddingConfig } from '../vector/embedding.service';
 import {
@@ -49,7 +50,7 @@ type RetrieveInput = {
 };
 
 type RagOrchestratorDeps = {
-  retriever?: TieredRetriever;
+  retriever?: DegradedRetriever | TieredRetriever;
   namespace?: string;
   cache?: typeof scopedRetrievalCache;
 };
@@ -114,7 +115,7 @@ function applyAnswerabilityPolicy(
 }
 
 export class RagOrchestrator {
-  private readonly retriever: TieredRetriever;
+  private readonly retriever: DegradedRetriever | TieredRetriever;
   private readonly namespace: string;
   private readonly cache: typeof scopedRetrievalCache;
 
@@ -125,11 +126,14 @@ export class RagOrchestrator {
     } else {
       const stack = createVectorStackFromEnv();
       this.namespace = stack.embeddingConfig.namespace;
-      this.retriever = new TieredRetriever(
+      const tiered = new TieredRetriever(
         stack.embedding,
         stack.store,
         this.namespace
       );
+      // @ts-ignore legacy JS adapter default export
+      const SQLiteFTSRetriever = require('../knowledge/adapters/sqlite_fts.adapter');
+      this.retriever = new DegradedRetriever(tiered, new SQLiteFTSRetriever());
     }
     this.cache = deps.cache || scopedRetrievalCache;
   }
@@ -194,13 +198,21 @@ export class RagOrchestrator {
     });
 
     try {
-      const { chunks, embedMs, searchMs } = await this.retriever.retrieveWithTiming(query, ctx);
+      const timing = await this.retriever.retrieveWithTiming(query, ctx);
+      const { chunks, embedMs, searchMs } = timing;
+      const retrieverId = ('retrieverId' in timing && typeof timing.retrieverId === 'string')
+        ? timing.retrieverId
+        : 'tiered-vector';
+      const degraded = ('degraded' in timing && typeof timing.degraded === 'boolean')
+        ? timing.degraded
+        : false;
 
       traceBus.emitTrace('RagOrchestrator', 'rag.embed_ms', { embedMs, tier: ctx.tier });
       traceBus.emitTrace('RagOrchestrator', 'rag.search_ms', {
         searchMs,
         tier: ctx.tier,
         chunkCount: chunks.length,
+        degraded: Boolean(degraded),
       });
 
       const result = new RetrievalResult({
@@ -208,9 +220,10 @@ export class RagOrchestrator {
         mode: 'balanced',
         chunks,
         metadata: {
-          retrieverId: 'tiered-vector',
+          retrieverId,
           embedMs,
           searchMs,
+          degraded: Boolean(degraded),
           latencyMs: Date.now() - startTime,
         },
       });
@@ -221,7 +234,7 @@ export class RagOrchestrator {
         catSettings.rag_answerability_policy || 'balanced'
       );
 
-      if (!finalResult.metadata.error) {
+      if (!finalResult.metadata.error && !degraded) {
         this.cache.set(cacheKey, finalResult);
       }
 

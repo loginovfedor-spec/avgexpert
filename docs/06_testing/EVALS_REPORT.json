@@ -1,0 +1,9 @@
+{
+  "rag_recall_dataset_chunks": 52,
+  "rag_recall_dataset_queries": 36,
+  "rag_recall_smoke_last_run": "2026-06-09T19:19:12.592Z",
+  "consultant_recall_at_3": 0.11574074074074076,
+  "consultant_recall_baseline": 0.11574074074074076,
+  "consultant_recall_last_run": "2026-06-09T19:59:12.677Z",
+  "consultant_recall_passed": true
+}

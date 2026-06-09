@@ -1,4 +1,13 @@
 /**
+ * @deprecated S4: use yandex.js (inject-only) + RagOrchestrator/TieredRetriever.
+ * Embed/search in this adapter will be removed in S9.
+ */
+const logger = require('../../../core/logger').scoped('YandexFileSearch');
+logger.warn(
+  'yandex_file_search adapter is deprecated (S4). Use provider "yandex" with RAG_V2 inject-only path.'
+);
+
+/**
  * Provider: Yandex Cloud + File Search
  * Models: aliceai-llm-flash/latest, aliceai-llm/latest, yandexgpt-5.1
  * Endpoint: https://ai.api.cloud.yandex.net/v1
@@ -12,7 +21,6 @@ const fetch = require('node-fetch');
 const crypto = require('crypto');
 const path = require('path');
 const { createRequire } = require('module');
-const logger = require('../../../core/logger').scoped('YandexFileSearch');
 
 const pgPools = new Map();
 let PgPool = null;
@@ -180,6 +188,7 @@ class YandexFileSearchProvider extends BaseProvider {
   }
 
   async *handleChat(messages, categoryConfig, options = {}) {
+    logger.warn('yandex_file_search.handleChat: deprecated — switch category provider to "yandex" with RAG_V2');
     const ProviderEvents = require('../providerEvents');
     const { ProviderError } = require('../providerErrors');
     const adapterConfig = getAdapterConfig(categoryConfig.provider || 'yandex_file_search');
