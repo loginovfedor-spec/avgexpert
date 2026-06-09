@@ -1,63 +1,53 @@
-# Sprint State — RAG v2 Migration
+# Sprint State
 
-**Обновляется агентом в конце каждого спринта. Следующий агент читает этот файл первым.**
+> Агент обновляет этот файл. Пользователь **не редактирует** (кроме ответов на вопросы агента).
 
 | Поле | Значение |
 |------|----------|
-| **current_sprint** | `S0` (не начат) |
-| **last_completed** | — |
-| **branch** | `main` |
-| **repo** | https://github.com/loginovfedor-spec/avgexpert |
+| **current_sprint** | `S0` |
+| **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
-## Статус спринтов
+## Прогресс текущего спринта
 
-| Спринт | Статус | Commit(s) | HANDOFF |
-|--------|--------|-----------|---------|
-| S0 | `pending` | — | — |
-| S1 | `pending` | — | — |
-| S2 | `pending` | — | — |
-| S3 | `pending` | — | — |
-| S4 | `pending` | — | — |
-| S5 | `pending` | — | — |
-| S6 | `pending` | — | — |
-| S7 | `pending` | — | — |
-| S7b | `pending` | — | — |
-| S8 | `pending` | — | — |
-| S9 | `pending` | — | — |
-| S10 | `pending` | — | — |
+_Задачи и DoD — в плане §6. Здесь только статус._
 
-## Зафиксированные решения (накопительно)
+| ID | Статус |
+|----|--------|
+| S0-1 | pending |
+| S0-2 | pending |
+| S0-3 | pending |
+| S0-4 | pending |
+| S0-5 | pending |
+| S0-6 | pending |
+| S0-7 | pending |
 
-См. [`RAG_MIGRATION_PLAN.md` §11](../architecture/RAG_MIGRATION_PLAN.md). Дополнения по ходу работы:
+## Завершённые спринты
 
-| Дата | Спринт | Решение |
-|------|--------|---------|
-| 2026-06-09 | — | §11.1–§11.6 утверждены (self-hosted embedder, metadata scoring, recall@k gate, re-index books, scoped cache, graph=R&D) |
+| Спринт | Дата | Коммиты |
+|--------|------|---------|
+| — | — | — |
 
-## Env / namespace (заполняется в S0–S1)
+## Параметры (заполняет агент по ходу работы)
 
 | Параметр | Значение |
 |----------|----------|
-| `EMBEDDING_PROVIDER` | TBD (после S0-6) |
+| `EMBEDDING_PROVIDER` | TBD |
 | `EMBEDDING_MODEL` | TBD |
 | `EMBEDDING_DIMS` | TBD |
 | `EMBEDDING_NAMESPACE` | TBD |
-| `RAG_V2_ENABLED` | `false` (default до S3) |
+| `RAG_V2_ENABLED` | `false` |
 
-## Eval baseline (заполняется в S0)
+## Журнал (последний сверху)
 
-| Метрика | Значение |
-|---------|----------|
-| recall@3 Yandex baseline | TBD |
-| recall@3 self-hosted | TBD |
-| eval dataset path | TBD (`tests/evals/` или `scratch/`) |
+_Краткий итог каждого спринта — вместо отдельных HANDOFF-файлов._
+
+<!-- Пример после S0:
+### S0 — 2026-06-15
+- recall@3: self-hosted 0.82, Yandex baseline 0.79 → gate passed
+- EMBEDDING_NAMESPACE=bge-m3-v1
+- Коммиты: abc1234
+-->
 
 ## Блокеры
 
-| ID | Описание | Спринт | Статус |
-|----|----------|--------|--------|
-| — | нет | — | — |
-
-## Заметки для следующего агента
-
-_Пока спринты не начаты. Первый агент: откройте чат S0, прочитайте `S00-preparation.md`._
+_Нет._
