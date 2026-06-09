@@ -30,7 +30,7 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
-| S7 | 2026-06-10 | — | 0 critical, 0 high, 1 medium (fixed) |
+| S7 | 2026-06-10 | `85fc199` | 0 critical, 0 high, 1 medium (fixed) |
 | S6 | 2026-06-09 | — | 0 critical, 4 high (fixed) |
 | S5 | 2026-06-09 | `ad2f65b` `206c9ab` `de704db` | 0 critical, 1 high (fixed), 6 medium (1 fixed, 5 tech debt) |
 | S4 | 2026-06-09 | — | 0 critical, 2 high (fixed), 2 medium (fixed) |
