@@ -1,4 +1,4 @@
-# User KB Security Checklist (S5-7)
+# User KB Security Checklist (S5-7, S9-4)
 
 **Scope:** `POST /api/user/documents`, `GET/DELETE /api/user/documents`, retrieval `scope=user`.
 
@@ -12,6 +12,14 @@
 | Extension whitelist | `.txt`, `.md`, `.markdown` |
 | Filename sanitization | `path.basename`, strip unsafe chars, max 255 |
 | Empty file | Rejected |
+
+## Upload rate limit (S9-4)
+
+| Control | Implementation |
+| ------- | -------------- |
+| Per-user upload throttle | `express-rate-limit` on `POST /api/user/documents` |
+| Window / max | 20 uploads / 15 min / user (`uploadLimiter` in `kb.routes.ts`) |
+| Test env | Limiter bypassed when `NODE_ENV=test` |
 
 ## SSRF / source_uri (S5-7)
 
@@ -42,6 +50,18 @@
 
 Re-run before prod cutover:
 
-- `npm run test:s5`
-- `npm run test:rag`
-- Manual: user A cannot `GET/DELETE` user B document by ID
+```bash
+npm run test:s5
+npm run test:rag
+npm run test:s9
+```
+
+| Check | Automated |
+| ----- | --------- |
+| Upload validation | `test:s5` |
+| Tenant isolation (retriever + cache) | `test:rag` / `tenant-isolation.test.ts` |
+| User API scope=user only | `test:s5` |
+| Upload rate limit wired | `upload.rate-limit.test.ts` |
+| yandex_file_search no embed/search | `yandex_file_search_no_pg.test.js` |
+
+Manual: user A cannot `GET/DELETE` user B document by ID.

@@ -91,7 +91,8 @@ class YandexProvider extends BaseProvider {
   async *handleChat(messages, categoryConfig, options = {}) {
     const ProviderEvents = require('../providerEvents');
     const { ProviderError } = require('../providerErrors');
-    const adapterConfig = getAdapterConfig('yandex');
+    const providerId = categoryConfig.provider || this.id || 'yandex';
+    const adapterConfig = getAdapterConfig(providerId);
 
     const apiKey = adapterConfig.YANDEX_CLOUD_API_KEY || adapterConfig.YANDEX_API_KEY || categoryConfig.api_key;
     const folderId = adapterConfig.YANDEX_CLOUD_FOLDER || adapterConfig.YANDEX_FOLDER_ID || categoryConfig.yandex_folder_id;
@@ -223,7 +224,8 @@ class YandexProvider extends BaseProvider {
   }
 
   async checkHealth(categoryConfig) {
-    const adapterConfig = getAdapterConfig('yandex');
+    const providerId = categoryConfig?.provider || this.id || 'yandex';
+    const adapterConfig = getAdapterConfig(providerId);
     const apiKey = adapterConfig.YANDEX_CLOUD_API_KEY || categoryConfig?.api_key;
     const folderId = adapterConfig.YANDEX_CLOUD_FOLDER || categoryConfig?.yandex_folder_id;
     const baseUrl = adapterConfig.YANDEX_CLOUD_BASE_URL || 'https://ai.api.cloud.yandex.net/v1';

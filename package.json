@@ -4,7 +4,6 @@
   "description": "AvgExpert — API Gateway with user auth",
   "main": "server.ts",
   "scripts": {
-    "postinstall": "npm install --prefix src/modules/providers/adapters/yandex_file_search_pg --omit=dev",
     "prestart": "node scripts/ensure-better-sqlite3.js && node scripts/ensure-webui-dist.js",
     "start": "tsx server.ts",
     "rebuild:native": "node scripts/ensure-better-sqlite3.js",
@@ -41,6 +40,8 @@
     "test:s7": "tsx --test tests/rag/metadata-scoring.test.ts tests/rag/tiered.retriever.s7.test.ts tests/migrations/v028_tier_provider_categories.test.js",
     "test:s7b": "tsx --test tests/vector/selfhosted.reranker.test.ts tests/vector/reranker.service.test.ts tests/rag/tiered.retriever.s7b.test.ts tests/rag/rerank.latency.test.ts",
     "test:s8": "tsx --test tests/rag/domain-tags-filter.test.ts tests/rag/tiered.retriever.s8.test.ts tests/semantic/entity-extraction.test.ts tests/semantic/semantic-graph.service.test.ts tests/semantic/semantic-graph.connection.test.ts tests/vector/semantic-graph.migration.test.ts",
+    "test:s9": "tsx --test tests/yandex_file_search_no_pg.test.js tests/rag_v2_config.test.js tests/rag/retrieval.load.test.ts tests/kb/upload.rate-limit.test.ts tests/rag/tenant-isolation.test.ts",
+    "load:rag-retrieval": "tsx scripts/rag_retrieval_load.ts",
     "spike:semantic-graph": "tsx scripts/semantic_graph_spike.ts",
     "kb:pg:migrate": "tsx scripts/kb_pg_migrate.ts",
     "kb:pg:smoke": "tsx scripts/pgvector_smoke.ts",

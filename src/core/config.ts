@@ -24,6 +24,7 @@ const envSchema = z.object({
   AVGEXPERT_PROVIDER_TIMEOUT: z.string().transform(Number).default('60000'),
   AVGEXPERT_TEST_TIMEOUT: z.string().transform(Number).default('5000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
+  AVGEXPERT_DEPLOY_ENV: z.enum(['development', 'staging', 'production']).default('development'),
   E2B_API_KEY: z.string().optional(),
   // Provider variables
   LLAMACPP_URL: z.string().optional(),
@@ -46,7 +47,7 @@ const envSchema = z.object({
   TOOL_GATEWAY_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   SANDBOX_FORGE_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   TEMPORAL_RUNTIME_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
-  RAG_V2_ENABLED: z.string().default('false').transform((v: string) => v === 'true'),
+  RAG_V2_ENABLED: z.string().optional(),
   SEMANTIC_GRAPH_ENABLED: z.string().default('false').transform((v: string) => v === 'true'),
   CONVERSATION_MAX_TOKENS: z.string().transform(Number).default('100000'),
   KB_USER_MAX_DOCS: z.string().transform(Number).default('0'),
@@ -84,6 +85,15 @@ if (!parsedEnv.success) {
 }
 
 const env = parsedEnv.data;
+
+function resolveRagV2Enabled(): boolean {
+  if (env.RAG_V2_ENABLED !== undefined) {
+    return env.RAG_V2_ENABLED === 'true';
+  }
+  return env.AVGEXPERT_DEPLOY_ENV === 'staging';
+}
+
+const ragV2Enabled = resolveRagV2Enabled();
 
 // 2.5 Production Safety Hardening
 if (env.NODE_ENV === 'production') {
@@ -165,7 +175,7 @@ const FEATURE_FLAGS = {
   TOOL_GATEWAY_ENABLED: env.TOOL_GATEWAY_ENABLED,
   SANDBOX_FORGE_ENABLED: env.SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED: env.TEMPORAL_RUNTIME_ENABLED,
-  RAG_V2_ENABLED: env.RAG_V2_ENABLED,
+  RAG_V2_ENABLED: ragV2Enabled,
   SEMANTIC_GRAPH_ENABLED: env.SEMANTIC_GRAPH_ENABLED,
 };
 const {
@@ -212,9 +222,11 @@ module.exports = {
   KB_USER_MAX_DOCS,
   KB_USER_MAX_FILE_BYTES,
   TEMPORAL_URL: env.TEMPORAL_URL,
+  AVGEXPERT_DEPLOY_ENV: env.AVGEXPERT_DEPLOY_ENV,
   FEATURE_FLAGS,
   isDev: env.NODE_ENV === 'development',
   isTest: env.NODE_ENV === 'test',
+  isStaging: env.AVGEXPERT_DEPLOY_ENV === 'staging',
   allowedOrigins: env.AVGEXPERT_ALLOWED_ORIGINS.split(',').map((s: string) => s.trim()).filter(Boolean),
   publicBaseUrl: env.PUBLIC_BASE_URL,
   robokassa: {

@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import { z } from 'zod';
 // @ts-ignore
 import { asyncHandler, AppError } from '../../core/errors';
@@ -26,6 +27,22 @@ function ownerId(req: AuthedRequest): string {
   return String(req.user?.username || '');
 }
 
+const uploadLimiter = process.env.NODE_ENV === 'test'
+  ? (_req: Request, _res: Response, next: () => void) => next()
+  : rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 20,
+      standardHeaders: true,
+      legacyHeaders: false,
+      keyGenerator: (req: Request) => ownerId(req as AuthedRequest) || 'anonymous',
+      handler: (_req, res, _next, options) => {
+        res.status(options.statusCode).json({
+          error: { code: 'rate_limit', message: options.message },
+        });
+      },
+      message: 'Превышен лимит загрузок документов, попробуйте позже',
+    });
+
 function toPublicDoc(doc: {
   id: string;
   filename: string;
@@ -48,6 +65,7 @@ function toPublicDoc(doc: {
 
 router.post(
   '/documents',
+  uploadLimiter,
   asyncHandler(async (req: AuthedRequest, res: Response) => {
     const schema = z.object({
       filename: z.string().min(1).max(255),

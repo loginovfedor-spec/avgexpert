@@ -22,11 +22,11 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S9-1 | pending |
-| S9-2 | pending |
-| S9-3 | pending |
-| S9-4 | pending |
-| S9-5 | pending |
+| S9-1 | done |
+| S9-2 | done |
+| S9-3 | done |
+| S9-4 | done |
+| S9-5 | done |
 
 ## Завершённые спринты
 
@@ -65,7 +65,8 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | `EMBEDDING_API_URL` | local: `http://127.0.0.1:8090/embed` (TEI docker); prod: `http://83.166.253.250:8080/embed` |
 
-| `RAG_V2_ENABLED` | `false` (config + `.env.example`; staging: `true`) |
+| `RAG_V2_ENABLED` | `false` dev; `true` when `AVGEXPERT_DEPLOY_ENV=staging` (S9-2) |
+| `AVGEXPERT_DEPLOY_ENV` | `development` / `staging` / `production` |
 
 | `CONVERSATION_MAX_TOKENS` | `100000` (config + `.env.example`) |
 
