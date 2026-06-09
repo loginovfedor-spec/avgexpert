@@ -48,6 +48,7 @@ const envSchema = z.object({
   SANDBOX_FORGE_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   TEMPORAL_RUNTIME_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   RAG_V2_ENABLED: z.string().optional(),
+  FTS_FALLBACK_ENABLED: z.string().default('true').transform((v: string) => v === 'true'),
   SEMANTIC_GRAPH_ENABLED: z.string().default('false').transform((v: string) => v === 'true'),
   CONVERSATION_MAX_TOKENS: z.string().transform(Number).default('100000'),
   KB_USER_MAX_DOCS: z.string().transform(Number).default('0'),
@@ -90,7 +91,8 @@ function resolveRagV2Enabled(): boolean {
   if (env.RAG_V2_ENABLED !== undefined) {
     return env.RAG_V2_ENABLED === 'true';
   }
-  return env.AVGEXPERT_DEPLOY_ENV === 'staging';
+  return env.AVGEXPERT_DEPLOY_ENV === 'staging'
+    || env.AVGEXPERT_DEPLOY_ENV === 'production';
 }
 
 const ragV2Enabled = resolveRagV2Enabled();
@@ -176,6 +178,7 @@ const FEATURE_FLAGS = {
   SANDBOX_FORGE_ENABLED: env.SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED: env.TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED: ragV2Enabled,
+  FTS_FALLBACK_ENABLED: env.FTS_FALLBACK_ENABLED,
   SEMANTIC_GRAPH_ENABLED: env.SEMANTIC_GRAPH_ENABLED,
 };
 const {
@@ -188,6 +191,7 @@ const {
   SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED,
+  FTS_FALLBACK_ENABLED,
   SEMANTIC_GRAPH_ENABLED,
 } = FEATURE_FLAGS;
 const CONVERSATION_MAX_TOKENS = env.CONVERSATION_MAX_TOKENS;
@@ -217,6 +221,7 @@ module.exports = {
   SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED,
+  FTS_FALLBACK_ENABLED,
   SEMANTIC_GRAPH_ENABLED,
   CONVERSATION_MAX_TOKENS,
   KB_USER_MAX_DOCS,
@@ -227,6 +232,7 @@ module.exports = {
   isDev: env.NODE_ENV === 'development',
   isTest: env.NODE_ENV === 'test',
   isStaging: env.AVGEXPERT_DEPLOY_ENV === 'staging',
+  isProductionDeploy: env.AVGEXPERT_DEPLOY_ENV === 'production',
   allowedOrigins: env.AVGEXPERT_ALLOWED_ORIGINS.split(',').map((s: string) => s.trim()).filter(Boolean),
   publicBaseUrl: env.PUBLIC_BASE_URL,
   robokassa: {

@@ -467,11 +467,12 @@ router.get('/dashboard/mvp', asyncHandler(async (req, res) => {
   const approvalEvents = db.prepare('SELECT count(*) as count FROM approval_requests').get().count;
   
   const metrics = metricsService.getMetrics();
+  const ragMetrics = require('../observability/rag-metrics.service').getSnapshot();
 
-  // Try to load latest eval results
-  let semanticQualityScore = 0.845; // Default/baseline
+  // Eval report baseline; live RAG traces override semantic_quality when present
+  let semanticQualityScore = 0.845;
   let ragQualityScore = 1.0;
-  
+
   try {
     const evalPath = path.join(process.cwd(), 'docs/06_testing/EVALS_REPORT.json');
     if (fs.existsSync(evalPath)) {
@@ -481,6 +482,10 @@ router.get('/dashboard/mvp', asyncHandler(async (req, res) => {
     }
   } catch (e) {
     // fallback to placeholders if file missing or corrupt
+  }
+
+  if (ragMetrics.semantic_quality_score != null) {
+    semanticQualityScore = ragMetrics.semantic_quality_score;
   }
 
   // Feature flags
@@ -502,6 +507,7 @@ router.get('/dashboard/mvp', asyncHandler(async (req, res) => {
     sandbox_cold_count: 0,
     rag_quality_score: ragQualityScore,
     semantic_quality_score: semanticQualityScore,
+    rag_metrics: ragMetrics,
     recent_traces: traces
   });
 }));

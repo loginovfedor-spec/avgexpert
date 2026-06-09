@@ -52,6 +52,25 @@ test('RAG_V2_ENABLED defaults to true when AVGEXPERT_DEPLOY_ENV=staging', () => 
   assert.strictEqual(config.isStaging, true);
 });
 
+test('RAG_V2_ENABLED defaults to true when AVGEXPERT_DEPLOY_ENV=production', () => {
+  const config = loadConfig({
+    RAG_V2_ENABLED: undefined,
+    AVGEXPERT_DEPLOY_ENV: 'production',
+  });
+  assert.strictEqual(config.RAG_V2_ENABLED, true);
+  assert.strictEqual(config.isProductionDeploy, true);
+});
+
+test('FTS_FALLBACK_ENABLED defaults to true', () => {
+  const config = loadConfig({ FTS_FALLBACK_ENABLED: undefined });
+  assert.strictEqual(config.FTS_FALLBACK_ENABLED, true);
+});
+
+test('FTS_FALLBACK_ENABLED reads false from env', () => {
+  const config = loadConfig({ FTS_FALLBACK_ENABLED: 'false' });
+  assert.strictEqual(config.FTS_FALLBACK_ENABLED, false);
+});
+
 test('RAG_V2_ENABLED explicit env overrides staging default', () => {
   const config = loadConfig({
     RAG_V2_ENABLED: 'false',

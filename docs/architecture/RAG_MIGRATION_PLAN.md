@@ -293,8 +293,8 @@ DATABASE_URL=postgresql://...
 | `yandex_file_search.js`       | Deprecate: embed+search удалить; LLM-only path → `**yandex.js**` (chat-completions / Responses)                                                                                                                                     |
 | `yandex.js`                   | Каноничный Yandex LLM adapter (inject-only при RAG_V2)                                                                                                                                                                              |
 | `KnowledgeGateway` SQLite FTS | Fallback retriever `fts`; primary → `vector`                                                                                                                                                                                        |
-| `avg_vector_chunks`           | **Re-indexing канонического корпуса**, не ETL векторов: export `body`/metadata → `IngestionPipeline` → self-hosted embed → `kb_chunks` с иерархическими метаданными книг (§11.4). Поле `embedding` (Yandex 256d) **не переносится** |
-| `grok` GROK_COLLECTION_IDS    | Убрать из RAG path; optional mirror off                                                                                                                                                                                             |
+| `avg_vector_chunks`           | **Re-indexing канонического корпуса**, не ETL векторов: export `body`/metadata → `IngestionPipeline` → self-hosted embed → `kb_chunks` с иерархическими метаданными книг (§11.4). Поле `embedding` (Yandex 256d) **не переносится**; read-only до cutover (S10) |
+| `grok` GROK_COLLECTION_IDS    | **Удалено из RAG path (S10-3)**; inject-only через VectorKB                                                                                                                                                                         |
 | `compare_embeddings.js`       | Pairwise/margin QA; **не** gate для выбора embedder (см. S0-6 recall@k)                                                                                                                                                             |
 | `compare_rag_models.js`       | Обновить: единый inject + разные LLM                                                                                                                                                                                                |
 | `knowledge.cache.ts`          | Ключ только по query — **ломает isolation**; заменить в S3-6 (см. §11.5)                                                                                                                                                            |
@@ -769,7 +769,7 @@ src/modules/
 | `checksum`                        | TEXT       | дедуп                              |
 
 
-**Пайплайн:** export текстов (H1–H4) → section-aware chunking → обогащение тела чанка контекстом (`Контекст: [Книга] | [Глава] | [Раздел]\n\n[Текст]`) → embed → upsert. Старый индекс `avg_vector_chunks` — read-only до cutover (S10).
+**Пайплайн:** export текстов (H1–H4) → section-aware chunking → обогащение тела чанка контекстом (`Контекст: [Книга] | [Глава] | [Раздел]\n\n[Текст]`) → embed → upsert. Старый индекс `avg_vector_chunks` — read-only; prod cutover (S10-1) на `kb_chunks` / `bge-m3-v1`.
 
 ### 11.5 Изоляция retrieval cache (C2)
 

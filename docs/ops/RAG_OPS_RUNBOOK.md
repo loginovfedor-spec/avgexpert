@@ -112,3 +112,35 @@ Checklist: `docs/ops/USER_KB_SECURITY.md` (isolation, upload validation, rate li
 | Template | `.env.staging.example` |
 
 Local dev stays `AVGEXPERT_DEPLOY_ENV=development` + `RAG_V2_ENABLED=false` in `.env.example`.
+
+---
+
+## 7. Production cutover (S10-1)
+
+**Prerequisites:** staging smoke passed (`test:s9`, `load:rag-retrieval`), PG corpus indexed (`kb:reindex-books`), embedder healthy.
+
+### Cutover checklist
+
+| Step | Action |
+| ---- | ------ |
+| 1 | Copy `.env.production.example` → production `.env`; set secrets, `DATABASE_URL`, `EMBEDDING_API_URL` |
+| 2 | `AVGEXPERT_DEPLOY_ENV=production` → `RAG_V2_ENABLED=true` by default |
+| 3 | `npm run kb:pg:migrate` on prod PG |
+| 4 | Verify `GET /health` → `vector.store=ok`, `vector.embedder=ok` |
+| 5 | Smoke chat (consultant + expert) — context injected, no native `collection_ids` in provider payload |
+| 6 | Monitor `GET /api/admin/dashboard/mvp` → `rag_metrics.rag_latency_ms.p95` < 300 ms |
+
+### Rollback (prod emergency)
+
+| Step | Action |
+| ---- | ------ |
+| 1 | `RAG_V2_ENABLED=false` + restart gateway |
+| 2 | Legacy FTS path via `KnowledgeGateway` (consultant only) — **not recommended post-cutover** |
+| 3 | Or per-category `rag_enabled=false` in admin UI |
+| 4 | PG `kb_chunks` unchanged — re-enable v2 when ready |
+
+### Post-cutover cleanup (after 7–14 days)
+
+- `avg_vector_chunks` namespace read-only → archive/delete per §11.4
+- `FTS_FALLBACK_ENABLED=false` optional if vector stack SLA proven (S10-2)
+- Old `EMBEDDING_NAMESPACE` rows: `DELETE` only after retro sign-off

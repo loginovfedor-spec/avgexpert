@@ -236,6 +236,10 @@ export class RagOrchestrator {
         this.cache.set(cacheKey, finalResult);
       }
 
+      const maxChunkScore = finalResult.chunks.length > 0
+        ? Math.max(...finalResult.chunks.map((c) => c.score))
+        : 0;
+
       traceBus.emitTrace('RagOrchestrator', 'retrieval.completed', {
         tier: ctx.tier,
         chunkCount: finalResult.chunks.length,
@@ -244,6 +248,8 @@ export class RagOrchestrator {
         searchMs,
         rerankMs,
         latencyMs: finalResult.metadata.latencyMs,
+        degraded: Boolean(degraded),
+        maxChunkScore,
       });
 
       return finalResult;

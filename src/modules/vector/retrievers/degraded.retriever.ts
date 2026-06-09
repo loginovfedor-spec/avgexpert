@@ -4,6 +4,12 @@ import { TieredRetriever, TieredRetrieveResult } from './tiered.retriever';
 import { getVectorHealthSection, VectorHealthSection } from '../vector.health';
 import { getTopK } from '../../rag/tier.policy';
 
+function isFtsFallbackEnabled(): boolean {
+  // @ts-ignore runtime read — supports tests and env changes without reload
+  const { FTS_FALLBACK_ENABLED } = require('../../../core/config');
+  return Boolean(FTS_FALLBACK_ENABLED);
+}
+
 type FtsRetriever = {
   search(query: string, config?: { limit?: number; minScore?: number }): Promise<IRetrievalChunk[]>;
 };
@@ -62,6 +68,16 @@ export class DegradedRetriever implements Retriever {
 
   private async ftsFallback(query: string, ctx: RetrievalContext): Promise<DegradedRetrieveResult> {
     const searchStart = Date.now();
+    if (!isFtsFallbackEnabled()) {
+      return {
+        chunks: [],
+        embedMs: 0,
+        searchMs: Date.now() - searchStart,
+        retrieverId: 'vector-unavailable',
+        degraded: true,
+      };
+    }
+
     const topK = getTopK(ctx.tier);
     const scopes = ctx.scopes.filter((scope) => {
       if (scope === 'global') return ctx.globalKbEnabled;

@@ -13,7 +13,7 @@ class GrokProvider extends BaseProvider {
       models: config.models || ['grok-2', 'grok-3'],
       defaultModel: config.defaultModel || 'grok-2',
       capabilities: Object.assign(
-        { stream: true, tools: true, retrieval: true },
+        { stream: true, tools: true },
         config.capabilities
       ),
     });

@@ -13,7 +13,10 @@ import { errorHandler, AppError } from './src/core/errors';
 // @ts-ignore
 import logger = require('./src/core/logger');
 
-require('./src/core/sqlite'); 
+require('./src/core/sqlite');
+// Eager-load observability listeners (S10-4) before first RAG request
+require('./src/modules/observability/metrics.service');
+require('./src/modules/observability/rag-metrics.service');
 
 const app = express();
 const serverLogger = logger.scoped('Server');

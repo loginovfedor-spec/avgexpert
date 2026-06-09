@@ -154,23 +154,45 @@ export function initAdminTabs() {
 
 export async function loadAdminStats() {
   try {
-    const r = await fetch('/api/admin/stats', { headers: { 'Authorization': 'Bearer ' + state.authToken }});
-    if (!r.ok) return;
-    const stats = await r.json();
+    const headers = { 'Authorization': 'Bearer ' + state.authToken };
+    const [statsRes, mvpRes] = await Promise.all([
+      fetch('/api/admin/stats', { headers }),
+      fetch('/api/admin/dashboard/mvp', { headers }),
+    ]);
+    if (!statsRes.ok) return;
+    const stats = await statsRes.json();
+    const mvp = mvpRes.ok ? await mvpRes.json() : null;
 
     $('stat-total-users').textContent = stats.users.total;
     $('stat-expired-users').textContent = `${stats.users.expired} истекло`;
     $('stat-total-sessions').textContent = stats.sessions.total;
     $('stat-total-categories').textContent = stats.categories;
-    
+
     const uptimeS = stats.system.uptime;
     const h = Math.floor(uptimeS / 3600);
     const m = Math.floor((uptimeS % 3600) / 60);
     const s = uptimeS % 60;
     $('stat-uptime').textContent = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    
+
     const memMb = Math.round(stats.system.memory.rss / 1024 / 1024);
     $('stat-memory').textContent = `${memMb} MB RAM`;
+
+    const ragMetrics = mvp?.rag_metrics;
+    const ragP95 = ragMetrics?.rag_latency_ms?.p95;
+    $('stat-rag-latency-p95').textContent = ragP95 != null && ragP95 > 0
+      ? `${Math.round(ragP95)} ms`
+      : '—';
+    const degradedRate = ragMetrics?.degraded_rate;
+    $('stat-rag-degraded').textContent = degradedRate != null
+      ? `degraded ${(degradedRate * 100).toFixed(1)}%`
+      : 'degraded —';
+
+    const semanticScore = mvp?.semantic_quality_score;
+    $('stat-semantic-quality').textContent = semanticScore != null
+      ? semanticScore.toFixed(3)
+      : '—';
+    const retrievalCount = ragMetrics?.retrieval_count ?? 0;
+    $('stat-rag-retrievals').textContent = `retrievals ${retrievalCount}`;
 
     const list = $('system-info-list');
     list.innerHTML = `
@@ -178,6 +200,7 @@ export async function loadAdminStats() {
       <div class="system-info-item"><span class="system-info-label">Node.js</span><span class="system-info-value">${DOMPurify.sanitize(stats.system.node_version)}</span></div>
       <div class="system-info-item"><span class="system-info-label">Свободная память</span><span class="system-info-value">${Math.round(stats.system.os_free_mem / 1024 / 1024)} MB</span></div>
       <div class="system-info-item"><span class="system-info-label">Загрузка (1/5/15)</span><span class="system-info-value">${DOMPurify.sanitize(stats.system.os_load.map(l => l.toFixed(2)).join(' / '))}</span></div>
+      ${mvp?.feature_flags?.RAG_V2_ENABLED != null ? `<div class="system-info-item"><span class="system-info-label">RAG v2</span><span class="system-info-value">${mvp.feature_flags.RAG_V2_ENABLED ? 'enabled' : 'disabled'}</span></div>` : ''}
     `;
   } catch (e) { console.error('Stats load failed', e); }
 }

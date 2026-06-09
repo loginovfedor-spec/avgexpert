@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S10` |
+| **current_sprint** | `S10` (closed) |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -22,16 +22,17 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S10-1 | pending |
-| S10-2 | pending |
-| S10-3 | pending |
-| S10-4 | pending |
-| S10-5 | pending |
+| S10-1 | done |
+| S10-2 | done |
+| S10-3 | done |
+| S10-4 | done |
+| S10-5 | done |
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| S10 | 2026-06-10 | — | 0 critical, 1 high (fixed) |
 | S9 | 2026-06-10 | `9c2be8d` | 0 critical, 0 high, 2 medium (tech debt) |
 | S8 | 2026-06-10 | `cdb9e92` | 0 critical, 0 high, 2 medium (fixed), 1 medium (tech debt) |
 | S7b | 2026-06-10 | — | не запускался |
@@ -66,7 +67,8 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | `EMBEDDING_API_URL` | local: `http://127.0.0.1:8090/embed` (TEI docker); prod: `http://83.166.253.250:8080/embed` |
 
-| `RAG_V2_ENABLED` | `false` dev; `true` when `AVGEXPERT_DEPLOY_ENV=staging` (S9-2) |
+| `RAG_V2_ENABLED` | `false` dev; `true` when `AVGEXPERT_DEPLOY_ENV=staging\|production` (S9-2, S10-1) |
+| `FTS_FALLBACK_ENABLED` | `true` (S10-2); `false` optional post-cutover |
 | `AVGEXPERT_DEPLOY_ENV` | `development` / `staging` / `production` |
 
 | `CONVERSATION_MAX_TOKENS` | `100000` (config + `.env.example`) |
@@ -76,6 +78,32 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 
 ## RETRO (последний сверху)
+
+### RETRO S10 — 2026-06-10
+
+**Выполнение:** S10-1…S10-5 done
+
+**Артефакты:** `.env.production.example`, `FTS_FALLBACK_ENABLED`, `rag-metrics.service.ts`, admin dashboard RAG cards, `test:s10`, `RAG_OPS_RUNBOOK.md` §7, grok inject-only (no `collection_ids`), §11.4/§3.8 update
+
+**Соответствие плану:** нет расхождений с §6 S10; legacy FTS — только degraded fallback; prod default RAG v2
+
+**Качество:** `tsc --noEmit` PASS; `test:s10` 19/19 PASS; `build:web` PASS
+
+**Метрики:** plan_accuracy ~98%; tech debt: upload rate limit in-memory (S9 carry-over); `kb_reindex_books` recall smoke JSON (S2 carry-over)
+
+**Bugbot-review:** findings 1 (0 critical, 1 high fixed)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | rag-metrics lazy load | Listener not registered until dashboard hit — **fixed** (eager load in `server.ts`) |
+
+**Уроки:** observability listeners must boot with server; FTS flag read at runtime; Grok native collections removed — VectorKB inject-only
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S9 — 2026-06-10
 
