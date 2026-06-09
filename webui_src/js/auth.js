@@ -3,7 +3,6 @@ import { $, t, I18N, showToast } from './index.js';
 import { SessionManager } from './sessions.js';
 import { updateContextBadge, updateWelcomeHints } from './ui.js';
 import { loadAdminStats, loadAdminUsers, loadAdminCategories } from './admin.js';
-import { loadUserDocuments, stopUserDocumentsPolling } from './user-documents.js';
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]+$/;
 
@@ -389,17 +388,26 @@ export async function handleLogin(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: u, password: p })
     });
-    const d = await r.json();
+    let d = {};
+    try {
+      d = await r.json();
+    } catch {
+      errEl.textContent = r.ok
+        ? 'Сервер вернул некорректный ответ'
+        : `Ошибка сервера (${r.status})`;
+      errEl.classList.remove('hidden');
+      return;
+    }
     if (r.ok) {
       state.authToken = d.access_token;
       localStorage.setItem('avgexpert_token', state.authToken);
-      checkAuth();
+      await checkAuth();
     } else {
       errEl.textContent = d.detail || 'Ошибка авторизации';
       errEl.classList.remove('hidden');
     }
   } catch (e) {
-    errEl.textContent = 'Ошибка сети';
+    errEl.textContent = 'Ошибка сети — проверьте, что сервер запущен';
     errEl.classList.remove('hidden');
   }
 }
@@ -554,9 +562,11 @@ export async function switchView(name) {
         syncLimitSliders();
       }
     } catch(e) {}
-    loadUserDocuments();
+    const docs = await import('./user-documents.js');
+    docs.loadUserDocuments();
   } else {
-    stopUserDocumentsPolling();
+    const docs = await import('./user-documents.js');
+    docs.stopUserDocumentsPolling();
   }
 
   if (name === 'admin' && state.currentUser?.is_admin) {

@@ -5,7 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "postinstall": "npm install --prefix src/modules/providers/adapters/yandex_file_search_pg --omit=dev",
-    "prestart": "node scripts/ensure-better-sqlite3.js",
+    "prestart": "node scripts/ensure-better-sqlite3.js && node scripts/ensure-webui-dist.js",
     "start": "tsx server.ts",
     "rebuild:native": "node scripts/ensure-better-sqlite3.js",
     "stop": "node scripts/stop.js",
