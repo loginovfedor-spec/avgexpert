@@ -10,7 +10,7 @@ import { createVectorStoreFromEnv } from '../vector/registry';
 import { KbRepository } from '../kb/kb.repository';
 import { ChunkingService } from './chunking.service';
 import { assertSafeSourceUri, resolveIngestFilePath } from './path-utils';
-import type { IngestFileInput, IngestResult } from './types';
+import type { IngestContentInput, IngestFileInput, IngestResult } from './types';
 
 const CHUNK_ID_NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 const EMBED_BATCH_SIZE = 16;
@@ -56,8 +56,33 @@ export class IngestionPipeline {
     assertSafeSourceUri(input.sourceUri);
     const resolvedPath = resolveIngestFilePath(input.filePath);
     const content = fs.readFileSync(resolvedPath, 'utf-8');
-    const checksum = sha256(content);
     const filename = path.basename(resolvedPath);
+    return this.ingestContent({
+      content,
+      filename,
+      scope: input.scope,
+      title: input.title,
+      mime: input.mime || inferMime(resolvedPath),
+      sourceUri: input.sourceUri || resolvedPath,
+      ownerUserId: input.ownerUserId,
+      sessionId: input.sessionId,
+      docType: input.docType,
+      chunkSize: input.chunkSize,
+      chunkOverlap: input.chunkOverlap,
+      replaceExisting: input.replaceExisting,
+      bookTitle: input.bookTitle,
+      bookId: input.bookId,
+    });
+  }
+
+  async ingestContent(input: IngestContentInput & {
+    bookTitle?: string;
+    bookId?: string;
+  }): Promise<IngestResult> {
+    assertSafeSourceUri(input.sourceUri);
+    const content = input.content;
+    const checksum = sha256(content);
+    const filename = input.filename;
     const scope: VectorScope = input.scope || 'global';
     const docId = crypto.randomUUID();
     const title = input.title || filename;
@@ -66,9 +91,9 @@ export class IngestionPipeline {
       id: docId,
       scope,
       filename,
-      mime: input.mime || inferMime(resolvedPath),
+      mime: input.mime || inferMime(filename),
       size: Buffer.byteLength(content, 'utf-8'),
-      sourceUri: input.sourceUri || resolvedPath,
+      sourceUri: input.sourceUri || `upload://${filename}`,
       ownerUserId: input.ownerUserId,
       sessionId: input.sessionId,
       status: 'pending',
@@ -121,7 +146,7 @@ export class IngestionPipeline {
             embedding: embeddings[i],
             checksum: sha256(raw.text),
             metadata: {
-              sourcePath: resolvedPath,
+              sourceUri: input.sourceUri,
               docChecksum: checksum,
             },
           });

@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S5` |
+| **current_sprint** | `S6` |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -22,19 +22,17 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S5-1 | pending |
-| S5-2 | pending |
-| S5-3 | pending |
-| S5-4 | pending |
-| S5-5 | pending |
-| S5-6 | pending |
-| S5-7 | pending |
-| S5-8 | pending |
+| S6-1 | pending |
+| S6-2 | pending |
+| S6-3 | pending |
+| S6-4 | pending |
+| S6-5 | pending |
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| S5 | 2026-06-09 | — | 0 critical, 1 high (fixed), 3 medium (1 fixed, 2 tech debt) |
 | S4 | 2026-06-09 | — | 0 critical, 2 high (fixed), 2 medium (fixed) |
 | S3 | 2026-06-09 | `91be257` | не запускался |
 | S2 | 2026-06-09 | — | ручная проверка |
@@ -74,6 +72,35 @@ _Задачи и DoD — в плане §6. Здесь только статус
 ## RETRO (последний сверху)
 
 
+
+### RETRO S5 — 2026-06-09
+
+**Выполнение:** S5-1…S5-8 done
+
+**Артефакты:** `src/modules/kb/kb.routes.ts`, `upload.validation.ts`, `kb.limits.ts`, `ingestContent` в pipeline, `document-context.resolver.ts`, UI «Мои документы», `docs/ops/USER_KB_SECURITY.md`, `npm run test:s5`
+
+**Соответствие плану:** нет расхождений с §6 S5; session scope delete через user API — закрыт scope-фильтром post-Bugbot
+
+**Качество:** `tsc --noEmit` PASS; `test:s5` 12/12 PASS; `test:rag` 18/18 PASS
+
+**Метрики:** plan_accuracy ~97%; tech debt: (1) race на doc limit при concurrent POST; (2) JSON body до 50MB парсится до byte-check — zod max добавлен
+
+**Bugbot-review:** findings 4 (0 critical, 1 high fixed, 3 medium: 1 fixed, 2 tech debt)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | kb.routes delete | Session doc deletable via user API — **fixed** (scope=user в findByIdForOwner) |
+| medium | kb.routes limit | Failed upload consumes quota — **fixed** (exclude failed from count + delete on 502) |
+| medium | kb.routes limit | Concurrent POST race — tech debt (S6 queue) |
+| medium | kb.routes upload | 50MB parse before 5MB check — **mitigated** (zod content.max) |
+
+**Уроки:** user API должен фильтровать `scope=user`; failed ingest не оставлять в kb_documents
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S4 — 2026-06-09
 

@@ -44,6 +44,21 @@ export interface IngestFileInput {
   replaceExisting?: boolean;
 }
 
+export interface IngestContentInput {
+  content: string;
+  filename: string;
+  scope?: VectorScope;
+  title?: string;
+  mime?: string;
+  sourceUri?: string;
+  ownerUserId?: string;
+  sessionId?: string;
+  docType?: string;
+  chunkSize?: number;
+  chunkOverlap?: number;
+  replaceExisting?: boolean;
+}
+
 export interface IngestResult {
   docId: string;
   status: 'ready' | 'failed';

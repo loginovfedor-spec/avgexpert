@@ -134,6 +134,7 @@ const { authenticate } = require('./src/modules/auth/auth.middleware');
 
 app.use('/api/auth', authLimiter, require('./src/modules/auth/auth.routes'));
 app.use('/api/users', require('./src/modules/auth/users.routes'));
+app.use('/api/user', require('./src/modules/kb/kb.routes'));
 app.use('/api/admin', require('./src/modules/admin/admin.routes'));
 app.use('/api/sessions', authenticate, require('./src/modules/chat/sessions.routes'));
 app.use('/api/chat', chatLimiter, authenticate, require('./src/modules/chat/chat.routes'));

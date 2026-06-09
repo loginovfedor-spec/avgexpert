@@ -3,6 +3,7 @@ import { $, t, I18N, showToast } from './index.js';
 import { SessionManager } from './sessions.js';
 import { updateContextBadge, updateWelcomeHints } from './ui.js';
 import { loadAdminStats, loadAdminUsers, loadAdminCategories } from './admin.js';
+import { loadUserDocuments, stopUserDocumentsPolling } from './user-documents.js';
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]+$/;
 
@@ -88,6 +89,7 @@ async function updateAnonymousUI() {
   const statusDot = $('status-dot');
   if (statusDot) statusDot.className = 'status-dot';
   $('nav-admin')?.classList.add('hidden');
+  $('user-docs-card')?.classList.add('hidden');
   await loadPublicCategories();
   const chatSessionCat = $('chat-session-category');
   if (titleEl) titleEl.textContent = chatSessionCat?.value || 'Gemma AI';
@@ -267,6 +269,8 @@ export async function completeLogin() {
     if (state.currentUser.is_admin) navAdmin.classList.remove('hidden');
     else navAdmin.classList.add('hidden');
   }
+
+  $('user-docs-card')?.classList.remove('hidden');
   
   const defaultPrompt = (I18N && I18N[state.lang]) ? I18N[state.lang].system_prompt_placeholder : '';
   settings.system_prompt = state.currentUser.system_prompt || defaultPrompt;
@@ -550,6 +554,9 @@ export async function switchView(name) {
         syncLimitSliders();
       }
     } catch(e) {}
+    loadUserDocuments();
+  } else {
+    stopUserDocumentsPolling();
   }
 
   if (name === 'admin' && state.currentUser?.is_admin) {

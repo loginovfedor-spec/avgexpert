@@ -9,6 +9,7 @@ import { autoResizeTextarea, updateWelcomeHints, setWelcomeVisible } from './ui.
 import { newChat, handleSend, stopGeneration, handleFiles, initMessagesDelegation, initLargeRequestModal } from './chat.js';
 import { initAdminTabs } from './admin.js';
 import { SessionManager } from './sessions.js';
+import { initUserDocuments } from './user-documents.js';
 
 function init() {
   applyTheme();
@@ -19,6 +20,7 @@ function init() {
   autoResizeTextarea();
   checkAuth();
   initAdminTabs();
+  initUserDocuments();
   
   if (typeof marked !== 'undefined') {
     marked.setOptions({

@@ -1500,3 +1500,65 @@ select.setup-input option {
   gap: 10px;
   margin-top: 6px;
 }
+
+.user-docs-meta {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.section-hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 var(--sp-sm);
+}
+
+.user-docs-actions {
+  margin-bottom: var(--sp-md);
+}
+
+.user-docs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-doc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.user-doc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.user-doc-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-doc-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.user-doc-status--ready { color: var(--success); }
+.user-doc-status--failed { color: var(--danger); }
+.user-doc-status--pending { color: var(--warning); }
+
+.user-docs-empty {
+  font-size: 0.9rem;
+  color: var(--muted);
+  padding: 8px 0;
+}

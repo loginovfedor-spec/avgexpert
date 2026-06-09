@@ -1,5 +1,4 @@
 import type { RetrievalContext } from '../vector/ports/retriever';
-import type { RetrievalTier } from '../vector/types';
 import { RetrievalResult } from '../knowledge/knowledge.types';
 import { TieredRetriever } from '../vector/retrievers/tiered.retriever';
 import { DegradedRetriever } from '../vector/retrievers/degraded.retriever';
@@ -10,7 +9,7 @@ import {
   scopedRetrievalCache,
 } from './scoped.cache';
 import { formatRetrievalContext } from './format-context';
-import { normalizeTier, resolveScopes } from './tier.policy';
+import { documentContextResolver } from './document-context.resolver';
 // @ts-ignore
 import traceBus = require('../observability/trace.bus');
 // @ts-ignore
@@ -77,17 +76,12 @@ function buildRetrievalContext(
   user: RagUser,
   sessionId?: string
 ): RetrievalContext {
-  const tier = normalizeTier(catSettings.retrieval_tier) as RetrievalTier;
-  const extra = catSettings.extra_params || {};
-  const scopes = resolveScopes(tier, extra);
-
-  return {
+  return documentContextResolver.resolve({
+    retrievalTier: catSettings.retrieval_tier,
+    extraParams: catSettings.extra_params,
     userId: String(user.id || user.username || 'anonymous'),
     sessionId,
-    tier,
-    scopes,
-    globalKbEnabled: scopes.includes('global'),
-  };
+  });
 }
 
 function applyAnswerabilityPolicy(

@@ -34,6 +34,7 @@
     "test:vector": "tsx --test tests/vector/*.test.ts",
     "test:rag": "tsx --test tests/rag/*.test.ts",
     "test:s4": "tsx --test tests/rag/degraded.retriever.test.ts tests/migrations/v027_llm_cache_consultant.test.js tests/yandex_inject_only.test.js tests/providers/llm_response_cache.test.js",
+    "test:s5": "tsx --test tests/kb/upload.validation.test.ts tests/kb/user.documents.test.ts tests/rag/document-context.resolver.test.ts tests/rag/tenant-isolation.test.ts",
     "kb:pg:migrate": "tsx scripts/kb_pg_migrate.ts",
     "kb:pg:smoke": "tsx scripts/pgvector_smoke.ts",
     "kb:ingest": "tsx scripts/kb_ingest.ts",

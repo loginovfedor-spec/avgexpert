@@ -81,6 +81,42 @@ export class KbRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
+  async findByIdForOwner(
+    id: string,
+    ownerUserId: string,
+    scope: VectorScope = 'user'
+  ): Promise<KbDocumentRecord | null> {
+    const result = await this.pool.query(
+      'SELECT * FROM kb_documents WHERE id = $1 AND owner_user_id = $2 AND scope = $3',
+      [id, ownerUserId, scope]
+    );
+    if (result.rowCount === 0) return null;
+    return mapRow(result.rows[0]);
+  }
+
+  async listByOwner(ownerUserId: string, scope: VectorScope = 'user'): Promise<KbDocumentRecord[]> {
+    const result = await this.pool.query(
+      `
+      SELECT * FROM kb_documents
+      WHERE owner_user_id = $1 AND scope = $2
+      ORDER BY created_at DESC
+      `,
+      [ownerUserId, scope]
+    );
+    return result.rows.map((row: Record<string, unknown>) => mapRow(row));
+  }
+
+  async countByOwner(ownerUserId: string, scope: VectorScope = 'user'): Promise<number> {
+    const result = await this.pool.query(
+      `
+      SELECT COUNT(*)::int AS count FROM kb_documents
+      WHERE owner_user_id = $1 AND scope = $2 AND status <> 'failed'
+      `,
+      [ownerUserId, scope]
+    );
+    return Number(result.rows[0]?.count ?? 0);
+  }
+
   async countChunksByDocId(docId: string): Promise<number> {
     const result = await this.pool.query(
       'SELECT COUNT(*)::int AS count FROM kb_chunks WHERE doc_id = $1',

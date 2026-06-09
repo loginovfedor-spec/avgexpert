@@ -48,6 +48,8 @@ const envSchema = z.object({
   TEMPORAL_RUNTIME_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   RAG_V2_ENABLED: z.string().default('false').transform((v: string) => v === 'true'),
   CONVERSATION_MAX_TOKENS: z.string().transform(Number).default('100000'),
+  KB_USER_MAX_DOCS: z.string().transform(Number).default('0'),
+  KB_USER_MAX_FILE_BYTES: z.string().transform(Number).default('5242880'),
   // Vector KB (RAG v2 foundation)
   EMBEDDING_PROVIDER: z.string().default('self-hosted'),
   EMBEDDING_MODEL: z.string().default('bge-m3'),
@@ -176,6 +178,8 @@ const {
   RAG_V2_ENABLED,
 } = FEATURE_FLAGS;
 const CONVERSATION_MAX_TOKENS = env.CONVERSATION_MAX_TOKENS;
+const KB_USER_MAX_DOCS = env.KB_USER_MAX_DOCS > 0 ? env.KB_USER_MAX_DOCS : undefined;
+const KB_USER_MAX_FILE_BYTES = env.KB_USER_MAX_FILE_BYTES;
 
 module.exports = {
   PORT,
@@ -201,6 +205,8 @@ module.exports = {
   TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED,
   CONVERSATION_MAX_TOKENS,
+  KB_USER_MAX_DOCS,
+  KB_USER_MAX_FILE_BYTES,
   TEMPORAL_URL: env.TEMPORAL_URL,
   FEATURE_FLAGS,
   isDev: env.NODE_ENV === 'development',
