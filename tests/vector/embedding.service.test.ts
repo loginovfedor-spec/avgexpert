@@ -7,15 +7,16 @@ import {
 import { MockEmbeddingProvider } from '../../src/modules/vector/providers/mock.embedding';
 import { SelfHostedEmbeddingProvider } from '../../src/modules/vector/providers/selfhosted.embedding';
 
-test('loadEmbeddingConfig: defaults', () => {
+test('loadEmbeddingConfig: defaults из vector/config/bge_m3.env', () => {
   const config = loadEmbeddingConfig({
-    EMBEDDING_PROVIDER: 'self-hosted',
-    EMBEDDING_MODEL: 'bge-m3',
-    EMBEDDING_DIMS: '1024',
-    EMBEDDING_NAMESPACE: 'bge-m3-v1',
+    EMBEDDING_MOCK: 'false',
   });
+  assert.equal(config.provider, 'self-hosted');
+  assert.equal(config.model, 'bge-m3');
   assert.equal(config.dimensions, 1024);
   assert.equal(config.namespace, 'bge-m3-v1');
+  assert.equal(config.apiUrl, 'http://83.166.253.250:8080/embed');
+  assert.equal(config.apiFormat, 'tei');
 });
 
 test('createEmbeddingProvider: mock mode', () => {
@@ -46,6 +47,7 @@ test('createEmbeddingProvider: self-hosted with api url', () => {
     dimensions: 1024,
     namespace: 'bge-m3-v1',
     apiUrl: 'http://127.0.0.1:8099/embed',
+    apiFormat: 'custom',
     mock: false,
   });
   assert.ok(provider instanceof SelfHostedEmbeddingProvider);

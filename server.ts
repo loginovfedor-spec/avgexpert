@@ -140,7 +140,11 @@ app.use('/api/chat', chatLimiter, authenticate, require('./src/modules/chat/chat
 app.use('/api/providers', require('./src/modules/providers/providers.routes'));
 app.use('/api/payments', require('./src/modules/payments/payment.routes'));
 
-app.get('/health', (req: Request, res: Response) => res.status(200).json({ status: 'ok' }));
+app.get('/health', async (req: Request, res: Response) => {
+  const { getVectorHealthSection } = require('./src/modules/vector/vector.health');
+  const vector = await getVectorHealthSection();
+  res.status(200).json({ status: 'ok', vector });
+});
 app.get('/ready', (req: Request, res: Response) => {
   try {
     require('./src/core/sqlite');

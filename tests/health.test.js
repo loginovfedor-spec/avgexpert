@@ -47,4 +47,17 @@ test('Provider Health Endpoint', async (t) => {
     const { DEFAULT_CATEGORY_PARAMS } = require('../src/core/config');
     assert.strictEqual(res.body.provider, DEFAULT_CATEGORY_PARAMS.provider); 
   });
+
+  await t.test('GET /health - should include vector section', async () => {
+    const res = await request(app)
+      .get('/health')
+      .expect(200);
+
+    assert.strictEqual(res.body.status, 'ok');
+    assert.ok(res.body.vector);
+    assert.ok(['ok', 'degraded', 'unavailable'].includes(res.body.vector.store));
+    assert.ok(['ok', 'degraded', 'unavailable'].includes(res.body.vector.embedder));
+    assert.ok(typeof res.body.vector.namespace === 'string');
+    assert.ok(Number.isFinite(res.body.vector.dimensions));
+  });
 });

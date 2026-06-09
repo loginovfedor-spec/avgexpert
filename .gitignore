@@ -5,6 +5,7 @@ coverage/
 *.tsbuildinfo
 data/
 data_test/
+local-dev/data/
 .env
 src/modules/providers/config/*.env
 !src/modules/providers/config/*.env.example

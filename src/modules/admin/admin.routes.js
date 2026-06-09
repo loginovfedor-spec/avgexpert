@@ -538,6 +538,65 @@ router.delete('/debug/log', asyncHandler(async (req, res) => {
   res.json({ ok: true });
 }));
 
+router.post('/kb/documents', asyncHandler(async (req, res) => {
+  const kbDocumentSchema = z.object({
+    filePath: z.string().min(1, 'filePath обязателен'),
+    title: z.string().max(512).optional(),
+    scope: z.enum(['global', 'user', 'session']).default('global'),
+    sourceUri: z.string().max(2048).optional(),
+    docType: z.string().max(64).optional(),
+    bookId: z.string().uuid().optional(),
+    bookTitle: z.string().max(512).optional(),
+  });
+
+  const parseResult = kbDocumentSchema.safeParse(req.body || {});
+  if (!parseResult.success) {
+    return res.status(400).json({
+      detail: 'Некорректные параметры ingest',
+      errors: parseResult.error.issues,
+    });
+  }
+
+  const data = parseResult.data;
+  try {
+    const { assertSafeSourceUri } = require('../ingestion/path-utils');
+    assertSafeSourceUri(data.sourceUri);
+  } catch (err) {
+    return res.status(400).json({ detail: err.message });
+  }
+
+  const { createIngestionPipeline } = require('../ingestion/pipeline');
+  const { runVectorMigrations } = require('../vector/pg/migrate');
+
+  await runVectorMigrations();
+  const pipeline = createIngestionPipeline();
+  const result = await pipeline.ingestFile({
+    filePath: data.filePath,
+    scope: data.scope,
+    title: data.title,
+    sourceUri: data.sourceUri,
+    docType: data.docType,
+    bookId: data.bookId,
+    bookTitle: data.bookTitle,
+  });
+
+  if (result.status === 'failed') {
+    return res.status(502).json({
+      detail: 'Индексация документа не удалась',
+      error: result.error,
+      docId: result.docId,
+    });
+  }
+
+  res.status(201).json({
+    docId: result.docId,
+    status: result.status,
+    chunkCount: result.chunkCount,
+    filename: result.filename,
+    checksum: result.checksum,
+  });
+}));
+
 router.get('/providers/template/:providerId/:modelName', asyncHandler(async (req, res) => {
   const { providerId, modelName } = req.params;
   const providersConfig = require('../../core/providers.config');

@@ -2,6 +2,7 @@ import type { EmbeddingProvider } from './ports/embedding.provider';
 import type { EmbeddingConfig } from './types';
 import { MockEmbeddingProvider } from './providers/mock.embedding';
 import { SelfHostedEmbeddingProvider } from './providers/selfhosted.embedding';
+import { resolveEmbeddingSettings } from './embedding.connection';
 
 function parseBoolean(value: string | undefined, fallback = false): boolean {
   if (value === undefined) return fallback;
@@ -9,17 +10,15 @@ function parseBoolean(value: string | undefined, fallback = false): boolean {
 }
 
 export function loadEmbeddingConfig(env: NodeJS.ProcessEnv = process.env): EmbeddingConfig {
-  const dimensions = parseInt(env.EMBEDDING_DIMS || '1024', 10);
-  if (!Number.isFinite(dimensions) || dimensions <= 0) {
-    throw new Error(`EMBEDDING_DIMS должен быть положительным числом, получено: ${env.EMBEDDING_DIMS}`);
-  }
-
+  const resolved = resolveEmbeddingSettings(env);
   return {
-    provider: env.EMBEDDING_PROVIDER || 'self-hosted',
-    model: env.EMBEDDING_MODEL || 'bge-m3',
-    dimensions,
-    namespace: env.EMBEDDING_NAMESPACE || 'bge-m3-v1',
-    apiUrl: env.EMBEDDING_API_URL || env.EMBEDDING_ONNX_PATH,
+    provider: resolved.provider,
+    model: resolved.model,
+    dimensions: resolved.dimensions,
+    namespace: resolved.namespace,
+    apiUrl: resolved.apiUrl,
+    apiFormat: resolved.apiFormat,
+    queryPrefix: resolved.queryPrefix,
     mock: parseBoolean(env.EMBEDDING_MOCK, false),
   };
 }
@@ -35,7 +34,7 @@ export function createEmbeddingProvider(config: EmbeddingConfig): EmbeddingProvi
 
   if (!config.apiUrl) {
     throw new Error(
-      'Self-hosted embedder: задайте EMBEDDING_API_URL (HTTP inference endpoint) или EMBEDDING_MOCK=true для dev/test'
+      'Self-hosted embedder (§11.1): задайте EMBEDDING_API_URL в .env или vector/config/bge_m3.env, либо EMBEDDING_MOCK=true'
     );
   }
 
@@ -44,6 +43,8 @@ export function createEmbeddingProvider(config: EmbeddingConfig): EmbeddingProvi
     model: config.model,
     dimensions: config.dimensions,
     apiUrl: config.apiUrl,
+    apiFormat: config.apiFormat,
+    queryPrefix: config.queryPrefix,
   });
 }
 

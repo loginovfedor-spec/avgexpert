@@ -77,6 +77,8 @@ export interface EmbeddingConfig {
   dimensions: number;
   namespace: string;
   apiUrl?: string;
+  apiFormat?: 'tei' | 'custom';
+  queryPrefix?: string;
   mock: boolean;
 }
 

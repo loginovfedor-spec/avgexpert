@@ -1,0 +1,30 @@
+# Локальная тестовая среда VectorKB (§11.1). PostgreSQL — удалённый (см. DATABASE_URL).
+services:
+  tei-bge-m3:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.7
+    container_name: avgexpert-tei-bge-m3
+    ports:
+      - "8090:80"
+    shm_size: "2gb"
+    volumes:
+      - ./data/tei:/data
+    environment:
+      HF_HUB_ENABLE_HF_TRANSFER: "0"
+      OMP_NUM_THREADS: "4"
+    command:
+      - --model-id
+      - BAAI/bge-m3
+      - --port
+      - "80"
+      # CPU warmup с 16384 токенами OOM-ит bge-m3 (~3+ GiB); см. TEI PR #792
+      - --max-batch-tokens
+      - "2048"
+      - --tokenization-workers
+      - "2"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 60
+      start_period: 600s
+    restart: unless-stopped
