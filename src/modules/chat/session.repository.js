@@ -1,4 +1,5 @@
 const db = require('../../core/sqlite');
+const { purgeSessionKb } = require('../kb/session-gc');
 
 class SessionRepository {
   async findById(username, id) {
@@ -41,6 +42,7 @@ class SessionRepository {
   }
 
   async delete(username, id) {
+    await purgeSessionKb(username, id);
     const info = db.prepare('DELETE FROM sessions WHERE username = ? AND id = ?').run(username, id);
     return info.changes > 0;
   }

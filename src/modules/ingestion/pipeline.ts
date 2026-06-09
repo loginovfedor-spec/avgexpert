@@ -176,6 +176,111 @@ export class IngestionPipeline {
       };
     }
   }
+
+  async indexExistingDocument(
+    input: IngestContentInput & {
+      docId: string;
+      bookTitle?: string;
+      bookId?: string;
+    }
+  ): Promise<IngestResult> {
+    assertSafeSourceUri(input.sourceUri);
+    const content = input.content;
+    const checksum = sha256(content);
+    const filename = input.filename;
+    const scope: VectorScope = input.scope || 'global';
+    const docId = input.docId;
+    const title = input.title || filename;
+
+    const existing = await this.kbRepository.findById(docId);
+    if (!existing) {
+      return {
+        docId,
+        status: 'failed',
+        chunkCount: 0,
+        filename,
+        checksum,
+        error: 'Document record not found',
+      };
+    }
+
+    try {
+      await this.kbRepository.updateStatus(docId, 'processing');
+
+      if (input.replaceExisting !== false) {
+        await this.store.delete({ docId });
+      }
+
+      const rawChunks = this.chunking.chunkFileContent(content, {
+        chunkSize: input.chunkSize,
+        chunkOverlap: input.chunkOverlap,
+        bookTitle: input.bookTitle || title,
+      });
+
+      if (rawChunks.length === 0) {
+        await this.kbRepository.updateStatus(docId, 'ready');
+        return { docId, status: 'ready', chunkCount: 0, filename, checksum };
+      }
+
+      const vectorChunks: VectorChunk[] = [];
+      for (let offset = 0; offset < rawChunks.length; offset += EMBED_BATCH_SIZE) {
+        const batch = rawChunks.slice(offset, offset + EMBED_BATCH_SIZE);
+        const embeddings = await this.embedding.embed(batch.map(item => item.enrichedText));
+
+        for (let i = 0; i < batch.length; i++) {
+          const raw = batch[i];
+          vectorChunks.push({
+            id: chunkIdFor(docId, raw.chunkIndex),
+            namespace: this.namespace,
+            scope,
+            ownerUserId: input.ownerUserId,
+            sessionId: input.sessionId,
+            docId,
+            body: raw.enrichedText,
+            title: raw.sectionTitle || title,
+            sectionPath: raw.sectionPath,
+            docType: input.docType,
+            bookId: input.bookId,
+            bookTitle: input.bookTitle || title,
+            chapterIndex: raw.chapterIndex,
+            chapterTitle: raw.chapterTitle,
+            sectionIndex: raw.sectionIndex,
+            sectionTitle: raw.sectionTitle,
+            chunkIndex: raw.chunkIndex,
+            tokenCount: raw.tokenCount,
+            embedding: embeddings[i],
+            checksum: sha256(raw.text),
+            metadata: {
+              sourceUri: input.sourceUri,
+              docChecksum: checksum,
+            },
+          });
+        }
+      }
+
+      await this.store.upsert(vectorChunks);
+      await this.kbRepository.updateStatus(docId, 'ready');
+
+      return {
+        docId,
+        status: 'ready',
+        chunkCount: vectorChunks.length,
+        filename,
+        checksum,
+      };
+    } catch (err) {
+      await this.kbRepository.updateStatus(docId, 'failed');
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        docId,
+        status: 'failed',
+        chunkCount: 0,
+        filename,
+        checksum,
+        error: message,
+      };
+    }
+  }
 }
 
 export function createIngestionPipeline(deps?: IngestionPipelineDeps): IngestionPipeline {

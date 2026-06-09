@@ -22,7 +22,9 @@ export function showToast(msg, options = {}) {
 }
 
 export function estimateTokens(text) { return Math.ceil((text || '').length / 3.5); }
-export function getTotalDocTokens() { return state.attachedDocs.reduce((s, d) => s + d.tokens, 0); }
+export function getTotalDocTokens() {
+  return state.attachedDocs.reduce((s, d) => s + (d.sessionScoped ? 0 : (d.tokens || 0)), 0);
+}
 
 function escapeHtml(value) {
   return String(value || '')
@@ -198,12 +200,26 @@ export function showTypingIndicator(el) {
   el.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
 }
 
-export function renderDocChip(name, tokens, index) {
+export function renderDocChip(docOrName, tokensOrIndex, indexMaybe) {
   const container = $('attached-docs');
   if(!container) return;
+
+  let doc;
+  let index;
+  if (typeof docOrName === 'object' && docOrName !== null) {
+    doc = docOrName;
+    index = tokensOrIndex;
+  } else {
+    doc = { name: docOrName, tokens: tokensOrIndex };
+    index = indexMaybe;
+  }
+
   const chip = document.createElement('div');
   chip.className = 'doc-chip';
-  chip.innerHTML = `<span>📎 ${name} (~${tokens})</span>
+  const statusHtml = doc.status
+    ? `<span class="doc-chip-status doc-chip-status--${doc.status === 'ready' ? 'ready' : (doc.status === 'failed' ? 'failed' : 'pending')}">${doc.status === 'pending' || doc.status === 'processing' ? 'индексируется…' : (doc.status === 'ready' ? 'готов' : 'ошибка')}</span>`
+    : (doc.tokens != null ? `(~${doc.tokens})` : '');
+  chip.innerHTML = `<span>📎 ${doc.name} ${statusHtml}</span>
                     <button class="remove-doc-btn" data-index="${index}">×</button>`;
   container.appendChild(chip);
   chip.querySelector('.remove-doc-btn').addEventListener('click', () => removeDoc(index));
@@ -214,7 +230,7 @@ export function removeDoc(index) {
   const container = $('attached-docs');
   if(container) {
     container.textContent = '';
-    state.attachedDocs.forEach((d, i) => renderDocChip(d.name, d.tokens, i));
+    state.attachedDocs.forEach((d, i) => renderDocChip(d, i));
   }
   updateTokenInfo();
   updateContextBadge();

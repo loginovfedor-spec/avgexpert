@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S6` |
+| **current_sprint** | `S7` |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -22,16 +22,17 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S6-1 | pending |
-| S6-2 | pending |
-| S6-3 | pending |
-| S6-4 | pending |
-| S6-5 | pending |
+| S7-1 | pending |
+| S7-2 | pending |
+| S7-3 | pending |
+| S7-4 | pending |
+| S7-5 | pending |
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| S6 | 2026-06-09 | — | 0 critical, 4 high (fixed) |
 | S5 | 2026-06-09 | `ad2f65b` `206c9ab` `de704db` | 0 critical, 1 high (fixed), 6 medium (1 fixed, 5 tech debt) |
 | S4 | 2026-06-09 | — | 0 critical, 2 high (fixed), 2 medium (fixed) |
 | S3 | 2026-06-09 | `91be257` | не запускался |
@@ -72,6 +73,35 @@ _Задачи и DoD — в плане §6. Здесь только статус
 ## RETRO (последний сверху)
 
 
+
+### RETRO S6 — 2026-06-09
+
+**Выполнение:** S6-1…S6-5 done
+
+**Артефакты:** `session-attachments.routes.ts`, `indexing-queue.ts`, `session-gc.ts`, `upload-lock.ts`, `indexExistingDocument` в pipeline, UI `session-attachments.js`, `DELETE` вложений, `session_id` в completions, `npm run test:s6`, `webui_dist`
+
+**Соответствие плану:** нет расхождений с §6 S6; post-close: attach-before-chat создаёт SQLite-сессию; DELETE вложения; pg advisory lock для session quota; orphan pending → failed на restart
+
+**Качество:** `tsc --noEmit` PASS; `test:s6` 8/8 PASS; `test:rag` 18/18 PASS
+
+**Метрики:** plan_accuracy ~96%; tech debt: in-memory queue без persist (re-upload после restart); user KB quota lock in-process only (multi-instance)
+
+**Bugbot-review:** findings 4 (0 critical, 4 high fixed)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | session-attachments UI | Attach before chat 404 — **fixed** (POST /api/sessions upsert) |
+| high | session-attachments UI | Remove chip leaves PG chunks — **fixed** (DELETE API + UI) |
+| high | indexing-queue | Queue lost on restart — **mitigated** (orphan pending→failed on startup) |
+| high | upload-lock | Multi-instance quota bypass — **partial** (pg lock session; user KB in-process) |
+
+**Уроки:** session doc create + quota — в одной pg-транзакции; in-process queue требует fail-fast orphan rows на restart; UI attach должен upsert session до POST attachment
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S5 — 2026-06-09
 

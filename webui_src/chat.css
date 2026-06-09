@@ -596,6 +596,10 @@
 
 /* Attached Documents */
 .attached-docs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-sm); }
+.doc-chip-status { font-size: 0.75rem; margin-left: 4px; opacity: 0.85; }
+.doc-chip-status--pending { color: var(--warning); }
+.doc-chip-status--ready { color: var(--success); }
+.doc-chip-status--failed { color: var(--danger); }
 .attached-docs:empty { display: none; margin: 0; }
 
 .doc-chip {

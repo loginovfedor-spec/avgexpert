@@ -2,6 +2,7 @@ import { state, settings } from './state.js';
 import { $, t, showToast } from './index.js';
 import { updateContextBadge, updateTokenInfo, autoResizeTextarea, renderMarkdown, estimateTokens, getTotalDocTokens, showTypingIndicator, renderDocChip, removeDoc, setWelcomeVisible } from './ui.js';
 import { SessionManager } from './sessions.js';
+import { uploadSessionAttachment, hasPendingAttachments, stopAllAttachmentPolling } from './session-attachments.js';
 
 const STREAM_RENDER_INTERVAL_MS = 80;
 const LARGE_REQUEST_CHARS = 100_000;
@@ -68,6 +69,7 @@ function createStreamMarkdownRenderer(el, onRender) {
 
 export function newChat(reloadList = true) {
   state.chatHistory = [];
+  stopAllAttachmentPolling();
   state.attachedDocs = [];
   state.currentSessionId = null;
   const messagesEl = $('messages');
@@ -87,14 +89,26 @@ export function newChat(reloadList = true) {
 }
 
 export async function handleFiles(fileList) {
-  const files = Array.from(fileList).filter(f => /\.(txt|md|docx|pdf)$/i.test(f.name));
+  const files = Array.from(fileList).filter(f => /\.(txt|md|markdown|docx|pdf)$/i.test(f.name));
   for (const file of files) {
     if (state.attachedDocs.length >= state.maxDocsAllowed) { showToast(`Максимум ${state.maxDocsAllowed} документов для вашей категории`); break; }
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (['txt', 'md', 'markdown'].includes(ext)) {
+      try {
+        const text = await file.text();
+        const uploaded = await uploadSessionAttachment(file, text);
+        if (!uploaded) continue;
+      } catch (e) {
+        console.error('Session attachment error:', e);
+        showToast('Не удалось загрузить вложение', 'error');
+      }
+      continue;
+    }
     try {
       const text = await parseFile(file);
       const tokens = estimateTokens(text);
       state.attachedDocs.push({ name: file.name, text, tokens });
-      renderDocChip(file.name, tokens, state.attachedDocs.length - 1);
+      renderDocChip({ name: file.name, tokens }, state.attachedDocs.length - 1);
     } catch (e) { console.error('File parse error:', e); }
   }
   const fileInput = $('file-input');
@@ -274,8 +288,9 @@ function confirmLargeRequest(estimate) {
 }
 
 function buildUserContent(text) {
-  if (state.attachedDocs.length === 0) return text;
-  const docBlock = state.attachedDocs.map((d, i) => `=== ${state.lang === 'ru' ? 'Документ' : 'Document'} ${i + 1}: ${d.name} ===\n${d.text}`).join('\n\n');
+  const inlineDocs = state.attachedDocs.filter((d) => d.text && !d.sessionScoped);
+  if (inlineDocs.length === 0) return text;
+  const docBlock = inlineDocs.map((d, i) => `=== ${state.lang === 'ru' ? 'Документ' : 'Document'} ${i + 1}: ${d.name} ===\n${d.text}`).join('\n\n');
   return docBlock + '\n\n---\n\n' + text;
 }
 
@@ -292,6 +307,10 @@ export async function handleSend() {
   if(!userInput) return;
   const text = userInput.value.trim();
   if (!text || state.isGenerating) return;
+  if (hasPendingAttachments()) {
+    showToast('Дождитесь завершения индексации вложений', 'error');
+    return;
+  }
   if (!state.authToken) {
     const auth = await import('./auth.js');
     auth.showRegistrationPrompt();
@@ -315,6 +334,7 @@ export async function handleSend() {
 
   if (state.attachedDocs.length > 0) {
     state.attachedDocs = [];
+    stopAllAttachmentPolling();
     const attachedDocsEl = $('attached-docs');
     if(attachedDocsEl) attachedDocsEl.textContent = '';
     updateTokenInfo();
@@ -362,6 +382,10 @@ export async function handleSend() {
 
     const isCreative = $('feat-creative') && $('feat-creative').checked;
     const activeCategory = $('chat-session-category')?.value || state.currentUser?.category;
+
+    if (!state.currentSessionId && state.chatHistory.length === 0) {
+      state.currentSessionId = crypto.randomUUID();
+    }
     
     const response = await fetch('/api/chat/completions', {
       method: 'POST',
@@ -371,6 +395,7 @@ export async function handleSend() {
         messages,
         stream: true,
         category: activeCategory,
+        session_id: state.currentSessionId,
         temperature: isCreative ? 1.2 : settings.temperature,
         top_p: settings.top_p,
         top_k: settings.top_k,

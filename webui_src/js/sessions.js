@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { $, t } from './index.js';
 import { newChat, addMessageToUI } from './chat.js';
 import { updateContextBadge, showToast, setWelcomeVisible } from './ui.js';
+import { stopAllAttachmentPolling } from './session-attachments.js';
 
 export const SessionManager = {
 
@@ -37,6 +38,7 @@ export const SessionManager = {
         const data = await r.json();
         state.currentSessionId = data.id;
         state.chatHistory = data.messages || [];
+        stopAllAttachmentPolling();
         state.attachedDocs = [];
         const messagesEl = $('messages');
         if (messagesEl) messagesEl.textContent = '';

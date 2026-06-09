@@ -217,6 +217,9 @@ let server: Server | null = null;
 if (require.main === module) {
   writePidFile();
 
+  const { startIndexingQueue } = require('./src/modules/kb/indexing-queue');
+  startIndexingQueue();
+
   server = app.listen(PORT, '0.0.0.0', () => {
     serverLogger.info('Starting AvgExpert Gateway', { host: '0.0.0.0', port: PORT });
   });

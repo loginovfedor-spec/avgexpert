@@ -1,25 +1,26 @@
 import { Router, type Request, type Response } from 'express';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 // @ts-ignore
 import { asyncHandler, AppError } from '../../core/errors';
 // @ts-ignore
 import { authenticate } from '../auth/auth.middleware';
 // @ts-ignore
-import { KB_USER_MAX_DOCS, KB_USER_MAX_FILE_BYTES } from '../../core/config';
+import { KB_USER_MAX_FILE_BYTES } from '../../core/config';
 import { KbRepository } from './kb.repository';
 import { getUserKbMaxDocs } from './kb.limits';
 import { assertSafeSourceUri } from '../ingestion/path-utils';
 import { validateUserUpload } from './upload.validation';
-import { withKbUploadLock } from './upload-lock';
+import { enqueueIndexJob } from './indexing-queue';
 
 type AuthUser = {
   username: string;
   category?: string;
 };
 
-type AuthedRequest = Request & { user?: AuthUser };
+type AuthedRequest = Request & { user?: AuthUser; params: { sessionId: string; id?: string } };
 
-const router = Router();
+const router = Router({ mergeParams: true });
 router.use(authenticate);
 
 function ownerId(req: AuthedRequest): string {
@@ -46,9 +47,18 @@ function toPublicDoc(doc: {
   };
 }
 
+async function assertSessionOwned(username: string, sessionId: string): Promise<void> {
+  const sessionRepository = require('../chat/session.repository');
+  const session = await sessionRepository.findById(username, sessionId);
+  if (!session) {
+    throw new AppError('Сессия не найдена', 404, 'not_found');
+  }
+}
+
 router.post(
-  '/documents',
+  '/',
   asyncHandler(async (req: AuthedRequest, res: Response) => {
+    const sessionId = String(req.params.sessionId || '');
     const schema = z.object({
       filename: z.string().min(1).max(255),
       content: z.string().min(1).max(KB_USER_MAX_FILE_BYTES),
@@ -70,6 +80,8 @@ router.post(
       throw new AppError('Пользователь не авторизован', 401, 'unauthorized');
     }
 
+    await assertSessionOwned(userId, sessionId);
+
     try {
       assertSafeSourceUri(parsed.data.sourceUri);
     } catch (err) {
@@ -88,70 +100,77 @@ router.post(
       return res.status(400).json({ detail: (err as Error).message });
     }
 
-    const kbRepository = new KbRepository();
-    const maxDocs = getUserKbMaxDocs(req.user?.category, KB_USER_MAX_DOCS);
-
-    const { createIngestionPipeline } = require('../ingestion/pipeline');
     const { runVectorMigrations } = require('../vector/pg/migrate');
-
     await runVectorMigrations();
-    const pipeline = createIngestionPipeline();
-    const result = await withKbUploadLock(`user:${userId}`, async () => {
-      const currentCount = await kbRepository.countByOwner(userId, 'user');
+
+    const kbRepository = new KbRepository();
+    const maxDocs = getUserKbMaxDocs(req.user?.category, undefined);
+    const docId = randomUUID();
+    const sourceUri = parsed.data.sourceUri || `session://${sessionId}/${validated.sanitizedFilename}`;
+
+    const created = await kbRepository.withAdvisoryLock(`session_kb:${userId}:${sessionId}`, async (client) => {
+      const currentCount = await kbRepository.countBySession(userId, sessionId, client);
       if (currentCount >= maxDocs) {
-        return { limited: true as const };
+        return null;
       }
-      return pipeline.ingestContent({
-        content: parsed.data.content,
+
+      await kbRepository.createDocumentWithClient(client, {
+        id: docId,
+        scope: 'session',
         filename: validated.sanitizedFilename,
         mime: validated.mime,
-        title: parsed.data.title,
-        scope: 'user',
+        size: Buffer.byteLength(parsed.data.content, 'utf-8'),
+        sourceUri,
         ownerUserId: userId,
-        docType: 'user_upload',
-        sourceUri: parsed.data.sourceUri || `user://${userId}/${validated.sanitizedFilename}`,
+        sessionId,
+        status: 'pending',
       });
+
+      return docId;
     });
 
-    if ('limited' in result && result.limited) {
+    if (!created) {
       return res.status(409).json({
-        detail: `Достигнут лимит документов (${maxDocs}) для вашей категории`,
+        detail: `Достигнут лимит вложений (${maxDocs}) для этой сессии`,
         code: 'doc_limit_reached',
         limit: maxDocs,
       });
     }
 
-    const ingestResult = result as Awaited<ReturnType<typeof pipeline.ingestContent>>;
+    enqueueIndexJob({
+      docId,
+      content: parsed.data.content,
+      filename: validated.sanitizedFilename,
+      mime: validated.mime,
+      title: parsed.data.title,
+      scope: 'session',
+      ownerUserId: userId,
+      sessionId,
+      docType: 'session_attachment',
+      sourceUri,
+    });
 
-    if (ingestResult.status === 'failed') {
-      await kbRepository.deleteDocument(ingestResult.docId);
-      return res.status(502).json({
-        detail: 'Индексация документа не удалась',
-        error: ingestResult.error,
-        docId: ingestResult.docId,
-      });
-    }
-
-    res.status(201).json({
-      id: ingestResult.docId,
-      status: ingestResult.status,
-      chunkCount: ingestResult.chunkCount,
-      filename: ingestResult.filename,
-      checksum: ingestResult.checksum,
+    res.status(202).json({
+      id: docId,
+      status: 'pending',
+      filename: validated.sanitizedFilename,
     });
   })
 );
 
 router.get(
-  '/documents',
+  '/',
   asyncHandler(async (req: AuthedRequest, res: Response) => {
     const userId = ownerId(req);
+    const sessionId = String(req.params.sessionId || '');
+    await assertSessionOwned(userId, sessionId);
+
     const kbRepository = new KbRepository();
-    const docs = await kbRepository.listByOwner(userId, 'user');
-    const maxDocs = getUserKbMaxDocs(req.user?.category, KB_USER_MAX_DOCS);
+    const docs = await kbRepository.listBySession(userId, sessionId);
+    const maxDocs = getUserKbMaxDocs(req.user?.category, undefined);
 
     res.json({
-      documents: docs.map(toPublicDoc),
+      attachments: docs.map(toPublicDoc),
       limit: maxDocs,
       count: docs.length,
     });
@@ -159,14 +178,17 @@ router.get(
 );
 
 router.get(
-  '/documents/:id',
+  '/:id',
   asyncHandler(async (req: AuthedRequest, res: Response) => {
     const userId = ownerId(req);
+    const sessionId = String(req.params.sessionId || '');
+    const docId = String(req.params.id || '');
+    await assertSessionOwned(userId, sessionId);
+
     const kbRepository = new KbRepository();
-    const docId = String(req.params.id);
-    const doc = await kbRepository.findByIdForOwner(docId, userId);
+    const doc = await kbRepository.findByIdForSession(docId, userId, sessionId);
     if (!doc) {
-      throw new AppError('Документ не найден', 404, 'not_found');
+      throw new AppError('Вложение не найдено', 404, 'not_found');
     }
 
     const chunkCount = await kbRepository.countChunksByDocId(doc.id);
@@ -175,19 +197,27 @@ router.get(
 );
 
 router.delete(
-  '/documents/:id',
+  '/:id',
   asyncHandler(async (req: AuthedRequest, res: Response) => {
     const userId = ownerId(req);
-    const docId = String(req.params.id);
+    const sessionId = String(req.params.sessionId || '');
+    const docId = String(req.params.id || '');
+    await assertSessionOwned(userId, sessionId);
+
     const kbRepository = new KbRepository();
-    const doc = await kbRepository.findByIdForOwner(docId, userId);
+    const doc = await kbRepository.findByIdForSession(docId, userId, sessionId);
     if (!doc) {
-      throw new AppError('Документ не найден', 404, 'not_found');
+      throw new AppError('Вложение не найдено', 404, 'not_found');
     }
 
     const { createVectorStoreFromEnv } = require('../vector/registry');
     const store = createVectorStoreFromEnv();
-    await store.delete({ docId: doc.id, ownerUserId: userId, scope: 'user' });
+    await store.delete({
+      docId: doc.id,
+      ownerUserId: userId,
+      sessionId,
+      scope: 'session',
+    });
     await kbRepository.deleteDocument(doc.id);
 
     res.json({ ok: true, id: doc.id });

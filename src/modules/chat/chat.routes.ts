@@ -13,6 +13,8 @@ import limits = require('./limit.service');
 const router = Router();
 const chatRoutesLogger = logger.scoped('ChatRoutes');
 
+router.use('/sessions/:sessionId/attachments', require('../kb/session-attachments.routes'));
+
 type AuthenticatedChatRequest = Request & {
   user: {
     username: string;
@@ -48,6 +50,8 @@ const chatCompletionSchema = z.object({
   run_id: z.string().optional().nullable(),
   runId: z.string().optional().nullable(),
   category: z.string().max(64).optional().nullable(),
+  session_id: z.string().max(64).optional().nullable(),
+  sessionId: z.string().max(64).optional().nullable(),
 }).refine(data => {
   const lastMsg = data.messages[data.messages.length - 1];
   return lastMsg.role !== 'system';

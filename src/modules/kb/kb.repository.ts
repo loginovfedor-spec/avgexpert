@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 import type { KbDocumentRecord, VectorScope } from '../vector/types';
 import { getPgPool } from '../vector/pg/pool';
 
@@ -36,8 +36,15 @@ export class KbRepository {
   }
 
   async createDocument(params: CreateKbDocumentParams): Promise<KbDocumentRecord> {
+    return this.createDocumentWithClient(this.pool, params);
+  }
+
+  async createDocumentWithClient(
+    client: Pool | PoolClient,
+    params: CreateKbDocumentParams
+  ): Promise<KbDocumentRecord> {
     const status = params.status || 'pending';
-    const result = await this.pool.query(
+    const result = await client.query(
       `
       INSERT INTO kb_documents (
         id, scope, owner_user_id, session_id, filename, mime, size, status, source_uri
@@ -84,14 +91,88 @@ export class KbRepository {
   async findByIdForOwner(
     id: string,
     ownerUserId: string,
-    scope: VectorScope = 'user'
+    scope: VectorScope = 'user',
+    sessionId?: string
   ): Promise<KbDocumentRecord | null> {
+    if (scope === 'session' && sessionId) {
+      const result = await this.pool.query(
+        'SELECT * FROM kb_documents WHERE id = $1 AND owner_user_id = $2 AND scope = $3 AND session_id = $4',
+        [id, ownerUserId, scope, sessionId]
+      );
+      if (result.rowCount === 0) return null;
+      return mapRow(result.rows[0]);
+    }
+
     const result = await this.pool.query(
       'SELECT * FROM kb_documents WHERE id = $1 AND owner_user_id = $2 AND scope = $3',
       [id, ownerUserId, scope]
     );
     if (result.rowCount === 0) return null;
     return mapRow(result.rows[0]);
+  }
+
+  async findByIdForSession(
+    id: string,
+    ownerUserId: string,
+    sessionId: string
+  ): Promise<KbDocumentRecord | null> {
+    return this.findByIdForOwner(id, ownerUserId, 'session', sessionId);
+  }
+
+  async listBySession(ownerUserId: string, sessionId: string): Promise<KbDocumentRecord[]> {
+    const result = await this.pool.query(
+      `
+      SELECT * FROM kb_documents
+      WHERE owner_user_id = $1 AND scope = 'session' AND session_id = $2
+      ORDER BY created_at DESC
+      `,
+      [ownerUserId, sessionId]
+    );
+    return result.rows.map((row: Record<string, unknown>) => mapRow(row));
+  }
+
+  async countBySession(
+    ownerUserId: string,
+    sessionId: string,
+    client: Pool | PoolClient = this.pool
+  ): Promise<number> {
+    const result = await client.query(
+      `
+      SELECT COUNT(*)::int AS count FROM kb_documents
+      WHERE owner_user_id = $1 AND scope = 'session' AND session_id = $2 AND status <> 'failed'
+      `,
+      [ownerUserId, sessionId]
+    );
+    return Number(result.rows[0]?.count ?? 0);
+  }
+
+  async withAdvisoryLock<T>(lockKey: string, fn: (client: PoolClient) => Promise<T>): Promise<T> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [lockKey]);
+      const result = await fn(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  async markStaleIngestJobs(maxAgeMs: number): Promise<number> {
+    const result = await this.pool.query(
+      `
+      UPDATE kb_documents
+      SET status = 'failed', updated_at = NOW()
+      WHERE status IN ('pending', 'processing')
+        AND updated_at < NOW() - ($1::int * interval '1 millisecond')
+      `,
+      [maxAgeMs]
+    );
+    return result.rowCount ?? 0;
   }
 
   async listByOwner(ownerUserId: string, scope: VectorScope = 'user'): Promise<KbDocumentRecord[]> {
@@ -106,8 +187,8 @@ export class KbRepository {
     return result.rows.map((row: Record<string, unknown>) => mapRow(row));
   }
 
-  async countByOwner(ownerUserId: string, scope: VectorScope = 'user'): Promise<number> {
-    const result = await this.pool.query(
+  async countByOwner(ownerUserId: string, scope: VectorScope = 'user', client: Pool | PoolClient = this.pool): Promise<number> {
+    const result = await client.query(
       `
       SELECT COUNT(*)::int AS count FROM kb_documents
       WHERE owner_user_id = $1 AND scope = $2 AND status <> 'failed'
