@@ -1,0 +1,9 @@
+{
+  "name": "@avgexpert/yandex-file-search-pg",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Adapter-local PostgreSQL driver for Yandex File Search pgvector retrieval.",
+  "dependencies": {
+    "pg": "^8.21.0"
+  }
+}

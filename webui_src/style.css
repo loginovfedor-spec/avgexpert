@@ -1,0 +1,18 @@
+/* ============================================
+   STYLE.CSS — Main Entry Point
+   AVG Expert — Premium UI Design System
+   
+   Import order matters:
+   1. vars     — tokens, reset, animations
+   2. layout   — app shell, sidebar, navigation
+   3. chat     — messages, input, welcome
+   4. forms    — login, setup, admin
+   5. responsive — breakpoints (must be last)
+   ============================================ */
+
+@import url('vars.css?v=2.4');
+@import url('layout.css?v=2.5');
+@import url('chat.css?v=2.6');
+@import url('forms.css?v=2.4');
+@import url('responsive.css?v=2.6');
+

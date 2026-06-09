@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Sandbox</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .container { display: flex; flex-direction: column; gap: 15px; max-width: 1200px; margin: 0 auto; }
+        .row { display: flex; gap: 15px; }
+        .col { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        label { font-weight: bold; color: #9cdcfe; }
+        input, select { padding: 8px; background: #252526; border: 1px solid #3c3c3c; color: #d4d4d4; border-radius: 4px; font-family: monospace; }
+        textarea { padding: 10px; background: #1e1e1e; border: 1px solid #3c3c3c; color: #ce9178; border-radius: 4px; font-family: Consolas, monospace; min-height: 300px; resize: vertical; }
+        button { padding: 10px 20px; background: #0e639c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1177bb; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        #status { font-weight: bold; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #2196F3; }
+        .tabs { display: flex; gap: 10px; margin-bottom: -15px; }
+        .tab { padding: 5px 15px; background: #252526; border: 1px solid #3c3c3c; border-bottom: none; cursor: pointer; border-radius: 4px 4px 0 0; }
+        .tab.active { background: #1e1e1e; color: #9cdcfe; border-bottom: 1px solid #1e1e1e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>API Sandbox (Raw Testing)</h2>
+            <span id="status">Ready</span>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="loadTemplate('grok_chat')">Grok Chat</div>
+            <div class="tab" onclick="loadTemplate('grok_rag')">Grok RAG Search</div>
+            <div class="tab" onclick="loadTemplate('openai_chat')">OpenAI Chat</div>
+        </div>
+
+        <div class="row">
+            <div class="col" style="flex: 3;">
+                <label>URL Endpoint</label>
+                <input type="text" id="url" value="https://api.x.ai/v1/chat/completions">
+            </div>
+            <div class="col" style="flex: 1;">
+                <label>Method</label>
+                <select id="method">
+                    <option value="POST">POST</option>
+                    <option value="GET">GET</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label>API Key (Bearer Token)</label>
+                <input type="password" id="apiKey" placeholder="sk-...">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label>Request Payload (JSON)</label>
+                <textarea id="payload"></textarea>
+            </div>
+            <div class="col">
+                <div style="display: flex; justify-content: space-between;">
+                    <label>Raw Response</label>
+                    <label><input type="checkbox" id="streamToggle"> Stream Response (SSE)</label>
+                </div>
+                <textarea id="response" readonly placeholder="Response will appear here..."></textarea>
+            </div>
+        </div>
+
+        <button id="sendBtn" onclick="sendRequest()">Send Request</button>
+    </div>
+
+    <script>
+        const templates = {
+            grok_chat: {
+                url: "https://api.x.ai/v1/chat/completions",
+                payload: {
+                    "model": "grok-4-1-fast-non-reasoning",
+                    "messages": [
+                        { "role": "system", "content": "You are a helpful assistant." },
+                        { "role": "user", "content": "Hello!" }
+                    ],
+                    "stream": false,
+                    "tools": [
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "collections_search",
+                                "description": "Search documents",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "query": { "type": "string" },
+                                        "collection_ids": { "type": "array", "items": { "type": "string" } }
+                                    },
+                                    "required": ["query"]
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            grok_rag: {
+                url: "https://api.x.ai/v1/documents/search",
+                payload: {
+                    "query": "Your search query",
+                    "source": { "collection_ids": ["collection_ID_here"] },
+                    "retrieval_mode": { "type": "hybrid" }
+                }
+            },
+            openai_chat: {
+                url: "https://api.openai.com/v1/chat/completions",
+                payload: {
+                    "model": "gpt-4o",
+                    "messages": [{ "role": "user", "content": "Hello!" }],
+                    "stream": false
+                }
+            }
+        };
+
+        function loadTemplate(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const tpl = templates[name];
+            document.getElementById('url').value = tpl.url;
+            document.getElementById('payload').value = JSON.stringify(tpl.payload, null, 2);
+            
+            if(tpl.payload.stream !== undefined) {
+                document.getElementById('streamToggle').checked = tpl.payload.stream;
+            }
+        }
+
+        // Load default
+        document.getElementById('payload').value = JSON.stringify(templates.grok_chat.payload, null, 2);
+
+        // Sync stream checkbox with payload JSON
+        document.getElementById('streamToggle').addEventListener('change', (e) => {
+            try {
+                let p = JSON.parse(document.getElementById('payload').value);
+                p.stream = e.target.checked;
+                document.getElementById('payload').value = JSON.stringify(p, null, 2);
+            } catch(err) {}
+        });
+
+        async function sendRequest() {
+            const url = document.getElementById('url').value;
+            const method = document.getElementById('method').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const payloadStr = document.getElementById('payload').value;
+            const responseBox = document.getElementById('response');
+            const statusBox = document.getElementById('status');
+            const btn = document.getElementById('sendBtn');
+            const isStream = document.getElementById('streamToggle').checked;
+
+            responseBox.value = '';
+            statusBox.textContent = 'Sending...';
+            statusBox.className = 'info';
+            btn.disabled = true;
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (apiKey) {
+                headers['Authorization'] = `Bearer ${apiKey}`;
+            }
+
+            const options = {
+                method,
+                headers
+            };
+
+            if (method !== 'GET') {
+                try {
+                    // Just to validate JSON
+                    JSON.parse(payloadStr); 
+                    options.body = payloadStr;
+                } catch(e) {
+                    statusBox.textContent = 'Invalid JSON Payload';
+                    statusBox.className = 'error';
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    statusBox.textContent = `HTTP Error: ${response.status} ${response.statusText}`;
+                    statusBox.className = 'error';
+                    const text = await response.text();
+                    try {
+                        responseBox.value = JSON.stringify(JSON.parse(text), null, 2);
+                    } catch {
+                        responseBox.value = text;
+                    }
+                    btn.disabled = false;
+                    return;
+                }
+
+                if (isStream) {
+                    statusBox.textContent = 'Streaming...';
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        responseBox.value += decoder.decode(value, { stream: true });
+                        responseBox.scrollTop = responseBox.scrollHeight;
+                    }
+                    statusBox.textContent = 'Stream Finished';
+                    statusBox.className = 'success';
+                } else {
+                    const text = await response.text();
+                    try {
+                        responseBox.value = JSON.stringify(JSON.parse(text), null, 2);
+                    } catch {
+                        responseBox.value = text;
+                    }
+                    statusBox.textContent = `Success (${response.status})`;
+                    statusBox.className = 'success';
+                }
+            } catch (err) {
+                statusBox.textContent = `Network Error: ${err.message}`;
+                statusBox.className = 'error';
+                responseBox.value = err.stack;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

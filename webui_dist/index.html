@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="ИИ-ассистент AVG Expert: задавайте вопросы и анализируйте документы">
+    <meta property="og:title" content="AVG Expert">
+    <meta property="og:description" content="ИИ-ассистент AVG Expert: задавайте вопросы и анализируйте документы">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.avgexpert.ru/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="AVG Expert">
+    <meta name="twitter:description" content="ИИ-ассистент AVG Expert: задавайте вопросы и анализируйте документы">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AVG Expert</title>
+    <script type="module" crossorigin src="/assets/index-CB7yYHgj.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/preload-helper-zJ_50EbN.js">
+  <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-CMxvf4Kt.js">
+  <link rel="modulepreload" crossorigin href="/assets/js-C-JwTYmw.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-BQjVOni4.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-CFQsl_u8.css">
+</head>
+<body>
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div id="login-screen" class="login-screen" role="dialog" aria-label="Вход в систему" aria-modal="true">
+        <div class="login-box">
+            <div class="logo-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+            <h2>Вход в систему</h2>
+            <form id="login-form" aria-label="Форма входа">
+                <input type="text" id="login-user" placeholder="Пользователь" required class="setup-input" aria-label="Имя пользователя" autocomplete="username">
+                <input type="password" id="login-pass" placeholder="Пароль" required class="setup-input mt-sm" aria-label="Пароль" autocomplete="current-password">
+                <div id="login-error" class="login-error hidden" role="alert" aria-live="assertive"></div>
+                <button type="submit" class="save-btn login-submit" id="login-submit-btn">Войти</button>
+                <div class="auth-switch-row">
+                    <a href="#" id="show-register-link" class="auth-switch-link">Нет аккаунта? Зарегистрироваться</a>
+                </div>
+            </form>
+
+            <form id="register-form" aria-label="Форма регистрации" class="hidden">
+                <input type="text" id="register-user" placeholder="Имя: a-z, A-Z, 0-9, _ и -" required minlength="8" maxlength="64" pattern="[A-Za-z0-9_-]+" class="setup-input" aria-label="Имя пользователя" autocomplete="username">
+                <input type="email" id="register-email" placeholder="E-mail" required class="setup-input mt-sm" aria-label="E-mail">
+                <input type="password" id="register-pass" placeholder="Пароль" title="Минимум 8 символов, заглавная, строчная, цифра, спецсимвол" required minlength="8" class="setup-input mt-sm" aria-label="Пароль" autocomplete="new-password">
+                <input type="password" id="register-pass-confirm" placeholder="Подтверждение пароля" required minlength="8" class="setup-input mt-sm" aria-label="Подтверждение пароля" autocomplete="new-password">
+                <div id="register-error" class="login-error hidden" role="alert" aria-live="assertive"></div>
+                <button type="submit" class="save-btn login-submit" id="register-submit-btn">Зарегистрироваться</button>
+                <div class="auth-switch-row">
+                    <a href="#" id="show-login-link" class="auth-switch-link">Уже есть аккаунт? Войти</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="large-request-modal" class="credits-modal hidden" role="dialog" aria-label="Подтверждение большого запроса" aria-modal="true">
+        <div class="credits-modal-backdrop" id="large-request-modal-backdrop"></div>
+        <div class="credits-modal-panel large-request-modal-panel">
+            <div class="credits-modal-header">
+                <div>
+                    <span class="credits-modal-kicker">AVG Expert</span>
+                    <h2 data-i18n="large_request_title">Большой запрос</h2>
+                </div>
+                <button class="credits-modal-close" id="large-request-modal-close" type="button" aria-label="Закрыть">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <p class="large-request-desc" data-i18n="large_request_desc">Размер запроса превышает 100 000 символов. Ниже — ориентировочная стоимость в кредитах.</p>
+            <div class="large-request-estimate" id="large-request-estimate" aria-live="polite"></div>
+            <p class="large-request-note" data-i18n="large_request_note">Оценка приблизительная. Фактический расход зависит от длины ответа модели.</p>
+            <div class="large-request-actions">
+                <button type="button" class="nav-btn btn-cancel" id="large-request-cancel" data-i18n="large_request_cancel">Отмена</button>
+                <button type="button" class="save-btn btn-accent" id="large-request-confirm" data-i18n="large_request_confirm">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="credits-modal" class="credits-modal hidden" role="dialog" aria-label="Оплата кредитов" aria-modal="true">
+        <div class="credits-modal-backdrop" id="credits-modal-backdrop"></div>
+        <div class="credits-modal-panel">
+            <div class="credits-modal-header">
+                <div>
+                    <span class="credits-modal-kicker">AVG Expert</span>
+                    <h2>Оплата кредитов</h2>
+                </div>
+                <button class="credits-modal-close" id="credits-modal-close" type="button" aria-label="Закрыть оплату кредитов">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="pricing-grid mt-sm">
+                <button class="pricing-card" data-amount="200">
+                    <div class="pricing-img-wrapper">
+                        <img class="pricing-illustration" src="/assets/credits-speed-DRFkL0hE.png" alt="Скорость обработки запросов" loading="lazy" decoding="async">
+                    </div>
+                    <div class="pricing-info">
+                        <span class="pricing-credits">1 000 кредитов</span>
+                        <span class="pricing-price">200 ₽</span>
+                    </div>
+                </button>
+                <button class="pricing-card" data-amount="2000">
+                    <div class="pricing-img-wrapper">
+                        <img class="pricing-illustration" src="/assets/credits-professional-Cm6ZiWgw.png" alt="Профессиональная работа с AI-кредитами" loading="lazy" decoding="async">
+                    </div>
+                    <div class="pricing-info">
+                        <span class="pricing-credits">12 000 кредитов <span class="pricing-badge">+20%</span></span>
+                        <span class="pricing-price">2 000 ₽</span>
+                    </div>
+                </button>
+                <button class="pricing-card" data-amount="20000">
+                    <div class="pricing-img-wrapper">
+                        <img class="pricing-illustration" src="/assets/credits-system-29A6Fgov.png" alt="Системный подход к использованию кредитов" loading="lazy" decoding="async">
+                    </div>
+                    <div class="pricing-info">
+                        <span class="pricing-credits">150 000 кредитов <span class="pricing-badge">+50%</span></span>
+                        <span class="pricing-price">20 000 ₽</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="about-modal" class="credits-modal hidden" role="dialog" aria-label="О нас" aria-modal="true">
+        <div class="credits-modal-backdrop" id="about-modal-backdrop"></div>
+        <div class="credits-modal-panel about-modal-panel">
+            <div class="credits-modal-header">
+                <div>
+                    <span class="credits-modal-kicker">AVG Expert</span>
+                    <h2>О нас</h2>
+                </div>
+                <button class="credits-modal-close" id="about-modal-close" type="button" aria-label="Закрыть окно О нас">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="about-card">
+                <div class="about-photo-wrap">
+                    <img class="about-photo" id="about-photo-img" src="/assets/about-author-DXs06ycP.jpg" alt="Фото автора Эзоагностики реальности">
+                    <div class="about-photo-fallback" aria-hidden="true">
+                        <span>Фото автора</span>
+                    </div>
+                </div>
+                <div class="about-content">
+                    <span class="about-eyebrow">Автор Эзоагностики реальности</span>
+                    <h3 class="about-author-name">Андрей Владимирович Гусев</h3>
+                    <p class="about-mission">Задача AVG Expert — помочь человеку яснее видеть, что происходит в действительности, меньше обманывать себя словами и объяснениями, точнее понимать свои действия и менять жизнь не на уровне разговоров, а через реальные поступки и проверяемые изменения.</p>
+                    <a class="about-email" href="mailto:rfxxi@ya.ru">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                        <span>rfxxi@ya.ru</span>
+                    </a>
+                    <div class="about-footer">(C) LabKM, 2026 г.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="credits-modal hidden" role="dialog" aria-label="Справка" aria-modal="true">
+        <div class="credits-modal-backdrop" id="help-modal-backdrop"></div>
+        <div class="credits-modal-panel help-modal-panel">
+            <div class="help-modal-topline" aria-hidden="true"></div>
+            <div class="credits-modal-header help-modal-header">
+                <div>
+                    <span class="credits-modal-kicker">AVG Expert Knowledge Base</span>
+                    <h2>Справка</h2>
+                </div>
+                <button class="credits-modal-close" id="help-modal-close" type="button" aria-label="Закрыть справку">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="help-shell">
+                <div class="help-sidebar" aria-label="Документы справки">
+                    <button class="help-doc-item active" type="button" data-help-file="Help.md">
+                        <span class="help-status-dot"></span>
+                        <span>Help.md</span>
+                    </button>
+                    <button class="help-doc-item" type="button" data-help-file="PrivacyPolicy.md">
+                        <span class="help-status-dot"></span>
+                        <span>PrivacyPolicy.md</span>
+                    </button>
+                    <button class="help-doc-item" type="button" data-help-file="Offer.md">
+                        <span class="help-status-dot"></span>
+                        <span>Offer.md</span>
+                    </button>
+                </div>
+                <div class="help-content" id="help-content" aria-live="polite">
+                    <div class="help-loading">
+                        <span class="help-loader"></span>
+                        <span>Загрузка справки...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="books-modal" class="credits-modal hidden" role="dialog" aria-label="Документация" aria-modal="true">
+        <div class="credits-modal-backdrop" id="books-modal-backdrop"></div>
+        <div class="credits-modal-panel books-modal-panel">
+            <div class="help-modal-topline" aria-hidden="true"></div>
+            <div class="credits-modal-header help-modal-header">
+                <div>
+                    <span class="credits-modal-kicker">AVG Expert Library</span>
+                    <h2 id="books-modal-title">Документация</h2>
+                </div>
+                <button class="credits-modal-close" id="books-modal-close" type="button" aria-label="Закрыть документацию">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="books-shell">
+                <aside class="books-list" id="books-list" aria-label="Список книг">
+                    <div class="help-loading">
+                        <span class="help-loader"></span>
+                        <span>Загрузка каталога...</span>
+                    </div>
+                </aside>
+                <article class="books-reader" id="books-reader" aria-live="polite">
+                    <div class="books-empty-state">
+                        <span class="books-empty-icon" aria-hidden="true">◆</span>
+                        <h3>Библиотека автора</h3>
+                        <p>Выберите книгу слева. Каталог загружается из файла assets/books/books.json.</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="app">
+        <!-- ===== SIDEBAR BACKDROP ===== -->
+        <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar" role="navigation" aria-label="Главное меню">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <!-- logo-icon: shows brand, on hover when collapsed shows 3-bar hamburger -->
+                    <div class="logo-icon logo-icon-toggle" id="logo-icon-toggle" aria-hidden="true" title="Развернуть меню">
+                        <!-- Brand icon (default, shown always) -->
+                        <svg class="icon-brand" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        <!-- 3-line expand icon (shown on hover when collapsed) -->
+                        <svg class="icon-expand" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    </div>
+                    <span class="logo-text">AVG Expert</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Свернуть/развернуть меню" aria-expanded="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+            </div>
+
+            <nav class="nav" id="nav-main" aria-label="Навигация по разделам">
+                <div class="nav-chat-container">
+                    <button class="nav-btn active" data-view="chat" id="nav-chat" aria-label="Перейти в чат">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span data-i18n="chat">Чат</span>
+                    </button>
+                    <button class="new-chat-inline-btn" id="new-chat-btn" aria-label="Создать новый чат" title="Новый чат">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </div>
+                <button class="nav-btn hidden" data-view="admin" id="nav-admin" aria-label="Перейти в админ-панель">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Админ-панель</span>
+                </button>
+            </nav>
+
+            <div class="sessions-list" id="sessions-list" aria-label="Список сессий">
+                <!-- rendered by JS -->
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator-group">
+                    <div class="status-dot" id="status-dot" aria-hidden="true"></div>
+                    <div class="sync-indicator hidden" id="sync-indicator" title="Синхронизация..." aria-label="Синхронизация с сервером">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    </div>
+                </div>
+                <span class="status-text" id="status-text">Подключение...</span>
+                <div class="app-menu" id="app-menu">
+                    <button class="app-menu-btn" id="app-menu-btn" aria-label="Открыть меню" aria-haspopup="true" aria-expanded="false">
+                        <span aria-hidden="true">...</span>
+                    </button>
+                    <div class="app-menu-panel" id="app-menu-panel" role="menu" aria-label="Меню приложения">
+                        <button class="app-menu-item" id="credits-menu-btn" type="button" role="menuitem">
+                            <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h4"/><path d="M7 14h7"/><path d="M17 10v4"/><path d="M15 12h4"/></svg>
+                            <span class="app-menu-label">Кредиты +</span>
+                        </button>
+                        <button class="app-menu-item" data-view="setup" id="nav-setup" type="button" role="menuitem" aria-label="Перейти в настройки">
+                            <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            <span class="app-menu-label" data-i18n="setup">Настройки</span>
+                        </button>
+                        <div class="app-menu-item app-menu-submenu" role="menuitem" aria-haspopup="true" tabindex="0">
+                            <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18h1.5a2.5 2.5 0 0 0 0-5H12a2 2 0 0 1 0-4h2a3 3 0 0 0 0-6h-2z"/><circle cx="7.5" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="9" cy="6.7" r=".8" fill="currentColor" stroke="none"/><circle cx="14" cy="6.7" r=".8" fill="currentColor" stroke="none"/></svg>
+                            <span class="app-menu-label">Стиль</span>
+                            <span class="app-menu-arrow" aria-hidden="true">›</span>
+                            <div class="app-submenu-panel" role="menu" aria-label="Стиль">
+                                <button class="app-menu-item" type="button" role="menuitemradio" data-theme-option="light">
+                                    <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                                    <span class="app-menu-label">Светлый</span>
+                                </button>
+                                <button class="app-menu-item" type="button" role="menuitemradio" data-theme-option="dark">
+                                    <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z"/></svg>
+                                    <span class="app-menu-label">Темный</span>
+                                </button>
+                                <button class="app-menu-item" type="button" role="menuitemradio" data-theme-option="system">
+                                    <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="M8 8h8"/></svg>
+                                    <span class="app-menu-label">Системный</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="app-menu-item app-menu-submenu" role="menuitem" aria-haspopup="true" tabindex="0">
+                            <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.8 2.8 0 0 1 5.1 1.6c0 2-2.6 2.1-2.6 4"/><path d="M12 18h.01"/></svg>
+                            <span class="app-menu-label">Помощь</span>
+                            <span class="app-menu-arrow" aria-hidden="true">›</span>
+                            <div class="app-submenu-panel" role="menu" aria-label="Помощь">
+                                <button class="app-menu-item" id="docs-menu-btn" type="button" role="menuitem">
+                                    <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3z"/><path d="M8 7h8"/><path d="M8 11h6"/></svg>
+                                    <span class="app-menu-label">Документация</span>
+                                </button>
+                                <button class="app-menu-item" id="help-menu-btn" type="button" role="menuitem">
+                                    <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8a5 5 0 0 1 10 0c0 4-5 4-5 8"/><path d="M12 21h.01"/><path d="M4 15a8 8 0 0 1 16 0"/></svg>
+                                    <span class="app-menu-label">Справка</span>
+                                </button>
+                                <button class="app-menu-item" id="about-menu-btn" type="button" role="menuitem">
+                                    <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+                                    <span class="app-menu-label">О нас</span>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="app-menu-item app-menu-item-danger" id="logout-btn" type="button" role="menuitem">
+                            <svg class="app-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+                            <span class="app-menu-label">Выйти</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== CHAT VIEW ===== -->
+        <main class="view chat-view active welcome-active" id="view-chat" role="main" aria-label="Область чата">
+            <div class="chat-header">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Открыть меню">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="chat-header-left">
+                    <h1 id="chat-title-category">Gemma AI</h1>
+                </div>
+                <div class="chat-header-right">
+                    <span class="token-info" id="token-info" aria-live="polite"></span>
+                </div>
+            </div>
+
+            <!-- Welcome Screen -->
+            <div class="welcome-screen" id="welcome-screen" aria-label="Экран приветствия">
+                <div class="welcome-icon" aria-hidden="true">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <h2 data-i18n="welcome_title">Добро пожаловать!</h2>
+                <p data-i18n="welcome_subtitle">Я ИИ-ассистент AVG Expert: задавайте вопросы и анализируйте документы. Задайте мне вопрос или загрузите документ для анализа.</p>
+                <div class="welcome-hints" role="group" aria-label="Подсказки для начала">
+                    <button class="hint-chip" data-prompt="explain_code"><span data-i18n="hint_code">💡 Помоги разобраться</span></button>
+                    <button class="hint-chip" data-prompt="write_text"><span data-i18n="hint_text">✍️ Напиши текст</span></button>
+                    <button class="hint-chip" data-prompt="analyze_doc"><span data-i18n="hint_doc">📄 Анализ документа</span></button>
+                    <button class="hint-chip" data-prompt="translate"><span data-i18n="hint_translate">🌐 Переведи</span></button>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="messages" id="messages" aria-live="polite" aria-atomic="false" role="log"></div>
+
+            <!-- Input Area -->
+            <div class="input-wrapper" id="input-wrapper">
+                <!-- Attached Documents -->
+                <div class="attached-docs" id="attached-docs" aria-label="Прикреплённые документы"></div>
+                <!-- Drop Zone Overlay -->
+                <div class="drop-overlay" id="drop-overlay" aria-hidden="true">
+                    <div class="drop-overlay-content">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span data-i18n="drop_files">Перетащите файлы сюда</span>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <textarea id="user-input" rows="1" data-i18n-placeholder="placeholder" placeholder="Введите сообщение..." aria-label="Поле ввода сообщения"></textarea>
+                    
+                    <div class="input-bottom-row">
+                        <div class="input-bottom-left">
+                            <button class="attach-btn" id="attach-btn" aria-label="Прикрепить файл" title="Прикрепить файл">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </button>
+                            
+
+
+                            <div class="category-select-wrapper">
+                                <select id="chat-session-category" class="category-select">
+                                    <!-- populated by JS -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-bottom-right">
+                            <div class="context-badge" id="context-badge" title="" aria-label="Использование контекста">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                                <span id="context-usage">... / ...</span>
+                            </div>
+                            <button class="advanced-toggle-btn" id="advanced-toggle-btn" aria-label="Дополнительные функции" title="Параметры ИИ">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            </button>
+                            <button class="voice-btn" id="voice-btn" aria-label="Голосовой ввод" title="Голосовой ввод">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                            </button>
+                            <button class="stop-btn hidden" id="stop-btn" aria-label="Остановить генерацию" title="Остановить генерацию">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                            </button>
+                            <button class="send-btn" id="send-btn" aria-label="Отправить сообщение" title="Отправить сообщение">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="advanced-panel" class="advanced-panel hidden" role="group" aria-label="Параметры ИИ">
+                    <div class="advanced-panel-header">Параметры ИИ</div>
+                    <div class="advanced-options">
+                        <label class="toggle-option toggle-option--column">
+                            <span class="toggle-label toggle-label--sub">📚 RAG поиск</span>
+                            <select id="feat-retrieval-mode" class="setup-input select--compact">
+                                <option value="balanced">Сбалансированный</option>
+                                <option value="fast">Быстрый</option>
+                                <option value="no_retrieval">Без RAG (только модель)</option>
+                            </select>
+                        </label>
+                        <label class="toggle-option">
+                            <span class="toggle-label">🧠 Глубокое рассуждение</span>
+                            <input type="checkbox" id="feat-reasoning">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <label class="toggle-option">
+                            <span class="toggle-label">🌐 Поиск в реальном времени</span>
+                            <input type="checkbox" id="feat-websearch">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <label class="toggle-option">
+                            <span class="toggle-label">✨ Креативный режим</span>
+                            <input type="checkbox" id="feat-creative">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <input type="file" id="file-input" multiple accept=".txt,.md,.docx,.pdf" class="file-input-hidden" aria-hidden="true">
+                <div class="input-footer">
+                </div>
+            </div>
+        </main>
+
+        <!-- ===== SETUP VIEW ===== -->
+        <section class="view setup-view" id="view-setup" role="region" aria-label="Настройки">
+            <div class="setup-header">
+                <button class="mobile-menu-btn" id="mobile-menu-btn-setup" aria-label="Открыть меню">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <h1 data-i18n="setup_title">Настройки</h1>
+            </div>
+            <div class="setup-scroll">
+
+                <!-- User Profile -->
+                <div class="setup-card">
+                    <div class="setup-card-header">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <h3 data-i18n="user_profile">Профиль пользователя</h3>
+                    </div>
+                    
+                    <input type="email" id="user-email" class="setup-input mb-md" placeholder="E-mail" aria-label="E-mail">
+                    <input type="password" id="user-password" class="setup-input" placeholder="Новый пароль (пусто = не менять)" aria-label="Новый пароль" autocomplete="new-password">
+                    
+                    <h4 class="section-subtitle mt-md">Категория по умолчанию</h4>
+                    <select id="user-default-category" class="setup-input mt-xs" aria-label="Категория по умолчанию">
+                        <!-- populated by JS -->
+                    </select>
+
+                    <h4 class="section-subtitle mt-md">Лимиты запроса</h4>
+                    <div class="mt-sm">
+                        <label class="range-label">
+                            <span>Входной контекст, кредиты</span>
+                            <span><output id="user-input-context-value">0</output> / <span id="user-input-context-max">1000</span></span>
+                        </label>
+                        <input type="range" id="user-input-context-credits" min="0" max="1000" step="1" value="0" class="setup-input" aria-label="Входной контекст в кредитах">
+                    </div>
+                    <div class="mt-sm">
+                        <label class="range-label">
+                            <span>Выходная генерация, кредиты</span>
+                            <span><output id="user-output-generation-value">0</output> / <span id="user-output-generation-max">128</span></span>
+                        </label>
+                        <input type="range" id="user-output-generation-credits" min="0" max="128" step="1" value="0" class="setup-input" aria-label="Выходная генерация в кредитах">
+                    </div>
+
+                </div>
+
+                <div class="setup-card balance-card">
+                    <div class="balance-card-top">
+                        <div>
+                            <div class="balance-label">Баланс</div>
+                            <div class="balance-value"><span id="user-tokens-balance">0</span> кредитов</div>
+                        </div>
+                        <button type="button" class="balance-topup-btn" id="settings-topup-btn" aria-label="Пополнить баланс">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h4"/><path d="M7 14h7"/><path d="M17 10v4"/><path d="M15 12h4"/></svg>
+                            <span>Пополнить</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="setup-card balance-history-card">
+                    <div class="setup-card-header balance-history-header">
+                        <h3>История операций</h3>
+                        <button type="button" class="balance-history-export-btn" id="balance-history-export-btn" aria-label="Выгрузить историю в CSV">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span>CSV за 3 мес.</span>
+                        </button>
+                    </div>
+                    <div class="balance-history-table" role="table" aria-label="История операций по балансу">
+                        <div class="balance-history-row balance-history-head" role="row">
+                            <div role="columnheader">Дата</div>
+                            <div role="columnheader">Операция</div>
+                            <div role="columnheader">Пополнение</div>
+                            <div role="columnheader">Использовано</div>
+                            <div role="columnheader">Баланс</div>
+                        </div>
+                        <div id="balance-history-list"></div>
+                    </div>
+                    <div class="balance-history-empty hidden" id="balance-history-empty">Операций пока нет</div>
+                </div>
+
+                <!-- Save Button -->
+                <button class="save-btn" id="save-btn" aria-label="Сохранить настройки">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span data-i18n="save_btn">Сохранить настройки</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ===== ADMIN VIEW ===== -->
+        <section class="view setup-view" id="view-admin" role="region" aria-label="Админ-панель">
+            <div class="setup-header">
+                <button class="mobile-menu-btn" id="mobile-menu-btn-admin" aria-label="Открыть меню">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <h1>Админ-панель</h1>
+            </div>
+            
+            <div class="admin-tabs" role="tablist">
+                <button class="admin-tab active" data-tab="overview" role="tab" aria-selected="true">Обзор</button>
+                <button class="admin-tab" data-tab="users" role="tab" aria-selected="false">Пользователи</button>
+                <button class="admin-tab" data-tab="categories" role="tab" aria-selected="false">Категории</button>
+                <button class="admin-tab" data-tab="audit" role="tab" aria-selected="false">Аудит</button>
+                <button class="admin-tab" data-tab="debug" role="tab" aria-selected="false">🐛 Отладка</button>
+            </div>
+
+            <div class="setup-scroll">
+                <!-- Tab: Overview -->
+                <div id="admin-tab-overview" class="admin-tab-content active">
+                    <div class="admin-dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon users-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                            <div class="stat-label">Пользователи</div>
+                            <div class="stat-value" id="stat-total-users">0</div>
+                            <div class="stat-subtext" id="stat-expired-users">0 истекло</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon sessions-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                            <div class="stat-label">Всего сессий</div>
+                            <div class="stat-value" id="stat-total-sessions">0</div>
+                            <div class="stat-subtext">Активно на сервере</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon health-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                            <div class="stat-label">Аптайм</div>
+                            <div class="stat-value" id="stat-uptime">0:00:00</div>
+                            <div class="stat-subtext" id="stat-memory">... MB RAM</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon categories-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+                            <div class="stat-label">Категории</div>
+                            <div class="stat-value" id="stat-total-categories">0</div>
+                            <div class="stat-subtext">Активных профилей</div>
+                        </div>
+                    </div>
+
+                    <div class="setup-card mt-lg">
+                        <div class="setup-card-header">
+                            <h3>Система</h3>
+                        </div>
+                        <div class="system-info-list" id="system-info-list">
+                            <!-- JS populated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Users -->
+                <div id="admin-tab-users" class="admin-tab-content">
+                    <div class="admin-toolbar">
+                        <div class="search-wrapper">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" id="admin-user-search" class="setup-input" placeholder="Поиск пользователя...">
+                        </div>
+                        <button type="button" class="save-btn btn-accent" id="btn-create-user" aria-label="Создать нового пользователя">Создать</button>
+                    </div>
+
+                    <div class="setup-card">
+                        <div id="admin-user-list" class="admin-list" role="list" aria-label="Список пользователей"></div>
+                    </div>
+                    
+                    <div id="admin-edit-card" class="setup-card card-accent hidden" role="form" aria-label="Форма редактирования пользователя">
+                        <div class="setup-card-header">
+                            <h3 id="admin-edit-title">Редактировать пользователя</h3>
+                        </div>
+                        <input type="text" id="admin-username" class="setup-input" placeholder="Имя пользователя" aria-label="Имя пользователя" maxlength="64" pattern="[A-Za-z0-9_-]+">
+                        <input type="email" id="admin-email" class="setup-input mt-sm" placeholder="E-mail" aria-label="E-mail пользователя" maxlength="254">
+                        <input type="password" id="admin-password" class="setup-input mt-sm" placeholder="Пароль (не менее 8 символов, пусто = не менять)" aria-label="Пароль пользователя" autocomplete="new-password">
+                        <label class="toggle-option toggle-option--card mt-sm mb-sm">
+                            <span class="toggle-label toggle-label--strong">👑 Права администратора</span>
+                            <input type="checkbox" id="admin-is-admin">
+                            <span class="toggle-slider"></span>
+                        </label>
+
+                        <h4 class="section-subtitle mt-sm">🪙 Кредиты</h4>
+                        <div class="credits-block">
+                            <div class="grid-2col mb-sm">
+                                <div>
+                                    <label class="field-label">Выделено кредитов</label>
+                                    <input type="number" id="admin-tokens-allocated" class="setup-input" placeholder="0" min="0" step="1" aria-label="Выделено кредитов" style="text-align:right">
+                                </div>
+                                <div>
+                                    <label class="field-label">Остаток кредитов</label>
+                                    <input type="number" id="admin-tokens-balance" class="setup-input input--readonly" readonly tabindex="-1" aria-label="Остаток кредитов">
+                                </div>
+                            </div>
+                            <div class="grid-2col">
+                                <div>
+                                    <label class="field-label">Использовано входных кредитов</label>
+                                    <input type="number" id="admin-tokens-input-used" class="setup-input input--readonly" readonly tabindex="-1" aria-label="Использовано входных кредитов">
+                                </div>
+                                <div>
+                                    <label class="field-label">Использовано выходных кредитов</label>
+                                    <input type="number" id="admin-tokens-output-used" class="setup-input input--readonly" readonly tabindex="-1" aria-label="Использовано выходных кредитов">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Blocked checkbox -->
+                        <label class="toggle-option toggle-option--danger mt-sm mb-sm">
+                            <span class="toggle-label toggle-label--danger">🔒 Заблокирован</span>
+                            <input type="checkbox" id="admin-is-blocked">
+                            <span class="toggle-slider"></span>
+                        </label>
+
+                        <input type="date" id="admin-expiration" class="setup-input mt-sm" title="Дата окончания доступа" aria-label="Дата окончания доступа">
+                        <input type="number" id="admin-n-ctx" class="setup-input mt-sm" placeholder="Размер контекста, токены" aria-label="Размер контекста в токенах">
+                        <h4 class="section-subtitle mt-sm">Категория по умолчанию</h4>
+                        <select id="admin-default-category" class="setup-input mt-sm" aria-label="Категория пользователя по умолчанию"></select>
+                        <h4 class="section-subtitle mt-sm">Лимиты запроса</h4>
+                        <div class="grid-2col mt-sm">
+                            <div>
+                                <label class="field-label">Входной контекст, кредиты</label>
+                                <input type="number" id="admin-input-context-credits" class="setup-input" min="0" max="1000" step="1" placeholder="0" aria-label="Входной контекст в кредитах">
+                            </div>
+                            <div>
+                                <label class="field-label">Выходная генерация, кредиты</label>
+                                <input type="number" id="admin-output-generation-credits" class="setup-input" min="0" max="128" step="1" placeholder="0" aria-label="Выходная генерация в кредитах">
+                            </div>
+                        </div>
+                        
+                        <h4 class="section-subtitle mt-sm">Доступные категории</h4>
+                        <div id="admin-allowed-categories-container" class="allowed-categories-grid field-box mt-sm mb-sm">
+                            <!-- populated by JS -->
+                        </div>
+                        
+                        <h4 class="section-subtitle">Системный промпт</h4>
+                        <textarea id="admin-system-prompt" class="setup-textarea admin-textarea" rows="4" aria-label="Системный промпт пользователя"></textarea>
+                        
+                        <div class="admin-btn-row">
+                            <button type="button" class="save-btn" id="btn-save-user" aria-label="Сохранить пользователя">Сохранить</button>
+                            <button type="button" class="nav-btn btn-cancel" id="btn-cancel-user" aria-label="Отменить редактирование">Отмена</button>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- Tab: Categories -->
+                <div id="admin-tab-categories" class="admin-tab-content">
+                    <div class="admin-toolbar">
+                        <div class="setup-card-header mb-0">
+                            <h3>Справочник: Категории обслуживания</h3>
+                        </div>
+                        <button type="button" class="save-btn btn-accent ml-auto" id="btn-create-cat" aria-label="Создать новую категорию">Создать</button>
+                    </div>
+                    <div class="setup-card mt-sm">
+                        <div id="admin-category-list" class="admin-list" role="list" aria-label="Список категорий"></div>
+                    </div>
+
+                    <div id="admin-cat-edit-card" class="setup-card card-accent mt-lg hidden" role="form" aria-label="Форма редактирования категории">
+                        <div class="setup-card-header flex-center-gap">
+                            <h3 id="admin-cat-edit-title">Настройка категории</h3>
+                            <button class="nav-btn btn-action-sm--danger ml-auto hidden" id="btn-del-cat" aria-label="Удалить категорию">🗑️ Удалить</button>
+                        </div>
+                        
+                        <h4 class="section-subtitle--light">ID Категории (Название)</h4>
+                        <input type="text" id="admin-cat-name" class="setup-input" placeholder="Например: Analyst" aria-label="Имя категории">
+
+                        <h4 class="section-subtitle--light">Провайдер</h4>
+                        <select id="admin-cat-provider" class="setup-input" aria-label="Провайдер ИИ">
+                            <!-- populated by JS from /api/providers -->
+                        </select>
+
+
+
+                        <h4 class="section-subtitle--light mt-sm">Сложность <span class="hint-text">(коэффициент расхода токенов, формат 00.00, по умолчанию 1.00)</span></h4>
+                        <input type="number" id="admin-cat-complexity" class="setup-input" value="1.00" min="0.01" max="99.99" step="0.01" placeholder="1.00" aria-label="Сложность категории">
+
+                        <h4 class="section-subtitle--light mt-sm">Лимиты категории</h4>
+                        <div class="grid-3col">
+                            <input type="text" id="admin-cat-input-context-default" class="setup-input" inputmode="numeric" pattern="[0-9 ]*" placeholder="Вход default токены" aria-label="Входной контекст по умолчанию в токенах">
+                            <input type="text" id="admin-cat-input-context-max" class="setup-input" inputmode="numeric" pattern="[0-9 ]*" placeholder="Вход max токены" aria-label="Максимум входного контекста в токенах">
+                            <input type="text" id="admin-cat-max-tokens" class="setup-input" inputmode="numeric" pattern="[0-9 ]*" placeholder="Выход max_tokens" aria-label="Максимум выходной генерации">
+                        </div>
+
+                        <h4 class="section-subtitle--light mt-sm">Индекс сортировки <span class="hint-text">(целое число, по умолчанию 0)</span></h4>
+                        <input type="number" id="admin-cat-sort-index" class="setup-input" value="0" step="1" placeholder="0" aria-label="Индекс сортировки категории">
+
+                        <h4 class="section-subtitle--light mt-sm">Вопросы в чате <span class="hint-text">(по одному вопросу на строку)</span></h4>
+                        <textarea id="admin-cat-suggested-questions" class="setup-textarea admin-textarea" rows="3" placeholder="Введите вопросы для отображения в чате..." aria-label="Вопросы в чате"></textarea>
+
+                        <h4 class="section-subtitle--light mt-sm">Системный промпт <span class="hint-text">(добавляется к промпту пользователя)</span></h4>
+                        <textarea id="admin-cat-system-prompt" class="setup-textarea admin-textarea" rows="3" placeholder="Опциональный системный промпт для этой категории..." aria-label="Системный промпт категории"></textarea>
+
+                        <h4 class="section-subtitle--light mt-sm">Режим отладки</h4>
+                        <label class="toggle-option">
+                            <span class="toggle-label">🐛 Включить отладочный журнал для этой категории</span>
+                            <input type="checkbox" id="admin-cat-debug-mode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <p class="hint-text mt-sm">Отладочные сообщения будут отправляться на вкладку <strong>«Отладка»</strong> в Админ-панели. Не включайте на production.</p>
+
+                        <div class="admin-btn-row">
+                            <button type="button" class="save-btn" id="btn-save-cat" aria-label="Сохранить категорию">Сохранить</button>
+                            <button type="button" class="nav-btn btn-secondary" id="btn-test-cat" aria-label="Проверить соединение">Проверить соединение</button>
+                            <button type="button" class="nav-btn btn-cancel" id="btn-cancel-cat" aria-label="Отменить редактирование">Отмена</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Debug -->
+                <div id="admin-tab-debug" class="admin-tab-content">
+                    <div class="admin-toolbar">
+                        <div class="setup-card-header mb-0">
+                            <h3>🐛 Журнал отладки провайдера</h3>
+                        </div>
+                        <button type="button" class="nav-btn btn-secondary ml-auto" id="btn-clear-debug" aria-label="Очистить журнал">Очистить</button>
+                        <button type="button" class="nav-btn btn-secondary" id="btn-refresh-debug" aria-label="Обновить журнал">Обновить</button>
+                    </div>
+                    <div class="setup-card mt-sm">
+                        <div id="admin-debug-list" class="admin-list" role="log" aria-label="Журнал отладки" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Audit -->
+                <div id="admin-tab-audit" class="admin-tab-content">
+                    <div class="admin-toolbar">
+                        <div class="search-wrapper">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" id="admin-audit-search" class="setup-input" placeholder="Поиск по пользователю...">
+                        </div>
+                        <select id="admin-audit-action" class="setup-input ml-sm admin-audit-select">
+                            <option value="">Все действия</option>
+                            <option value="LOGIN">Вход (LOGIN)</option>
+                            <option value="LOGIN_FAILED">Ошибка входа (LOGIN_FAILED)</option>
+                            <option value="USER_CREATE">Создание пользователя (USER_CREATE)</option>
+                            <option value="USER_UPDATE">Обновление пользователя (USER_UPDATE)</option>
+                            <option value="USER_DELETE">Удаление пользователя (USER_DELETE)</option>
+                            <option value="CATEGORY_UPDATE">Обновление категории (CATEGORY_UPDATE)</option>
+                        </select>
+                        <button type="button" class="nav-btn btn-secondary ml-auto" id="btn-refresh-audit" aria-label="Обновить">Обновить</button>
+                    </div>
+
+                    <div class="setup-card">
+                        <div id="admin-audit-list" class="admin-list" role="list" aria-label="Список логов аудита"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,450 @@
+
+[
+  {
+    "id": "RAG-001",
+    "category": "answerable",
+    "query": "What is the primary cooling method of the RX-900 reactor?",
+    "context": [
+      {
+        "id": "c1",
+        "text": "The RX-900 reactor uses a dual-loop liquid sodium cooling system as its primary thermal management method.",
+        "sourceId": "manual-rx900",
+        "provenance": { "title": "Reactor Specs", "uri": "p. 12" }
+      }
+    ],
+    "expected_answer": "Liquid sodium (dual-loop)",
+    "required_citations": ["manual-rx900"]
+  },
+  {
+    "id": "RAG-002",
+    "category": "unanswerable",
+    "query": "Who is the CEO of RX-900 Corp?",
+    "context": [
+      {
+        "id": "c1",
+        "text": "The RX-900 reactor was designed by a team of engineers led by Dr. Aris.",
+        "sourceId": "history-rx900",
+        "score": 0.1,
+        "provenance": { "title": "History Doc" }
+      }
+    ],
+    "expected_behavior": "refuse",
+    "reason": "The context mentions the designer but not the CEO."
+  },
+  {
+    "id": "RAG-003",
+    "category": "multi_source",
+    "query": "Compare the efficiency and safety of RX-900 vs RX-800.",
+    "context": [
+      {
+        "id": "c1",
+        "text": "RX-900 efficiency is rated at 98%. Safety rating is A+.",
+        "sourceId": "rx900-specs"
+      },
+      {
+        "id": "c2",
+        "text": "RX-800 efficiency is 92%. Safety rating is A.",
+        "sourceId": "rx800-specs"
+      }
+    ],
+    "expected_answer": "RX-900 (98% eff, A+ safety) is superior to RX-800 (92% eff, A safety).",
+    "required_citations": ["rx900-specs", "rx800-specs"]
+  },
+  {
+    "id": "RAG-004",
+    "category": "citation_correctness",
+    "query": "What is the maximum pressure for the RX-900?",
+    "context": [
+      {
+        "id": "c3",
+        "text": "Maximum operating pressure is 150 MPa.",
+        "sourceId": "rx900-safety-manual"
+      }
+    ],
+    "expected_answer": "150 MPa",
+    "required_citations": ["rx900-safety-manual"]
+  },
+  {
+    "id": "RAG-005",
+    "category": "hallucination_trap",
+    "query": "Does the RX-900 support quantum teleportation?",
+    "context": [
+      {
+        "id": "c4",
+        "text": "The RX-900 is a fission reactor designed for stable power output.",
+        "sourceId": "rx900-overview"
+      }
+    ],
+    "expected_behavior": "refuse",
+    "reason": "Quantum teleportation is not mentioned and irrelevant to a fission reactor."
+  },
+  {
+    "id": "RAG-006",
+    "category": "conflicting_sources",
+    "query": "When was the RX-900 first commissioned?",
+    "context": [
+      {
+        "id": "c5",
+        "text": "Commissioning date: October 2024.",
+        "sourceId": "source-a"
+      },
+      {
+        "id": "c6",
+        "text": "Commissioning happened in January 2025 according to late reports.",
+        "sourceId": "source-b"
+      }
+    ],
+    "expected_answer": "There are conflicting reports: Source A says Oct 2024, Source B says Jan 2025.",
+    "required_citations": ["source-a", "source-b"]
+  },
+  {
+    "id": "RAG-007",
+    "category": "low_confidence",
+    "query": "What is the exact weight of the control rods?",
+    "context": [
+      {
+        "id": "c7",
+        "text": "The control rods are heavy and made of boron carbide.",
+        "sourceId": "rx900-parts",
+        "score": 0.4
+      }
+    ],
+    "expected_behavior": "downgrade",
+    "reason": "Text says 'heavy' but not exact weight."
+  },
+  {
+    "id": "RAG-008",
+    "category": "answerable",
+    "query": "What material are the control rods made of?",
+    "context": [
+      {
+        "id": "c7",
+        "text": "The control rods are heavy and made of boron carbide.",
+        "sourceId": "rx900-parts"
+      }
+    ],
+    "expected_answer": "Boron carbide",
+    "required_citations": ["rx900-parts"]
+  },
+  {
+    "id": "RAG-009",
+    "category": "unanswerable",
+    "query": "What is the name of the project lead's cat?",
+    "context": [
+      {
+        "id": "c8",
+        "text": "Project lead: Sarah Jenkins.",
+        "sourceId": "team-list"
+      }
+    ],
+    "expected_behavior": "refuse"
+  },
+  {
+    "id": "RAG-010",
+    "category": "answerable",
+    "query": "Who is the project lead?",
+    "context": [
+      {
+        "id": "c8",
+        "text": "Project lead: Sarah Jenkins.",
+        "sourceId": "team-list"
+      }
+    ],
+    "expected_answer": "Sarah Jenkins",
+    "required_citations": ["team-list"]
+  },
+  {
+    "id": "RAG-011",
+    "category": "citation_correctness",
+    "query": "What is the emergency shutdown procedure?",
+    "context": [
+      {
+        "id": "c9",
+        "text": "In case of emergency, press the red button labeled 'SCRAM'.",
+        "sourceId": "manual-emergency"
+      }
+    ],
+    "expected_answer": "Press the 'SCRAM' button.",
+    "required_citations": ["manual-emergency"]
+  },
+  {
+    "id": "RAG-012",
+    "category": "multi_source",
+    "query": "Where are the backup generators located and what is their fuel capacity?",
+    "context": [
+      {
+        "id": "c10",
+        "text": "Backup generators are in the North Wing.",
+        "sourceId": "facility-map"
+      },
+      {
+        "id": "c11",
+        "text": "Each generator holds 5000 liters of diesel.",
+        "sourceId": "generator-specs"
+      }
+    ],
+    "expected_answer": "North Wing, 5000 liters each.",
+    "required_citations": ["facility-map", "generator-specs"]
+  },
+  {
+    "id": "RAG-013",
+    "category": "hallucination_trap",
+    "query": "Is the RX-900 powered by chocolate?",
+    "context": [
+      {
+        "id": "c12",
+        "text": "The RX-900 is fueled by enriched uranium.",
+        "sourceId": "fuel-specs"
+      }
+    ],
+    "expected_behavior": "refuse"
+  },
+  {
+    "id": "RAG-014",
+    "category": "answerable",
+    "query": "What fuel does the RX-900 use?",
+    "context": [
+      {
+        "id": "c12",
+        "text": "The RX-900 is fueled by enriched uranium.",
+        "sourceId": "fuel-specs"
+      }
+    ],
+    "expected_answer": "Enriched uranium",
+    "required_citations": ["fuel-specs"]
+  },
+  {
+    "id": "RAG-015",
+    "category": "unanswerable",
+    "query": "What color is Sarah Jenkins' car?",
+    "context": [
+      {
+        "id": "c8",
+        "text": "Project lead: Sarah Jenkins.",
+        "sourceId": "team-list"
+      }
+    ],
+    "expected_behavior": "refuse"
+  },
+  {
+    "id": "RAG-016",
+    "category": "answerable",
+    "query": "What is the thermal output of the reactor?",
+    "context": [
+      {
+        "id": "c13",
+        "text": "Thermal output is steady at 3.2 GWt.",
+        "sourceId": "thermal-stats"
+      }
+    ],
+    "expected_answer": "3.2 GWt",
+    "required_citations": ["thermal-stats"]
+  },
+  {
+    "id": "RAG-017",
+    "category": "citation_correctness",
+    "query": "How many containment layers are there?",
+    "context": [
+      {
+        "id": "c14",
+        "text": "The structure features four concentric containment layers.",
+        "sourceId": "struct-arch"
+      }
+    ],
+    "expected_answer": "Four",
+    "required_citations": ["struct-arch"]
+  },
+  {
+    "id": "RAG-018",
+    "category": "multi_source",
+    "query": "What is the containment material and layer count?",
+    "context": [
+      {
+        "id": "c14",
+        "text": "The structure features four concentric containment layers.",
+        "sourceId": "struct-arch"
+      },
+      {
+        "id": "c15",
+        "text": "Containment is made of reinforced pre-stressed concrete.",
+        "sourceId": "material-specs"
+      }
+    ],
+    "expected_answer": "Four layers of reinforced concrete.",
+    "required_citations": ["struct-arch", "material-specs"]
+  },
+  {
+    "id": "RAG-019",
+    "category": "unanswerable",
+    "query": "Is the reactor haunted?",
+    "context": [
+      {
+        "id": "c1",
+        "text": "The RX-900 reactor uses a dual-loop liquid sodium cooling system.",
+        "sourceId": "manual-rx900"
+      }
+    ],
+    "expected_behavior": "refuse"
+  },
+  {
+    "id": "RAG-020",
+    "category": "answerable",
+    "query": "What is the secondary cooling loop material?",
+    "context": [
+      {
+        "id": "c16",
+        "text": "Secondary loop uses pressurized water to drive turbines.",
+        "sourceId": "cooling-system"
+      }
+    ],
+    "expected_answer": "Pressurized water",
+    "required_citations": ["cooling-system"]
+  },
+  {
+    "id": "RAG-021",
+    "category": "citation_correctness",
+    "query": "What is the turbine rotation speed?",
+    "context": [
+      {
+        "id": "c17",
+        "text": "Turbines rotate at 3000 RPM.",
+        "sourceId": "turbine-specs"
+      }
+    ],
+    "expected_answer": "3000 RPM",
+    "required_citations": ["turbine-specs"]
+  },
+  {
+    "id": "RAG-022",
+    "category": "hallucination_trap",
+    "query": "Does the reactor produce gold as a byproduct?",
+    "context": [
+      {
+        "id": "c12",
+        "text": "The RX-900 is fueled by enriched uranium and produces electricity.",
+        "sourceId": "fuel-specs"
+      }
+    ],
+    "expected_behavior": "refuse"
+  },
+  {
+    "id": "RAG-023",
+    "category": "answerable",
+    "query": "What is the primary product of the RX-900?",
+    "context": [
+      {
+        "id": "c12",
+        "text": "The RX-900 is fueled by enriched uranium and produces electricity.",
+        "sourceId": "fuel-specs"
+      }
+    ],
+    "expected_answer": "Electricity",
+    "required_citations": ["fuel-specs"]
+  },
+  {
+    "id": "RAG-024",
+    "category": "unanswerable",
+    "query": "What is the password for the admin panel?",
+    "context": [
+      {
+        "id": "c18",
+        "text": "Admin panel access is restricted to authorized personnel.",
+        "sourceId": "security-protocol"
+      }
+    ],
+    "expected_behavior": "refuse"
+  },
+  {
+    "id": "RAG-025",
+    "category": "conflicting_sources",
+    "query": "What is the staff count in the North Wing?",
+    "context": [
+      {
+        "id": "c19",
+        "text": "North Wing staff: 45 employees.",
+        "sourceId": "hr-report"
+      },
+      {
+        "id": "c20",
+        "text": "North Wing capacity: 40 employees max.",
+        "sourceId": "safety-report"
+      }
+    ],
+    "expected_answer": "There is a discrepancy: HR says 45, but Safety says max capacity is 40.",
+    "required_citations": ["hr-report", "safety-report"]
+  },
+  {
+    "id": "RAG-026",
+    "category": "answerable",
+    "query": "What is the turbine manufacturer?",
+    "context": [
+      {
+        "id": "c21",
+        "text": "Turbines provided by AeroVortex Ltd.",
+        "sourceId": "vendor-list"
+      }
+    ],
+    "expected_answer": "AeroVortex Ltd",
+    "required_citations": ["vendor-list"]
+  },
+  {
+    "id": "RAG-027",
+    "category": "citation_correctness",
+    "query": "When was the last safety audit?",
+    "context": [
+      {
+        "id": "c22",
+        "text": "Last safety audit completed on March 15, 2026.",
+        "sourceId": "audit-history"
+      }
+    ],
+    "expected_answer": "March 15, 2026",
+    "required_citations": ["audit-history"]
+  },
+  {
+    "id": "RAG-028",
+    "category": "multi_source",
+    "query": "Who conducted the audit and what was the result?",
+    "context": [
+      {
+        "id": "c22",
+        "text": "Last safety audit completed on March 15, 2026.",
+        "sourceId": "audit-history"
+      },
+      {
+        "id": "c23",
+        "text": "Audit was conducted by SafeGrid Inc. Result: Pass with minor notes.",
+        "sourceId": "audit-report-detail"
+      }
+    ],
+    "expected_answer": "SafeGrid Inc. Result: Pass.",
+    "required_citations": ["audit-history", "audit-report-detail"]
+  },
+  {
+    "id": "RAG-029",
+    "category": "hallucination_trap",
+    "query": "Can the RX-900 be controlled by a Nintendo Switch?",
+    "context": [
+      {
+        "id": "c24",
+        "text": "Control systems use a proprietary redundant network.",
+        "sourceId": "control-systems"
+      }
+    ],
+    "expected_behavior": "refuse"
+  },
+  {
+    "id": "RAG-030",
+    "category": "answerable",
+    "query": "What network do the control systems use?",
+    "context": [
+      {
+        "id": "c24",
+        "text": "Control systems use a proprietary redundant network.",
+        "sourceId": "control-systems"
+      }
+    ],
+    "expected_answer": "Proprietary redundant network",
+    "required_citations": ["control-systems"]
+  }
+]

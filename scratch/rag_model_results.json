@@ -1,0 +1,2029 @@
+{
+  "generatedAt": "2026-06-09T06:17:58.559Z",
+  "tests": 18,
+  "cacheEnabled": true,
+  "models": {
+    "gpt-5.5": {
+      "name": "GPT-5.5",
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "accuracy": 0.9444444444444444,
+      "passed": 17,
+      "total": 18,
+      "avgColdMs": 2230,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 2800,
+      "cachedTokens": 0,
+      "estCostUsd": 0.02054,
+      "valueScore": 46,
+      "openaiPromptCache": {
+        "run1Cached": 0,
+        "run2Cached": 0,
+        "run2PromptTokens": 115
+      },
+      "score": 0.9221,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 5740,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Вернуть товар можно в течение 14 календарных дней с момента получения.",
+          "tokens": 137
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1849,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве стоит 299 рублей. Бесплатно при заказе от 5000 рублей.",
+          "tokens": 146
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2563,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Чтобы восстановить пароль, нажмите «Забыли пароль» на странице входа. Также можно перейти в «Настройки → Безопасность → ",
+          "tokens": 171
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1877,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о генеральном директоре компании.",
+          "tokens": 158
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 3061,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации об оплате криптовалютой в предоставленном контексте нет.\n\nВы можете уточнить это в поддержке:\n- email: suppor",
+          "tokens": 227
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2154,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Premium стоит 499 руб/мес.\n\nОтменить подписку можно в личном кабинете. После отмены доступ сохранится до конца оплаченно",
+          "tokens": 158
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1465,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Гарантия на электронику — 12 месяцев с даты покупки.",
+          "tokens": 144
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1813,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, оплатить через СБП можно.",
+          "tokens": 147
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 2145,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о филиалах в Казани.",
+          "tokens": 126
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2037,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Адрес доставки можно изменить, обратившись в поддержку до 18:00 дня отправки заказа.",
+          "tokens": 139
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 2336,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно: в предоставленном контексте нет данных о текущем курсе доллара.",
+          "tokens": 141
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1997,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10.  \nРежим работы: ежедневно (пн–вс) с 10:00 до 22:00.",
+          "tokens": 189
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1617,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для оформления рассрочки нужны паспорт и справка о доходах.",
+          "tokens": 134
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": false,
+          "coldMs": 1970,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о CEO компании RX-900 Corp.",
+          "tokens": 145
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1882,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 эффективнее RX-800: **98%** против **92%**. Разница — **6 процентных пунктов** в пользу RX-900.",
+          "tokens": 153
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1920,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно. В предоставленном контексте указано только, что RX-900 — реактор деления для стабильной выработ",
+          "tokens": 163
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1898,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа. Превышать его запрещено.",
+          "tokens": 147
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1824,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для получения паспорта нужны:\n\n- заявление;\n- свидетельство о рождении;\n- 2 фото 35×45 мм;\n- квитанция об оплате госпошл",
+          "tokens": 175
+        }
+      ],
+      "elapsedSec": 43.9
+    },
+    "gpt-4.1": {
+      "name": "GPT-4.1",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "accuracy": 1,
+      "passed": 18,
+      "total": 18,
+      "avgColdMs": 1189,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 2561,
+      "cachedTokens": 0,
+      "estCostUsd": 0.0075,
+      "valueScore": 133.3,
+      "openaiPromptCache": {
+        "run1Cached": 0,
+        "run2Cached": 0,
+        "run2PromptTokens": 116
+      },
+      "score": 0.9762,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 902,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок возврата товара — 14 календарных дней с момента получения.",
+          "tokens": 135
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1101,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве стоит 299 рублей. Бесплатно при заказе от 5000 рублей.",
+          "tokens": 144
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1086,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Чтобы восстановить пароль, нажмите «Забыли пароль» на странице входа. Ссылка для восстановления будет действовать 24 час",
+          "tokens": 154
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1026,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 124
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1106,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно. В предоставленном контексте нет данных о возможности оплаты криптовалютой.",
+          "tokens": 150
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1217,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Подписка Premium стоит 499 руб/мес. Отменить её можно в личном кабинете, при этом доступ сохраняется до конца оплаченног",
+          "tokens": 157
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1040,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок гарантии на электронику — 12 месяцев с даты покупки.",
+          "tokens": 143
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1153,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, вы можете оплатить через СБП.",
+          "tokens": 146
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 971,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о наличии филиала в Казани.",
+          "tokens": 125
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1327,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Адрес доставки можно изменить до 18:00 дня отправки заказа.",
+          "tokens": 130
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1087,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно. В предоставленном контексте нет данных о курсе доллара.",
+          "tokens": 137
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1056,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10. Режим работы: пн-вс 10:00–22:00.",
+          "tokens": 180
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 973,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для оформления рассрочки нужен паспорт и справка о доходах.",
+          "tokens": 132
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 2619,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 115
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1339,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 имеет эффективность 98%, а RX-800 — 92%. RX-900 эффективнее RX-800.",
+          "tokens": 141
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1005,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно. В предоставленном контексте нет данных о поддержке RX-900 квантовой телепортации.",
+          "tokens": 142
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1200,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа. Превышение запрещено.",
+          "tokens": 144
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1196,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для получения паспорта нужны заявление, свидетельство о рождении, 2 фотографии 35×45 мм и квитанция об оплате госпошлины",
+          "tokens": 162
+        }
+      ],
+      "elapsedSec": 23.7
+    },
+    "gpt-5-nano": {
+      "name": "GPT-5-nano",
+      "provider": "openai",
+      "model": "gpt-5-nano",
+      "accuracy": 0.6111111111111112,
+      "passed": 11,
+      "total": 18,
+      "avgColdMs": 3473,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 8354,
+      "cachedTokens": 0,
+      "estCostUsd": 0.0027,
+      "valueScore": 226.5,
+      "openaiPromptCache": {
+        "run1Cached": 0,
+        "run2Cached": 0,
+        "run2PromptTokens": 115
+      },
+      "score": 0.6972,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3591,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "14 календарных дней с момента получения товара. Деньги возвращаются на карту в течение 10 рабочих дней после одобрения з",
+          "tokens": 478
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2289,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве стоит 299 рублей; бесплатная при заказе от 5000 рублей.",
+          "tokens": 321
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": false,
+          "coldMs": 3981,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "",
+          "tokens": 507
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 3859,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о генеральном директоре компании. Если нужно, могу помочь найти источник или ",
+          "tokens": 507
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": false,
+          "coldMs": 3389,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "",
+          "tokens": 509
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3564,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Premium стоит 499 руб/мес. Отменить можно в личном кабинете в любой момент. При отмене доступ сохраняется до конца оплач",
+          "tokens": 472
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3070,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "12 месяцев с даты покупки.",
+          "tokens": 400
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3922,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, оплата через СБП поддерживается.",
+          "tokens": 523
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": false,
+          "coldMs": 3609,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "",
+          "tokens": 490
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3014,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "До 18:00 дня отправки заказа. После отгрузки изменение невозможно.",
+          "tokens": 423
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": false,
+          "coldMs": 3600,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "",
+          "tokens": 498
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3733,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10.  \nРежим работы: пн–вс с 10:00 до 22:00. Самовывоз бес",
+          "tokens": 445
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3500,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Паспорт и справка о доходах. Решение банка — до 15 минут, первый платеж — через 30 дней.",
+          "tokens": 453
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": false,
+          "coldMs": 3218,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации в контексте о RX-900 Corp и её CEO нет. Если дадите дополнительные источники, помогу уточнить.",
+          "tokens": 433
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3374,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 имеет эффективность 98%, RX-800 — 92%. Значит, RX-900 более эффективен на 6 процентных пунктов.",
+          "tokens": 416
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": false,
+          "coldMs": 3352,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "",
+          "tokens": 495
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3706,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа. Превышение запрещено (согласно разделу 4.2 руководства по безопасности).",
+          "tokens": 476
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": false,
+          "coldMs": 3736,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "",
+          "tokens": 508
+        }
+      ],
+      "elapsedSec": 68.8
+    },
+    "alice-llm": {
+      "name": "Alice AI LLM",
+      "provider": "yandex",
+      "model": "aliceai-llm/latest",
+      "accuracy": 1,
+      "passed": 18,
+      "total": 18,
+      "avgColdMs": 468,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 2224,
+      "cachedTokens": 1136,
+      "estCostUsd": 0.00143,
+      "valueScore": 701.8,
+      "openaiPromptCache": null,
+      "score": 0.9906,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 679,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "14 календарных дней с момента получения.",
+          "tokens": 112
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 628,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве стоит 299 рублей, бесплатно при заказе от 5000 рублей.",
+          "tokens": 136
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 550,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Чтобы восстановить пароль, перейдите в «Настройки → Безопасность → Сменить пароль» или нажмите «Забыли пароль» на страни",
+          "tokens": 141
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 357,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно",
+          "tokens": 115
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 292,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно",
+          "tokens": 124
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 467,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Подписка Premium стоит 499 руб./мес. Отменить её можно в любой момент в личном кабинете. При отмене доступ сохраняется д",
+          "tokens": 137
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 402,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "12 месяцев с даты покупки.",
+          "tokens": 115
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 356,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, можно оплатить через СБП.",
+          "tokens": 122
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 337,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно",
+          "tokens": 96
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 452,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "До 18:00 дня отправки заказа. После отгрузки изменение невозможно.",
+          "tokens": 117
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 409,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно",
+          "tokens": 103
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 662,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10. Режим работы: с понедельника по воскресенье с 10:00 д",
+          "tokens": 158
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 398,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для оформления рассрочки нужны паспорт и справка о доходах.",
+          "tokens": 113
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 375,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно",
+          "tokens": 103
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 590,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 эффективнее RX-800: его эффективность составляет 98 %, а у RX-800 — 92 %.",
+          "tokens": 147
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 582,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно",
+          "tokens": 102
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 395,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа.",
+          "tokens": 124
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 498,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для получения паспорта нужны:\n- заявление;\n- свидетельство о рождении;\n- 2 фото 35×45 мм;\n- квитанция об оплате госпошли",
+          "tokens": 159
+        }
+      ],
+      "elapsedSec": 10.4
+    },
+    "alice-flash": {
+      "name": "Alice AI LLM Flash",
+      "provider": "yandex",
+      "model": "aliceai-llm-flash/latest",
+      "accuracy": 1,
+      "passed": 18,
+      "total": 18,
+      "avgColdMs": 442,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 2215,
+      "cachedTokens": 0,
+      "estCostUsd": 0.00042,
+      "valueScore": 2361.6,
+      "openaiPromptCache": null,
+      "score": 0.9912,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 440,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок возврата товара — 14 календарных дней с момента получения.",
+          "tokens": 116
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 520,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве — 299 рублей, бесплатно при заказе от 5000 рублей.",
+          "tokens": 136
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 501,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для восстановления пароля перейдите в «Настройки → Безопасность → Сменить пароль» или нажмите «Забыли пароль» на страниц",
+          "tokens": 135
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 466,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 116
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 409,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 125
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 456,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Стоимость подписки Premium — 499 рублей в месяц. Отменить подписку можно в личном кабинете — доступ сохранится до конца ",
+          "tokens": 132
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 393,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок гарантии на электронику — 12 месяцев с даты покупки.",
+          "tokens": 120
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 344,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, можно оплатить через СБП.",
+          "tokens": 122
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 373,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 97
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 438,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Изменить адрес доставки можно до 18:00 дня отправки заказа.",
+          "tokens": 116
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 747,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 104
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 475,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10. Работает с понедельника по воскресенье с 10:00 до 22:",
+          "tokens": 156
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 352,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для рассрочки нужны паспорт и справка о доходах.",
+          "tokens": 112
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 329,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 104
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 417,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 имеет эффективность 98%, а RX-800 — 92%. Таким образом, RX-900 эффективнее.",
+          "tokens": 146
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 369,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 103
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 436,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа.",
+          "tokens": 122
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 499,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для получения паспорта нужны: заявление, свидетельство о рождении, 2 фото 35×45 мм, квитанция об оплате госпошлины. Госп",
+          "tokens": 153
+        }
+      ],
+      "elapsedSec": 9.9
+    },
+    "qwen-max": {
+      "name": "Qwen3.7-Max",
+      "provider": "qwen",
+      "model": "qwen-max",
+      "accuracy": 0.9444444444444444,
+      "passed": 17,
+      "total": 18,
+      "avgColdMs": 978,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 3386,
+      "cachedTokens": 0,
+      "estCostUsd": 0.00807,
+      "valueScore": 117,
+      "openaiPromptCache": null,
+      "score": 0.9471,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2602,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок возврата товара — 14 календарных дней с момента получения.",
+          "tokens": 184
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 776,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве стоит 299 рублей, но она бесплатная при заказе от 5000 рублей.",
+          "tokens": 192
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1151,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для восстановления пароля перейдите в «Настройки → Безопасность → Сменить пароль» или нажмите «Забыли пароль» на страниц",
+          "tokens": 228
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 661,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о генеральном директоре компании.",
+          "tokens": 175
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1338,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации об оплате криптовалютой. Пожалуйста, свяжитесь с поддержкой магазина для уточ",
+          "tokens": 214
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 958,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Подписка Premium стоит 499 рублей в месяц. Отменить её можно в любой момент через личный кабинет.",
+          "tokens": 188
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 758,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок гарантии на электронику — 12 месяцев с даты покупки.",
+          "tokens": 189
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 661,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, можно оплатить через СБП.",
+          "tokens": 180
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 779,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о наличии филиалов в Казани.",
+          "tokens": 154
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 806,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Можно изменить адрес доставки до 18:00 дня отправки заказа.",
+          "tokens": 172
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 730,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации о курсе доллара в предоставленном контексте нет.",
+          "tokens": 164
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1157,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10. Работает он с понедельника по воскресенье с 10:00 до ",
+          "tokens": 231
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 639,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для оформления рассрочки нужны паспорт и справка о доходах.",
+          "tokens": 171
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": false,
+          "coldMs": 649,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о CEO компании RX-900 Corp.",
+          "tokens": 161
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 803,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 имеет эффективность 98%, что выше, чем у RX-800 с эффективностью 92%.",
+          "tokens": 181
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1086,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о поддержке RX-900 квантовой телепортации. На основе имеющихся данных нельзя ",
+          "tokens": 186
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 717,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа.",
+          "tokens": 183
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1327,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для получения паспорта нужны следующие документы:\n- заявление\n- свидетельство о рождении\n- 2 фотографии размером 35×45 м",
+          "tokens": 233
+        }
+      ],
+      "elapsedSec": 17.6
+    },
+    "qwen-plus": {
+      "name": "Qwen3.7-Plus",
+      "provider": "qwen",
+      "model": "qwen-plus",
+      "accuracy": 0.9444444444444444,
+      "passed": 17,
+      "total": 18,
+      "avgColdMs": 1055,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 3313,
+      "cachedTokens": 0,
+      "estCostUsd": 0.00171,
+      "valueScore": 552.6,
+      "openaiPromptCache": null,
+      "score": 0.9456,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 852,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "14 календарных дней с момента получения.",
+          "tokens": 174
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1035,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве — 299 рублей, бесплатно при заказе от 5000 рублей.",
+          "tokens": 189
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1497,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Перейдите в «Настройки → Безопасность → Сменить пароль» или нажмите «Забыли пароль» на странице входа. Ссылка для восста",
+          "tokens": 219
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 873,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации о генеральном директоре в предоставленном контексте нет.",
+          "tokens": 177
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1080,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации о поддержке оплаты криптовалютой в предоставленном контексте нет.",
+          "tokens": 192
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1255,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Premium стоит 499 руб/мес. Отменить можно в любое время в личном кабинете — доступ сохранится до конца оплаченного перио",
+          "tokens": 198
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 647,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "12 месяцев с даты покупки.",
+          "tokens": 178
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1392,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, можно оплатить через СБП.",
+          "tokens": 180
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 926,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации о филиалах в Казани в базе знаний нет.",
+          "tokens": 156
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 725,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "До 18:00 дня отправки заказа.",
+          "tokens": 165
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 886,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации о курсе доллара в контексте нет.",
+          "tokens": 162
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1497,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10. Режим работы: ежедневно с 10:00 до 22:00.",
+          "tokens": 225
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 763,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для оформления рассрочки нужны паспорт и справка о доходах.",
+          "tokens": 171
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": false,
+          "coldMs": 883,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации о CEO компании RX-900 Corp в предоставленном контексте нет.",
+          "tokens": 164
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 881,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 эффективнее RX-800: 98% против 92%.",
+          "tokens": 174
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1347,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Нет, RX-900 — это реактор деления для стабильной выработки энергии, квантовую телепортацию не поддерживает.",
+          "tokens": 186
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 934,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа.",
+          "tokens": 183
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1514,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для получения паспорта нужны: заявление, свидетельство о рождении, 2 фото 35×45 мм, квитанция об оплате госпошлины — 300",
+          "tokens": 220
+        }
+      ],
+      "elapsedSec": 19
+    },
+    "qwen-flash": {
+      "name": "Qwen3.6-Flash",
+      "provider": "qwen",
+      "model": "qwen-flash",
+      "accuracy": 1,
+      "passed": 18,
+      "total": 18,
+      "avgColdMs": 536,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 3333,
+      "cachedTokens": 0,
+      "estCostUsd": 0.00034,
+      "valueScore": 2927,
+      "openaiPromptCache": null,
+      "score": 0.9893,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 437,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок возврата товара — 14 календарных дней с момента получения.",
+          "tokens": 184
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 463,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве — 299 рублей, бесплатно при заказе от 5000 рублей.",
+          "tokens": 189
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 641,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Чтобы восстановить пароль, перейдите в «Настройки → Безопасность → Сменить пароль» или нажмите «Забыли пароль» на страни",
+          "tokens": 228
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 366,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 166
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 440,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о поддержке оплаты криптовалютой.",
+          "tokens": 189
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1591,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Подписка Premium стоит 499 руб/мес. Отменить её можно в любой момент в личном кабинете. Доступ сохраняется до конца опла",
+          "tokens": 204
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 431,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок гарантии на электронику — 12 месяцев с даты покупки.",
+          "tokens": 189
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 395,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, оплатить можно через СБП.",
+          "tokens": 180
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 450,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "В предоставленном контексте нет информации о филиалах в Казани.",
+          "tokens": 153
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 476,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Изменить адрес доставки можно до 18:00 дня отправки заказа.",
+          "tokens": 173
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 384,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 156
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 623,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10. Режим работы: пн-вс с 10:00 до 22:00.",
+          "tokens": 225
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 452,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для оформления рассрочки нужны паспорт и справка о доходах.",
+          "tokens": 171
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 373,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 152
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 468,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 эффективнее RX-800: 98% против 92%.",
+          "tokens": 174
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 605,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Нет, RX-900 не поддерживает квантовую телепортацию. Он предназначен исключительно для стабильной выработки энергии путём",
+          "tokens": 194
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 458,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа.",
+          "tokens": 183
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 597,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для получения паспорта нужны: заявление, свидетельство о рождении, 2 фотографии 35×45 мм и квитанция об оплате госпошлин",
+          "tokens": 223
+        }
+      ],
+      "elapsedSec": 9.7
+    },
+    "grok-41-fast": {
+      "name": "Grok 4.1 Fast",
+      "provider": "grok",
+      "model": "grok-4-1-fast-non-reasoning",
+      "accuracy": 1,
+      "passed": 18,
+      "total": 18,
+      "avgColdMs": 1112,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 4519,
+      "cachedTokens": 1728,
+      "estCostUsd": 0.00098,
+      "valueScore": 1016.1,
+      "openaiPromptCache": null,
+      "score": 0.9778,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2815,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "14 календарных дней с момента получения.",
+          "tokens": 242
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1067,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве стоит 299 рублей (бесплатно при заказе от 5000 рублей).",
+          "tokens": 263
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1345,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для восстановления пароля перейдите в «Настройки → Безопасность → Сменить пароль» или нажмите «Забыли пароль» на страниц",
+          "tokens": 284
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 923,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 239
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 883,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 248
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1159,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Premium стоит 499 руб/мес. Отменить подписку можно в любой момент в личном кабинете.",
+          "tokens": 263
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1088,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "12 месяцев с даты покупки.",
+          "tokens": 251
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 922,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, можно оплатить через СБП.",
+          "tokens": 259
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 825,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 227
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1272,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "До 18:00 дня отправки заказа.",
+          "tokens": 243
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1095,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 235
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1220,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10. Работает ежедневно с 10:00 до 22:00.",
+          "tokens": 291
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 922,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Паспорт и справка о доходах.",
+          "tokens": 244
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 912,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 229
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 883,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900 имеет эффективность 98%, RX-800 — 92%.",
+          "tokens": 247
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 854,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 233
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 917,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа.",
+          "tokens": 252
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 911,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Заявление, свидетельство о рождении, 2 фото 35×45 мм, госпошлина 3000 рублей.",
+          "tokens": 269
+        }
+      ],
+      "elapsedSec": 20
+    },
+    "grok-3-mini": {
+      "name": "Grok 3 Mini",
+      "provider": "grok",
+      "model": "grok-3-mini",
+      "accuracy": 1,
+      "passed": 18,
+      "total": 18,
+      "avgColdMs": 2116,
+      "avgWarmMs": 0,
+      "speedup": null,
+      "cacheHitRate": 1,
+      "totalTokens": 8853,
+      "cachedTokens": 3008,
+      "estCostUsd": 0.00147,
+      "valueScore": 678.4,
+      "openaiPromptCache": null,
+      "score": 0.9577,
+      "tests": [
+        {
+          "id": "R1",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1663,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Срок возврата товара — 14 календарных дней с момента получения.",
+          "tokens": 460
+        },
+        {
+          "id": "R2",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1971,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Доставка по Москве — 299 рублей, бесплатно при заказе от 5000 рублей.",
+          "tokens": 469
+        },
+        {
+          "id": "R3",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2371,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для восстановления пароля перейдите в «Настройки → Безопасность → Сменить пароль» или нажмите «Забыли пароль» на страниц",
+          "tokens": 562
+        },
+        {
+          "id": "R4",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1914,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 505
+        },
+        {
+          "id": "R5",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1909,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 500
+        },
+        {
+          "id": "R6",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2279,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Premium стоит 499 руб/мес. Отменить можно в любой момент в личном кабинете. При отмене доступ сохраняется до конца оплач",
+          "tokens": 524
+        },
+        {
+          "id": "R7",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2010,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "12 месяцев с даты покупки.",
+          "tokens": 486
+        },
+        {
+          "id": "R8",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2147,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Да, можно оплатить через СБП.",
+          "tokens": 472
+        },
+        {
+          "id": "R9",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1817,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 454
+        },
+        {
+          "id": "R10",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1879,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "До 18:00 дня отправки заказа. После отгрузки изменение невозможно.",
+          "tokens": 445
+        },
+        {
+          "id": "R11",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 2114,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 495
+        },
+        {
+          "id": "R12",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2345,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Пункт самовывоза находится по адресу: г. Москва, ул. Тверская, 10. Режим работы: пн-вс 10:00–22:00.",
+          "tokens": 575
+        },
+        {
+          "id": "R13",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 1977,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Паспорт и справка о доходах.",
+          "tokens": 461
+        },
+        {
+          "id": "R14",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1847,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 463
+        },
+        {
+          "id": "R15",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 3266,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "RX-900: эффективность 98%. RX-800: эффективность 92%. RX-900 эффективнее.",
+          "tokens": 489
+        },
+        {
+          "id": "R16",
+          "type": "refuse",
+          "pass": true,
+          "coldMs": 1768,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Информации недостаточно.",
+          "tokens": 450
+        },
+        {
+          "id": "R17",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2113,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Максимальное рабочее давление RX-900 — 150 МПа.",
+          "tokens": 485
+        },
+        {
+          "id": "R18",
+          "type": "answer",
+          "pass": true,
+          "coldMs": 2700,
+          "warmMs": 0,
+          "cacheHit": true,
+          "answerPreview": "Для получения паспорта: заявление, свидетельство о рождении, 2 фото 35×45 мм, квитанция об оплате госпошлины 3000 рублей",
+          "tokens": 558
+        }
+      ],
+      "elapsedSec": 38.1
+    }
+  }
+}

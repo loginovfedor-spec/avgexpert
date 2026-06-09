@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+data/
+data_test/
+.env
+src/modules/providers/config/*.env
+!src/modules/providers/config/*.env.example
+.DS_Store
+*.sqlite
+*.db
+server.pid
+logs/
+*.log
+*.zip

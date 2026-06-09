@@ -1,0 +1,485 @@
+/* ============================================
+   RESPONSIVE.CSS — All Breakpoints
+   AVG Expert — Mobile-First Responsive Design
+   ============================================ */
+
+/*
+   Breakpoint strategy (mobile-first):
+   base      → 0px+     phone portrait
+   @480px    → sm       phone landscape
+   @768px    → md       tablet
+   @1024px   → lg       laptop/desktop
+   @1200px   → xl       large desktop
+*/
+
+/* === BASE: Phone Portrait (0 - 479px) === */
+
+/* Sidebar: off-canvas by default */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-100%);
+  box-shadow: none;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Show hamburger menu */
+.mobile-menu-btn {
+  display: flex;
+}
+
+/* Compact spacing */
+.messages {
+  padding: 14px;
+}
+
+.input-wrapper {
+  padding: 6px 8px 8px;
+  padding-bottom: max(8px, var(--safe-bottom));
+}
+
+.msg {
+  max-width: 95%;
+}
+
+.chat-header {
+  padding: 1px 8px;
+}
+
+.category-select {
+  max-width: 140px;
+  font-size: 0.78rem;
+}
+
+/* Single column params */
+.param-grid {
+  grid-template-columns: 1fr;
+}
+
+/* Smaller welcome */
+.welcome-screen {
+  padding: clamp(8px, 2.5dvh, var(--sp-lg));
+}
+
+.welcome-screen h2 {
+  font-size: 1.25rem;
+}
+
+.welcome-hints {
+  gap: 6px;
+}
+
+.hint-chip {
+  font-size: 0.8rem;
+  padding: 6px 12px;
+}
+
+/* Setup compact */
+.setup-scroll {
+  padding: 14px 14px 80px;
+}
+
+.setup-card {
+  padding: var(--sp-md);
+}
+
+.balance-card-top {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.balance-value {
+  font-size: 1.55rem;
+}
+
+.balance-topup-btn {
+  width: 100%;
+}
+
+.balance-history-table {
+  border: 0;
+  border-radius: 0;
+}
+
+.balance-history-head {
+  display: none;
+}
+
+.balance-history-row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 4px 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.balance-history-date {
+  grid-column: 1;
+  grid-row: 2;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.balance-history-operation {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* mobile: Использовано (col 2 row 1), Поступление (col 3 row 1) */
+.balance-history-change {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.balance-history-received {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.balance-history-balance {
+  grid-column: 2 / span 2;
+  grid-row: 2;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+/* Login compact */
+.login-box {
+  padding: var(--sp-lg);
+  margin: 0 var(--sp-md);
+}
+
+/* Context badge: hide text label on very small screens */
+.context-badge span {
+  display: none;
+}
+
+/* Token info hidden on mobile */
+.token-info {
+  display: none;
+}
+
+/* Touch-friendly buttons */
+.attach-btn, .send-btn, .stop-btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.nav-btn {
+  min-height: 44px;
+}
+
+.about-card {
+  grid-template-columns: 1fr;
+}
+
+.about-photo-wrap {
+  min-height: 260px;
+  aspect-ratio: 4 / 3;
+}
+
+.about-content {
+  padding: 18px;
+}
+
+.help-shell {
+  grid-template-columns: 1fr;
+}
+
+.help-sidebar {
+  display: none;
+}
+
+.help-content {
+  padding: 20px 18px 26px;
+}
+
+.help-content h1 {
+  font-size: 1.28rem;
+}
+
+.help-content h2 {
+  font-size: 1rem;
+}
+
+.books-shell {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.books-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.book-list-item {
+  min-width: 210px;
+  margin-bottom: 0;
+}
+
+.books-reader {
+  padding: 22px 18px 30px;
+}
+
+.book-reader-header h3,
+.book-reader-body h1 {
+  font-size: 1.28rem;
+}
+
+
+/* === SM: Phone Landscape (480px+) === */
+@media (min-width: 480px) {
+  .context-badge span {
+    display: inline;
+  }
+
+  .token-info {
+    display: inline;
+  }
+
+  .category-select {
+    max-width: 180px;
+    font-size: 0.82rem;
+  }
+
+  .msg {
+    max-width: 90%;
+  }
+
+  .welcome-screen {
+    padding: clamp(12px, 3dvh, var(--sp-xl));
+  }
+
+  .welcome-screen h2 {
+    font-size: 1.5rem;
+  }
+}
+
+
+/* === MD: Tablet (768px+) === */
+@media (min-width: 768px) {
+  .messages {
+    padding: 20px var(--sp-lg);
+  }
+
+  .input-wrapper {
+    padding: 8px var(--sp-md);
+    padding-bottom: max(8px, var(--safe-bottom));
+  }
+
+  .chat-header {
+    padding: 2px var(--sp-lg);
+  }
+
+  .msg {
+    max-width: 85%;
+  }
+
+  .param-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .setup-scroll {
+    padding: 20px var(--sp-lg) 100px;
+  }
+
+  .setup-card {
+    padding: 20px;
+  }
+
+  .balance-card-top {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .balance-value {
+    font-size: 1.85rem;
+  }
+
+  .balance-topup-btn {
+    width: auto;
+  }
+
+  .balance-history-table {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .balance-history-head {
+    display: grid;
+  }
+
+  .balance-history-row {
+    grid-template-columns: minmax(96px, 0.7fr) minmax(140px, 1.3fr) minmax(88px, 0.7fr) minmax(88px, 0.7fr) minmax(88px, 0.7fr);
+    gap: 12px;
+    padding: 12px 14px;
+    margin-bottom: 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .balance-history-row:first-child {
+    border-top: 0;
+  }
+
+  .balance-history-date,
+  .balance-history-operation,
+  .balance-history-change,
+  .balance-history-received,
+  .balance-history-balance {
+    grid-column: auto;
+    grid-row: auto;
+    font-size: 0.88rem;
+  }
+
+  .balance-history-date,
+  .balance-history-balance {
+    color: var(--text);
+  }
+
+  .login-box {
+    padding: var(--sp-xl);
+  }
+
+  .about-card {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .about-photo-wrap {
+    min-height: 286px;
+    aspect-ratio: auto;
+  }
+
+  .about-content {
+    padding: 22px;
+  }
+
+  .help-shell {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+
+  .help-sidebar {
+    display: flex;
+  }
+
+  .help-content {
+    padding: 26px 30px 34px;
+  }
+
+  .help-content h1 {
+    font-size: 1.55rem;
+  }
+
+  .help-content h2 {
+    font-size: 1.08rem;
+  }
+
+  .books-shell {
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+
+  .books-list {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+  }
+
+  .book-list-item {
+    min-width: 0;
+    margin-bottom: 8px;
+  }
+
+  .books-reader {
+    padding: 30px 34px 42px;
+  }
+
+  .book-reader-header h3,
+  .book-reader-body h1 {
+    font-size: 1.48rem;
+  }
+}
+
+
+/* === LG: Laptop/Desktop (1024px+) === */
+@media (min-width: 1024px) {
+  /* Sidebar always visible */
+  .sidebar {
+    position: relative;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Hide hamburger & backdrop */
+  .mobile-menu-btn {
+    display: none;
+  }
+
+  .sidebar-backdrop {
+    display: none !important;
+  }
+}
+
+
+/* === XL: Large Desktop (1200px+) === */
+@media (min-width: 1200px) {
+  .messages {
+    padding: var(--sp-lg) var(--sp-xl);
+  }
+
+  .input-wrapper {
+    padding: 8px var(--sp-lg);
+  }
+
+  .chat-header {
+    padding: 2px var(--sp-xl);
+  }
+
+  .msg {
+    max-width: 75%;
+  }
+
+  .setup-scroll {
+    padding: var(--sp-lg) var(--sp-xl) 100px;
+    max-width: 800px;
+  }
+}
+
+
+/* === Print === */
+@media print {
+  .sidebar, .input-wrapper, .chat-header, .mobile-menu-btn {
+    display: none !important;
+  }
+
+  .view.active {
+    display: block;
+  }
+
+  .messages {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .msg {
+    max-width: 100%;
+    break-inside: avoid;
+  }
+}

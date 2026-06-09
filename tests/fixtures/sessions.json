@@ -1,0 +1,35 @@
+[
+  {
+    "id": "sess-test-001",
+    "username": "testuser1",
+    "title": "Test Session: Simple Chat",
+    "messages": [
+      { "role": "user", "content": "Привет! Как дела?" },
+      { "role": "assistant", "content": "Здравствуйте! Всё отлично. Чем могу помочь?" }
+    ],
+    "updatedAt": 1715000000000
+  },
+  {
+    "id": "sess-test-002",
+    "username": "testuser1",
+    "title": "Test Session: Multi-turn",
+    "messages": [
+      { "role": "user", "content": "Расскажи о погоде" },
+      { "role": "assistant", "content": "Сегодня солнечно, около 22°C." },
+      { "role": "user", "content": "А завтра?" },
+      { "role": "assistant", "content": "Завтра ожидается облачность с температурой около 18°C." }
+    ],
+    "updatedAt": 1715000100000
+  },
+  {
+    "id": "sess-test-003",
+    "username": "admin",
+    "title": "Admin Session: System Prompt Test",
+    "messages": [
+      { "role": "system", "content": "Ты — эксперт по безопасности." },
+      { "role": "user", "content": "Какие основные уязвимости веб-приложений?" },
+      { "role": "assistant", "content": "Основные уязвимости включают: XSS, SQL-инъекции, CSRF и SSRF." }
+    ],
+    "updatedAt": 1715000200000
+  }
+]
