@@ -25,6 +25,8 @@ export interface RetrievalMetadata {
   shouldRefuse: boolean;
   error: string | null;
   cacheHit?: boolean;
+  embedMs?: number;
+  searchMs?: number;
 }
 
 export interface IRetrievalResult {

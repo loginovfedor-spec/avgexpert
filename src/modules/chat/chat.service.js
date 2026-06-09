@@ -4,7 +4,7 @@ const modelGateway = require('./model.gateway');
 const mapper = require('./chat_completion.mapper');
 const missionBinding = require('./mission_binding.service');
 const providersConfig = require('../../core/providers.config');
-const { PROVIDER_TIMEOUT, KNOWLEDGE_GATEWAY_ENABLED } = require('../../core/config');
+const { PROVIDER_TIMEOUT, KNOWLEDGE_GATEWAY_ENABLED, RAG_V2_ENABLED, CONVERSATION_MAX_TOKENS } = require('../../core/config');
 const { validateProviderUrl } = require('../../core/utils');
 const traceBus = require('../observability/trace.bus');
 const limits = require('./limit.service');
@@ -19,6 +19,26 @@ function getKnowledgeGateway() {
     _knowledgeGateway = require('../knowledge/knowledge.gateway');
   }
   return _knowledgeGateway;
+}
+
+let _ragOrchestrator = null;
+function getRagOrchestrator() {
+  if (!_ragOrchestrator) {
+    _ragOrchestrator = require('../rag/rag.orchestrator').ragOrchestrator;
+  }
+  return _ragOrchestrator;
+}
+
+let _truncateConversationMessages = null;
+async function truncateMessages(messages, catSettings) {
+  if (!_truncateConversationMessages) {
+    _truncateConversationMessages = require('../rag/conversation.context').truncateConversationMessages;
+  }
+  const categoryMax = parseInt(catSettings.input_context_max, 10);
+  const maxTokens = Number.isFinite(categoryMax) && categoryMax > 0
+    ? categoryMax
+    : CONVERSATION_MAX_TOKENS;
+  return _truncateConversationMessages(messages, { maxTokens });
 }
 
 class ChatService {
@@ -46,23 +66,54 @@ class ChatService {
       categorySettings: catSettings 
     });
     
-    const { options, mergedSettings } = mapper.mapOptions(body, catSettings, user, providerCfg);
+    let { options, mergedSettings } = mapper.mapOptions(body, catSettings, user, providerCfg);
 
     if (injectionDetected) {
       logger.warn('Prompt injection attempt detected', { username: user.username, missionId });
       missionBinding.addConflict(missionId, { type: 'SECURITY_INJECTION', message: 'Prompt injection detected' });
     }
 
-    // 3. Knowledge Gateway Retrieval
+    // 3. Retrieval (RAG v2 or legacy Knowledge Gateway)
     let retrievalResult = null;
-    let messages = [...baseMessages];
+    let messages = await truncateMessages([...baseMessages], catSettings);
+    const sessionId = body.session_id || body.sessionId;
+    const ragOrchestrator = getRagOrchestrator();
+    const useRagV2 = ragOrchestrator.shouldUseRagV2(catSettings);
 
-    if (KNOWLEDGE_GATEWAY_ENABLED && catSettings.rag_enabled) {
+    if (useRagV2) {
+      mergedSettings = ragOrchestrator.resolve({ catSettings, mergedSettings });
+
+      const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+      const query = lastUserMessage?.content || '';
+
+      retrievalResult = await ragOrchestrator.retrieve({
+        query,
+        catSettings,
+        user,
+        sessionId,
+      });
+
+      if (retrievalResult.metadata.shouldRefuse) {
+        return this._handleRefusal(res, retrievalResult);
+      }
+
+      const contextText = ragOrchestrator.formatContext(retrievalResult);
+      if (contextText) {
+        let injected = false;
+        messages = messages.map(m => {
+          if (!injected && m.role === 'user' && m.content === query) {
+            injected = true;
+            return { ...m, content: `${contextText}\n\nUser Query: ${m.content}` };
+          }
+          return m;
+        });
+      }
+    } else if (KNOWLEDGE_GATEWAY_ENABLED && catSettings.rag_enabled) {
       const kgw = getKnowledgeGateway();
       const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
       const query = lastUserMessage?.content || '';
-      
-      retrievalResult = await kgw.retrieve(query, { settings: catSettings, sessionId: body.session_id || body.sessionId });
+
+      retrievalResult = await kgw.retrieve(query, { settings: catSettings, sessionId });
 
       if (retrievalResult.metadata.shouldRefuse) {
         return this._handleRefusal(res, retrievalResult);

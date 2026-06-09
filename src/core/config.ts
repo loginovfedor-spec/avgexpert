@@ -47,6 +47,7 @@ const envSchema = z.object({
   SANDBOX_FORGE_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   TEMPORAL_RUNTIME_ENABLED: z.string().transform((v: string) => v === 'true').default('false'),
   RAG_V2_ENABLED: z.string().default('false').transform((v: string) => v === 'true'),
+  CONVERSATION_MAX_TOKENS: z.string().transform(Number).default('100000'),
   // Vector KB (RAG v2 foundation)
   EMBEDDING_PROVIDER: z.string().default('self-hosted'),
   EMBEDDING_MODEL: z.string().default('bge-m3'),
@@ -174,6 +175,7 @@ const {
   TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED,
 } = FEATURE_FLAGS;
+const CONVERSATION_MAX_TOKENS = env.CONVERSATION_MAX_TOKENS;
 
 module.exports = {
   PORT,
@@ -198,6 +200,7 @@ module.exports = {
   SANDBOX_FORGE_ENABLED,
   TEMPORAL_RUNTIME_ENABLED,
   RAG_V2_ENABLED,
+  CONVERSATION_MAX_TOKENS,
   TEMPORAL_URL: env.TEMPORAL_URL,
   FEATURE_FLAGS,
   isDev: env.NODE_ENV === 'development',

@@ -1,22 +1,25 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "updated": "2026-06-09",
-  "description": "Целевая карта категорий → retrieval_tier + provider + KB scopes (§7 RAG_MIGRATION_PLAN)",
+  "description": "Карта категорий → retrieval_tier + provider. Роли: Консультант (книги и материалы → подготовка для Эксперта), Эксперт (аналитика по материалам Консультанта), Мудрец (новое на основе аналитики Эксперта). Scope-ограничения по tier не применяются — пользователь свободно переключает категорию.",
   "tiers": {
     "consultant": {
       "top_k": 3,
-      "global_kb": false,
+      "role": "Корпус книг и материалов; подготовка материалов для Эксперта",
+      "global_kb": true,
       "user_kb": true,
       "session_kb": true
     },
     "expert": {
       "top_k": 7,
+      "role": "Аналитические отчёты и исследования по материалам Консультанта",
       "global_kb": true,
       "user_kb": true,
       "session_kb": true
     },
     "sage": {
       "top_k": 12,
+      "role": "Создание нового на основе аналитических исследований Эксперта",
       "global_kb": true,
       "user_kb": true,
       "session_kb": true

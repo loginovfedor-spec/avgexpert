@@ -31,6 +31,7 @@
     "test:policy": "tsx --test tests/policy/*.test.js",
     "test:knowledge": "tsx --test tests/knowledge/*.test.js tests/knowledge/*.test.ts",
     "test:vector": "tsx --test tests/vector/*.test.ts",
+    "test:rag": "tsx --test tests/rag/*.test.ts",
     "kb:pg:migrate": "tsx scripts/kb_pg_migrate.ts",
     "kb:pg:smoke": "tsx scripts/pgvector_smoke.ts",
     "kb:ingest": "tsx scripts/kb_ingest.ts",

@@ -65,7 +65,9 @@ export class RetrievalResult implements IRetrievalResult {
       policyAction: metadata.policyAction || 'none',
       shouldRefuse: metadata.shouldRefuse || false,
       error: metadata.error || null,
-      cacheHit: metadata.cacheHit || false
+      cacheHit: metadata.cacheHit || false,
+      embedMs: metadata.embedMs || 0,
+      searchMs: metadata.searchMs || 0
     };
   }
 

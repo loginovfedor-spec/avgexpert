@@ -224,6 +224,16 @@ sequenceDiagram
 
 ### 3.6 Три категории (tier policy)
 
+**Продуктовая модель (роли, не scope-ограничения):**
+
+| Роль | Назначение |
+|------|------------|
+| **Консультант** | Большой корпус книг и материалов; подготовка материалов для Эксперта |
+| **Эксперт** | Аналитические отчёты и исследования по материалам Консультанта |
+| **Мудрец** | Создание нового на основе аналитических исследований Эксперта |
+
+Пользователь **свободно переключает** категорию в любой момент. KB scopes (`global` / `user` / `session`) **одинаковы для всех tier**; различие — только глубина retrieval (topK) и post-score.
+
 | Tier | topK | Post-score boost | Semantic graph | Примеры LLM |
 |------|------|------------------|----------------|-------------|
 | **consultant** | 3 | нет | нет | Alice Flash, gpt-4.1-mini, grok-4.1-fast-non-reasoning |
@@ -255,11 +265,7 @@ DATABASE_URL=postgresql://...
   "model_name": "aliceai-llm-flash/latest",
   "rag_enabled": true,
   "retrieval_tier": "consultant",
-  "extra_params": {
-    "global_kb_enabled": false,
-    "user_kb_enabled": true,
-    "session_kb_enabled": true
-  }
+  "extra_params": {}
 }
 ```
 
@@ -539,13 +545,15 @@ DATABASE_URL=postgresql://...
 
 | Категория | retrieval_tier | Provider (пример) | model_name | global_kb | user_kb | session_kb |
 |-----------|----------------|-------------------|------------|-----------|---------|------------|
-| Консультант | consultant | yandex | aliceai-llm-flash/latest | off | on | on |
-| Консультант | consultant | openai_gpt4_1 | gpt-4.1-mini | off | on | on |
-| Консультант | consultant | grok | grok-4-1-fast-non-reasoning | off | on | on |
+| Консультант | consultant | yandex | aliceai-llm-flash/latest | on | on | on |
+| Консультант | consultant | openai_gpt4_1 | gpt-4.1-mini | on | on | on |
+| Консультант | consultant | grok | grok-4-1-fast-non-reasoning | on | on | on |
 | Эксперт | expert | openai_gpt4_1 | gpt-4.1 | on | on | on |
 | Эксперт | expert | grok | grok-4-1-fast-reasoning | on | on | on |
 | Мудрец | sage | openai_gpt5_5 | gpt-5.5 | on | on | on |
 | Мудрец | sage | grok | grok-4.3 | on | on | on |
+
+*Scopes одинаковы для всех tier; отличие — topK и глубина анализа. Явное отключение scope — только через `extra_params` (опционально).*
 
 *Одна категория в UI = один tier; выбор provider — через allowed_providers или подкатегории.*
 
