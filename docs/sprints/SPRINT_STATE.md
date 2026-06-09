@@ -10,7 +10,7 @@
 
 |------|----------|
 
-| **current_sprint** | `S7` |
+| **current_sprint** | `S7b` |
 
 | **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
 
@@ -22,16 +22,15 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | ID | Статус |
 |----|--------|
-| S7-1 | pending |
-| S7-2 | pending |
-| S7-3 | pending |
-| S7-4 | pending |
-| S7-5 | pending |
+| S7b-1 | pending |
+| S7b-2 | pending |
+| S7b-3 | pending |
 
 ## Завершённые спринты
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| S7 | 2026-06-10 | — | 0 critical, 0 high, 1 medium (fixed) |
 | S6 | 2026-06-09 | — | 0 critical, 4 high (fixed) |
 | S5 | 2026-06-09 | `ad2f65b` `206c9ab` `de704db` | 0 critical, 1 high (fixed), 6 medium (1 fixed, 5 tech debt) |
 | S4 | 2026-06-09 | — | 0 critical, 2 high (fixed), 2 medium (fixed) |
@@ -73,6 +72,32 @@ _Задачи и DoD — в плане §6. Здесь только статус
 ## RETRO (последний сверху)
 
 
+
+### RETRO S7 — 2026-06-10
+
+**Выполнение:** S7-1…S7-5 done
+
+**Артефакты:** `metadata-scoring.ts`, `tiered.retriever.ts` (metadata-weighted + candidate pool), `pgvector.store.ts` (doc_type/domain_tags/indexed_at in hits), migration v028, admin UI (rag_enabled, retrieval_tier, global_kb_enabled), `rag_tier_recall.eval.js`, `npm run test:s7`, `npm run eval:tier-recall`, `webui_dist`
+
+**Соответствие плану:** нет расхождений с §6 S7; cross-encoder rerank — S7b (§11.2)
+
+**Качество:** `tsc --noEmit` PASS; `test:s7` 10/10 PASS; `test:rag` 27/27 PASS; `eval:tier-recall` PASS (36 queries, per-tier report)
+
+**Метрики:** plan_accuracy ~97%; offline recall@k: consultant 0.116, expert 0.139, sage 0.176; tech debt: domain_tags filter production — S8-4; live staging E2E expert/sage — `RAG_V2_ENABLED=true`
+
+**Bugbot-review:** findings 1 (0 critical, 0 high, 1 medium fixed)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| medium | metadata-scoring.ts | domain_tags substring false positives — **fixed** (token-exact match) |
+
+**Уроки:** metadata boost требует doc_type/domain_tags/indexed_at в VectorHit; candidate pool 3× topK для expert/sage; admin L2 toggle через extra_params.global_kb_enabled
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S6 — 2026-06-09
 

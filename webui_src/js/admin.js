@@ -403,12 +403,14 @@ export async function loadAdminCategories() {
     list.textContent = '';
     Object.entries(cats).forEach(([catName, data]) => {
       const providerLabel = data.provider ? data.provider.toUpperCase() : 'llamacpp';
+      const tierLabel = data.retrieval_tier || 'consultant';
+      const ragLabel = data.rag_enabled ? 'RAG' : 'no-RAG';
       const el = document.createElement('div');
       el.className = 'user-item';
       el.innerHTML = `
         <div class="user-item-info">
           <span class="user-item-name">${DOMPurify.sanitize(catName)}</span>
-          <span class="user-item-cat">${DOMPurify.sanitize(providerLabel)}</span>
+          <span class="user-item-cat">${DOMPurify.sanitize(providerLabel)} | ${DOMPurify.sanitize(tierLabel)} | ${ragLabel}</span>
         </div>
         <div class="user-item-actions">
           <button class="nav-btn btn-action-sm edit-cat-btn" data-cat="${DOMPurify.sanitize(catName)}" aria-label="Редактировать ${DOMPurify.sanitize(catName)}">✏️</button>
@@ -519,6 +521,18 @@ async function editAdminCategory(name, data) {
   const debugEl = $('admin-cat-debug-mode');
   if (debugEl) debugEl.checked = !!(data.debug_mode);
 
+  const ragEl = $('admin-cat-rag-enabled');
+  if (ragEl) ragEl.checked = data.rag_enabled !== false && data.rag_enabled !== 0;
+
+  const tierEl = $('admin-cat-retrieval-tier');
+  if (tierEl) tierEl.value = data.retrieval_tier || 'consultant';
+
+  const globalKbEl = $('admin-cat-global-kb-enabled');
+  if (globalKbEl) {
+    const extra = data.extra_params || {};
+    globalKbEl.checked = extra.global_kb_enabled !== false && extra.global_kb_enabled !== 0;
+  }
+
   const complexityEl = $('admin-cat-complexity');
   if (complexityEl) complexityEl.value = parseFloat(data.complexity ?? 1.0).toFixed(2);
 
@@ -575,28 +589,32 @@ $('btn-save-cat')?.addEventListener('click', async (e) => {
     return showToast('❌ Название категории обязательно');
   }
 
+  const extraParams = {};
+  const extraParamsRaw = $('admin-cat-extra-params')?.value?.trim();
+  if (extraParamsRaw) {
+    try {
+      Object.assign(extraParams, JSON.parse(extraParamsRaw));
+    } catch (e) {
+      showToast('Ошибка в JSON дополнительных параметров');
+      return;
+    }
+  }
+  extraParams.global_kb_enabled = !!($('admin-cat-global-kb-enabled')?.checked);
+
   const payload = {
     provider: $('admin-cat-provider').value || 'llamacpp',
     system_prompt: $('admin-cat-system-prompt').value || null,
     debug_mode: !!($('admin-cat-debug-mode')?.checked),
+    rag_enabled: !!($('admin-cat-rag-enabled')?.checked),
+    retrieval_tier: $('admin-cat-retrieval-tier')?.value || 'consultant',
     complexity: parseFloat(parseFloat($('admin-cat-complexity')?.value || '1').toFixed(2)) || 1.0,
     input_context_default: parseGroupedInt($('admin-cat-input-context-default')?.value, 1000000),
     input_context_max: parseGroupedInt($('admin-cat-input-context-max')?.value, 1000000),
     max_tokens: parseGroupedInt($('admin-cat-max-tokens')?.value, 1024),
     sort_index: parseInt($('admin-cat-sort-index')?.value || '0', 10),
     suggested_questions: $('admin-cat-suggested-questions')?.value || '',
-    extra_params: null
+    extra_params: extraParams,
   };
-
-  const extraParamsRaw = $('admin-cat-extra-params')?.value?.trim();
-  if (extraParamsRaw) {
-    try {
-      payload.extra_params = JSON.parse(extraParamsRaw);
-    } catch (e) {
-      showToast('Ошибка в JSON дополнительных параметров');
-      return;
-    }
-  }
 
   const r = await fetch('/api/admin/categories/' + encodeURIComponent(catName), {
     method: 'POST',

@@ -747,6 +747,26 @@
                         <h4 class="section-subtitle--light mt-sm">Системный промпт <span class="hint-text">(добавляется к промпту пользователя)</span></h4>
                         <textarea id="admin-cat-system-prompt" class="setup-textarea admin-textarea" rows="3" placeholder="Опциональный системный промпт для этой категории..." aria-label="Системный промпт категории"></textarea>
 
+                        <h4 class="section-subtitle--light mt-sm">RAG / Retrieval</h4>
+                        <div class="grid-3col">
+                            <label class="toggle-option">
+                                <span class="toggle-label">RAG включён</span>
+                                <input type="checkbox" id="admin-cat-rag-enabled" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <label class="toggle-option">
+                                <span class="toggle-label">Глобальная KB (L2)</span>
+                                <input type="checkbox" id="admin-cat-global-kb-enabled" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <h4 class="section-subtitle--light mt-sm">Retrieval tier</h4>
+                        <select id="admin-cat-retrieval-tier" class="setup-input" aria-label="Retrieval tier">
+                            <option value="consultant">Консультант (topK=3)</option>
+                            <option value="expert">Эксперт (topK=7, metadata-weighted)</option>
+                            <option value="sage">Мудрец (topK=12, metadata + recency)</option>
+                        </select>
+
                         <h4 class="section-subtitle--light mt-sm">Режим отладки</h4>
                         <label class="toggle-option">
                             <span class="toggle-label">🐛 Включить отладочный журнал для этой категории</span>

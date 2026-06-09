@@ -4,6 +4,7 @@ import type { Retriever, RetrievalContext } from '../ports/retriever';
 import type { IRetrievalChunk } from '../../../types/knowledge.types';
 import type { VectorFilter, VectorHit, VectorScope } from '../types';
 import { getTopK } from '../../rag/tier.policy';
+import { applyMetadataScoring, candidateTopK } from '../../rag/metadata-scoring';
 
 export interface TieredRetrieveResult {
   chunks: IRetrievalChunk[];
@@ -74,6 +75,7 @@ export class TieredRetriever implements Retriever {
     const embedMs = Date.now() - embedStart;
 
     const topK = getTopK(ctx.tier);
+    const searchTopK = candidateTopK(ctx.tier, topK);
     const searchStart = Date.now();
     const allHits: VectorHit[] = [];
 
@@ -81,7 +83,7 @@ export class TieredRetriever implements Retriever {
       const hits = await this.store.search({
         embedding,
         namespace: this.namespace,
-        topK,
+        topK: searchTopK,
         minScore: 0,
         filter: scopeFilter(scope, ctx),
       });
@@ -89,8 +91,8 @@ export class TieredRetriever implements Retriever {
     }
 
     const searchMs = Date.now() - searchStart;
-    const chunks = allHits
-      .sort((a, b) => b.score - a.score)
+    const ranked = applyMetadataScoring(allHits, query, ctx.tier);
+    const chunks = ranked
       .slice(0, topK)
       .map(hitToChunk);
 

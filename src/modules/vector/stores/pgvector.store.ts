@@ -48,6 +48,7 @@ function buildScopeClause(
 }
 
 function mapRowToHit(row: Record<string, unknown>): VectorHit {
+  const jsonMeta = (row.metadata as Record<string, unknown>) || {};
   return {
     id: String(row.id),
     namespace: String(row.namespace),
@@ -58,7 +59,12 @@ function mapRowToHit(row: Record<string, unknown>): VectorHit {
     body: String(row.body),
     title: row.title ? String(row.title) : undefined,
     score: Number(row.score),
-    metadata: (row.metadata as Record<string, unknown>) || {},
+    metadata: {
+      ...jsonMeta,
+      doc_type: row.doc_type ?? jsonMeta.doc_type,
+      domain_tags: row.domain_tags ?? jsonMeta.domain_tags,
+      indexed_at: row.indexed_at ?? jsonMeta.indexed_at,
+    },
   };
 }
 
@@ -183,7 +189,7 @@ export class PgVectorStore implements VectorStore {
       `
       SELECT
         id, namespace, scope, owner_user_id, session_id, doc_id,
-        body, title, metadata,
+        body, title, metadata, doc_type, domain_tags, indexed_at,
         1 - (embedding <=> $1::vector) AS score
       FROM kb_chunks
       WHERE ${clause}
