@@ -7,9 +7,32 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
-const SRC_HTML = path.join(ROOT, 'webui_src', 'index.html');
+const SRC_DIR = path.join(ROOT, 'webui_src');
+const SRC_HTML = path.join(SRC_DIR, 'index.html');
 const DIST_HTML = path.join(ROOT, 'webui_dist', 'index.html');
 const DIST_DIR = path.join(ROOT, 'webui_dist');
+const SRC_EXTENSIONS = new Set(['.html', '.js', '.css']);
+
+function maxMtimeInDir(dir) {
+  let max = 0;
+  if (!fs.existsSync(dir)) return max;
+
+  const stack = [dir];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(full);
+        continue;
+      }
+      const ext = path.extname(entry.name).toLowerCase();
+      if (!SRC_EXTENSIONS.has(ext)) continue;
+      max = Math.max(max, fs.statSync(full).mtimeMs);
+    }
+  }
+  return max;
+}
 
 function needsRebuild() {
   if (process.env.SKIP_WEBUI_BUILD === 'true') return false;
@@ -21,7 +44,7 @@ function needsRebuild() {
   const dist = fs.readFileSync(DIST_HTML, 'utf8');
   if (src.includes('user-docs-card') && !dist.includes('user-docs-card')) return true;
 
-  const srcMtime = fs.statSync(SRC_HTML).mtimeMs;
+  const srcMtime = maxMtimeInDir(SRC_DIR);
   const distMtime = fs.statSync(DIST_HTML).mtimeMs;
   return srcMtime > distMtime;
 }

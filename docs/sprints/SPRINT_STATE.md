@@ -32,7 +32,7 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
-| S5 | 2026-06-09 | — | 0 critical, 1 high (fixed), 3 medium (1 fixed, 2 tech debt) |
+| S5 | 2026-06-09 | `ad2f65b` `206c9ab` `de704db` | 0 critical, 1 high (fixed), 6 medium (1 fixed, 5 tech debt) |
 | S4 | 2026-06-09 | — | 0 critical, 2 high (fixed), 2 medium (fixed) |
 | S3 | 2026-06-09 | `91be257` | не запускался |
 | S2 | 2026-06-09 | — | ручная проверка |
@@ -77,24 +77,27 @@ _Задачи и DoD — в плане §6. Здесь только статус
 
 **Выполнение:** S5-1…S5-8 done
 
-**Артефакты:** `src/modules/kb/kb.routes.ts`, `upload.validation.ts`, `kb.limits.ts`, `ingestContent` в pipeline, `document-context.resolver.ts`, UI «Мои документы», `docs/ops/USER_KB_SECURITY.md`, `npm run test:s5`
+**Артефакты:** `src/modules/kb/kb.routes.ts`, `upload.validation.ts`, `kb.limits.ts`, `ingestContent` в pipeline, `document-context.resolver.ts`, UI «Мои документы», `webui_dist` + `ensure-webui-dist.js`, Vite `/api` proxy, `docs/ops/USER_KB_SECURITY.md`, `npm run test:s5`
 
-**Соответствие плану:** нет расхождений с §6 S5; session scope delete через user API — закрыт scope-фильтром post-Bugbot
+**Соответствие плану:** нет расхождений с §6 S5; post-close: webui_dist в git, login 404 на :5173 без gateway — закрыт proxy + docs
 
-**Качество:** `tsc --noEmit` PASS; `test:s5` 12/12 PASS; `test:rag` 18/18 PASS
+**Качество:** `tsc --noEmit` PASS; `test:s5` 12/12 PASS; `test:rag` 18/18 PASS (close gate)
 
-**Метрики:** plan_accuracy ~97%; tech debt: (1) race на doc limit при concurrent POST; (2) JSON body до 50MB парсится до byte-check — zod max добавлен
+**Метрики:** plan_accuracy ~97%; tech debt: concurrent doc limit race; upload rate limit; ensure-webui-dist mtime scan (fixed at close)
 
-**Bugbot-review:** findings 4 (0 critical, 1 high fixed, 3 medium: 1 fixed, 2 tech debt)
+**Bugbot-review:** findings 7 (0 critical, 1 high fixed, 6 medium: 2 fixed/mitigated, 4 tech debt)
 
 | Severity | Location | Finding |
 |----------|----------|---------|
-| high | kb.routes delete | Session doc deletable via user API — **fixed** (scope=user в findByIdForOwner) |
-| medium | kb.routes limit | Failed upload consumes quota — **fixed** (exclude failed from count + delete on 502) |
-| medium | kb.routes limit | Concurrent POST race — tech debt (S6 queue) |
-| medium | kb.routes upload | 50MB parse before 5MB check — **mitigated** (zod content.max) |
+| high | kb.routes delete | Session doc deletable via user API — **fixed** (scope=user) |
+| medium | kb.routes limit | Failed upload consumes quota — **fixed** |
+| medium | kb.routes limit | Concurrent POST race — tech debt (S6) |
+| medium | kb.routes upload | 50MB parse before 5MB — **mitigated** (zod max) |
+| medium | kb.routes limit | Concurrent uploads bypass quota — tech debt (S6) |
+| medium | kb.routes upload | No rate limit on user uploads — tech debt (S9) |
+| medium | ensure-webui-dist | Stale dist on JS-only edits — **fixed** (scan webui_src mtime) |
 
-**Уроки:** user API должен фильтровать `scope=user`; failed ingest не оставлять в kb_documents
+**Уроки:** user API фильтрует `scope=user`; `webui_src` без `build:web` ломает production UI; dev UI (:5173) требует `npm start` (:8200)
 
 **OPT предложены:** нет
 
