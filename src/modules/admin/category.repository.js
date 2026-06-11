@@ -1,10 +1,12 @@
-const db = require('../../core/sqlite');
-const crypto = require('../../core/crypto');
+const { getDatabasePort, ensureAppPgReady, isAppPgEnabled } = require('../../core/pg');
 
 class CategoryRepository {
-  async findByName(name) {
-    const row = db.prepare('SELECT * FROM categories WHERE name = ?').get(name);
-    if (!row) return null;
+  async _db() {
+    await ensureAppPgReady();
+    return getDatabasePort();
+  }
+
+  _mapRow(row) {
     return {
       name: row.name,
       provider: row.provider,
@@ -28,12 +30,20 @@ class CategoryRepository {
       complexity: row.complexity != null ? parseFloat(row.complexity) : 1.0,
       suggested_questions: row.suggested_questions || '',
       sort_index: row.sort_index != null ? parseInt(row.sort_index, 10) : 0,
-      rag_enabled: !!row.rag_enabled,
+      rag_allowed: !!row.rag_allowed,
       retrieval_tier: row.retrieval_tier || 'consultant',
     };
   }
 
+  async findByName(name) {
+    const db = await this._db();
+    const row = await db.get('SELECT * FROM categories WHERE name = @name', { name });
+    if (!row) return null;
+    return this._mapRow(row);
+  }
+
   async save(name, category) {
+    const db = await this._db();
     const complexity = category.complexity != null
       ? parseFloat(parseFloat(category.complexity).toFixed(2))
       : 1.0;
@@ -42,20 +52,20 @@ class CategoryRepository {
       ? (typeof category.extra_params === 'string' ? category.extra_params : JSON.stringify(category.extra_params))
       : null;
 
-    db.prepare(`
+    await db.run(`
       INSERT INTO categories (
         name, provider, endpoint_url, model_name, api_key, 
         temperature, top_p, top_k, min_p, repeat_penalty, 
         input_context_default, input_context_max, max_tokens, system_prompt, extra_params, routing_mode, 
         fallback_provider, yandex_folder_id, debug_mode, complexity,
-        suggested_questions, sort_index, rag_enabled, retrieval_tier
+        suggested_questions, sort_index, rag_allowed, retrieval_tier
       )
       VALUES (
         @name, @provider, @endpoint_url, @model_name, @api_key, 
         @temperature, @top_p, @top_k, @min_p, @repeat_penalty, 
         @input_context_default, @input_context_max, @max_tokens, @system_prompt, @extra_params, @routing_mode, 
         @fallback_provider, @yandex_folder_id, @debug_mode, @complexity,
-        @suggested_questions, @sort_index, @rag_enabled, @retrieval_tier
+        @suggested_questions, @sort_index, @rag_allowed, @retrieval_tier
       )
       ON CONFLICT(name) DO UPDATE SET
         provider=excluded.provider,
@@ -73,15 +83,15 @@ class CategoryRepository {
         system_prompt=excluded.system_prompt,
         extra_params=excluded.extra_params,
         routing_mode=excluded.routing_mode,
-        fallback_provider=fallback_provider,
+        fallback_provider=excluded.fallback_provider,
         yandex_folder_id=excluded.yandex_folder_id,
         debug_mode=excluded.debug_mode,
         complexity=excluded.complexity,
         suggested_questions=excluded.suggested_questions,
         sort_index=excluded.sort_index,
-        rag_enabled=excluded.rag_enabled,
+        rag_allowed=excluded.rag_allowed,
         retrieval_tier=excluded.retrieval_tier
-    `).run({
+    `, {
       name,
       provider: category.provider || null,
       endpoint_url: category.endpoint_url || null,
@@ -104,51 +114,34 @@ class CategoryRepository {
       complexity,
       suggested_questions: category.suggested_questions || '',
       sort_index: category.sort_index != null ? parseInt(category.sort_index, 10) : 0,
-      rag_enabled: category.rag_enabled ? 1 : 0,
+      rag_allowed: category.rag_allowed ? 1 : 0,
       retrieval_tier: category.retrieval_tier || 'consultant',
     });
   }
 
   async listAll() {
-    const rows = db.prepare('SELECT * FROM categories ORDER BY sort_index ASC, name ASC').all();
+    const db = await this._db();
+    const rows = await db.all('SELECT * FROM categories ORDER BY sort_index ASC, name ASC');
     const result = {};
     for (const row of rows) {
-      result[row.name] = {
-        name: row.name,
-        provider: row.provider,
-        endpoint_url: row.endpoint_url,
-        model_name: row.model_name,
-        api_key: row.api_key,
-        temperature: row.temperature != null ? parseFloat(row.temperature) : null,
-        top_p: row.top_p != null ? parseFloat(row.top_p) : null,
-        top_k: row.top_k != null ? parseInt(row.top_k, 10) : null,
-        min_p: row.min_p != null ? parseFloat(row.min_p) : null,
-        repeat_penalty: row.repeat_penalty != null ? parseFloat(row.repeat_penalty) : null,
-        input_context_default: row.input_context_default != null ? parseInt(row.input_context_default, 10) : 1000000,
-        input_context_max: row.input_context_max != null ? parseInt(row.input_context_max, 10) : 1000000,
-        max_tokens: row.max_tokens != null ? parseInt(row.max_tokens, 10) : null,
-        system_prompt: row.system_prompt,
-        extra_params: row.extra_params ? JSON.parse(row.extra_params) : null,
-        routing_mode: row.routing_mode || 'direct',
-        fallback_provider: row.fallback_provider,
-        yandex_folder_id: row.yandex_folder_id,
-        debug_mode: !!row.debug_mode,
-        complexity: row.complexity != null ? parseFloat(row.complexity) : 1.0,
-        suggested_questions: row.suggested_questions || '',
-        sort_index: row.sort_index != null ? parseInt(row.sort_index, 10) : 0,
-        rag_enabled: !!row.rag_enabled,
-        retrieval_tier: row.retrieval_tier || 'consultant',
-      };
+      result[row.name] = this._mapRow(row);
     }
     return result;
   }
 
   async countTotal() {
-    return db.prepare('SELECT COUNT(*) as c FROM categories').get().c;
+    const db = await this._db();
+    const row = await db.get(
+      isAppPgEnabled()
+        ? 'SELECT COUNT(*)::int AS c FROM categories'
+        : 'SELECT COUNT(*) as c FROM categories'
+    );
+    return row.c;
   }
 
   async delete(name) {
-    db.prepare('DELETE FROM categories WHERE name = ?').run(name);
+    const db = await this._db();
+    await db.run('DELETE FROM categories WHERE name = @name', { name });
   }
 }
 

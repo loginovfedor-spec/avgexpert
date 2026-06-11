@@ -34,7 +34,7 @@
 
 | Поле | Значение |
 |------|----------|
-| **current_sprint** | `D1` |
+| **current_sprint** | `D3` |
 | **program** | [`PG18_DOCKER_UNIFIED_PLAN.md`](../plans/PG18_DOCKER_UNIFIED_PLAN.md) v1.2 |
 | **handoff** | `.cursor/rules/pg18-sprint-handoff.mdc` (`alwaysApply`) |
 | **RAG v2 (S0…S10)** | завершена 2026-06-10 |
@@ -54,10 +54,10 @@
 
 ---
 
-## Цель текущего спринта (D1)
+## Цель текущего спринта (D3)
 
-Перенос RAG (`kb_*`) с удалённого PG 18 на локальный PG 18 в Docker.  
-**Не:** app schema SQLite→PG (D2), tsvector FTS (D4).
+Chat, sessions, KB routes — перенос на PostgreSQL.  
+**Не:** tsvector FTS (D4), удаление SQLite (D4).
 
 ---
 
@@ -65,12 +65,11 @@
 
 | ID | Задача | Критерий (DoD) | Статус |
 |----|--------|----------------|--------|
-| D1-1 | migrate-rag-db.sh PG 18 | dry-run + полный перенос | pending |
-| D1-2 | Перенос remote → local PG 18 | COUNT(kb_chunks) совпадает | pending |
-| D1-3 | vector_dims + namespace | SQL + `kb:pg:smoke` | pending |
-| D1-4 | embedding:smoke + RAG-чат | Контекст из корпуса | pending |
-| D1-5 | pg_dump backup script | Документирован one-liner | pending |
-| D1-6 | Убрать remote PG из .env | Только локальный DATABASE_URL | pending |
+| D3-1 | `session.repository`, messages → PG | История чата сохраняется | pending |
+| D3-2 | `chat.service` без SQLite | SSE/stream работает | pending |
+| D3-3 | Payments / audit / mission repos → PG (если включены) | Соответствующие тесты PASS | pending |
+| D3-4 | `llm_response_cache` → PG | Кэш LLM работает | pending |
+| D3-5 | Интеграционные тесты на PG (`test:integration`) | CI-матрица обновлена | pending |
 
 ### Блокеры
 
@@ -84,7 +83,7 @@ _нет_
 |--------|-------|
 | **D0** | PG 18 compose, ru_RU, dev-remote |
 | D1 | Перенос RAG |
-| D2 | App schema PG |
+| D2 | App schema PG ✅ |
 | D3 | Chat, sessions |
 | D4 | PG tsvector + убрать SQLite |
 | D5 | Pilot workflow |
@@ -96,6 +95,9 @@ _нет_
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| D2 | 2026-06-11 | — | 0 critical, 3 high (2 fixed, 1 D3) |
+| D1 | 2026-06-11 | — | 0 critical, 1 high (fixed) |
+| D0 | 2026-06-11 | — | 0 critical, 1 high (documented) |
 | S10 | 2026-06-10 | `f7bcfc5` | 0 critical, 1 high (fixed) |
 | S9 | 2026-06-10 | `9c2be8d` | 0 critical, 0 high, 2 medium (tech debt) |
 | S8 | 2026-06-10 | `cdb9e92` | 0 critical, 0 high, 2 medium (fixed), 1 medium (tech debt) |
@@ -137,11 +139,69 @@ _нет_
 
 | `CONVERSATION_MAX_TOKENS` | `100000` (config + `.env.example`) |
 
-| `KB corpus` | 5 книг, 5213 chunks в PG (`bge-m3-v1`, scope=global) |
+| `KB corpus` | 20 docs, 5377 chunks в локальном PG 18 (`bge-m3-v1` + test ns) |
+| `LOCAL DATABASE_URL` | `postgresql://avg:***@127.0.0.1:5432/avgexpert` |
 
 
 
 ## RETRO (последний сверху)
+
+### RETRO D2 — 2026-06-11
+
+**Выполнение:** D2-1…D2-6 done
+
+**Артефакты:** `src/core/pg/` (migrate, seed, `DatabasePort`, `001_app_core.sql`), `user.repository` + `category.repository` → PG, `app:pg:smoke`, `test:d2`, `APP_PG_ENABLED`, payment/balance PG token path
+
+**Соответствие плану:** нет расхождений с §6 D2; fresh install seed (v028/v030 tier categories); dual-DB: sessions остаются SQLite до D3
+
+**Качество:** `tsc --noEmit` PASS; `test:security` 35/35 PASS; `test:d2` PASS; `app:pg:smoke` PASS
+
+**Метрики:** plan_accuracy ~97%; tech debt: sessions FK в SQLite vs users в PG (D3); express.json 2mb (security gate, крупные inline-вложения — multipart/KB routes)
+
+**Bugbot-review:** findings 4 (0 critical, 3 high fixed/mitigated, 1 medium accepted)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | session.repository | PG users vs SQLite sessions FK — **mitigated** (D3 scope) |
+| high | payment.repository | Robokassa credit в SQLite — **fixed** (`creditTokens` → PG) |
+| high | users.routes balance | History из SQLite — **fixed** (`getTokenHistoryAsc` PG) |
+| medium | server.ts json limit | 50mb→2mb для security tests — **accepted** (upload multipart) |
+
+**Уроки:** advisory lock для параллельных app migrations; `APP_PG_ENABLED=false` — SQLite fallback; token history must follow `UserRepository` DB
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
+
+### RETRO D1 — 2026-06-11
+
+**Выполнение:** D1-1…D1-6 done
+
+**Артефакты:** `migrate-rag-db.sh` (PG18, docker psql/pg_dump fallback, pre-existing `avgexpert-pg`), `pg-backup.sh`, `npm run prod:pg-backup`, `RAG_DB_MIGRATION.md` §backup, `.gitignore` deploy/prod secrets, `deploy/prod/README.md`
+
+**Соответствие плану:** перенос 5377 `kb_chunks` remote→local; `vector_dims=1024`, `bge-m3-v1` OK; нет расхождений с §6 D1
+
+**Качество:** `migrate-rag-db.sh` PASS; `kb:pg:smoke` PASS (PG 18.4, ru_RU.UTF-8, pgvector 0.8.2); `embedding:smoke` PASS; `load:rag-retrieval` retrieval OK (p95 5.2s CPU TEI — NFR-1 fail ожидаем на ноутбуке)
+
+**Метрики:** plan_accuracy ~99%; tech debt: pilot-сервер ещё не мигрирован (D6); compose project vs standalone `avgexpert-pg` — скрипты поддерживают оба
+
+**Bugbot-review:** findings 3 (0 critical, 1 high fixed, 2 medium fixed)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | migrate-rag-db pg_restore | Ошибки restore скрывались `2>/dev/null \|\| true` — **fixed** (лог + fatal on real errors) |
+| medium | pg-backup stopped PG | `docker exec` без `docker start` — **fixed** |
+| medium | pg-backup Windows | Binary dump через stdout — **fixed** (`docker cp` из контейнера) |
+
+**Уроки:** Windows/Git Bash: `MSYS_NO_PATHCONV` для docker volume; `pg_dump` через `postgres:18` если psql не в PATH; EXPECTED_NAMESPACE опционален
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO D0 — 2026-06-11
 

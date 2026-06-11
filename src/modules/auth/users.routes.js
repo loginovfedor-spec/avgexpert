@@ -13,7 +13,6 @@ const router = Router();
 const categoryRepository = require('../admin/category.repository');
 const providersConfig = require('../../core/providers.config');
 const limits = require('../chat/limit.service');
-const db = require('../../core/sqlite');
 
 function toSafeCategories(categories, allowed = [], options = {}) {
   const allowAllWhenEmpty = options.allowAllWhenEmpty !== false;
@@ -28,6 +27,7 @@ function toSafeCategories(categories, allowed = [], options = {}) {
         input_context_max: v.input_context_max != null ? v.input_context_max : 1000000,
         max_tokens: v.max_tokens != null ? v.max_tokens : 128000,
         complexity: v.complexity != null ? parseFloat(v.complexity) : 1.0,
+        rag_allowed: v.rag_allowed !== false && v.rag_allowed !== 0,
       };
     }
   }
@@ -137,13 +137,8 @@ function rowTokenEffect(row) {
   return { delta: 0, consumed: 0, received: 0 };
 }
 
-function buildDailyOperations(username, currentTokens) {
-  const rows = db.prepare(`
-    SELECT id, tokens_allocated, tokens_input, tokens_output, recorded_at, reason
-    FROM token_usage_history
-    WHERE username = ?
-    ORDER BY recorded_at ASC, id ASC
-  `).all(username);
+async function buildDailyOperations(username, currentTokens) {
+  const rows = await userRepository.getTokenHistoryAsc(username);
 
   const effects = rows.map((row) => ({ ...rowTokenEffect(row), date: row.recorded_at }));
   const knownDelta = effects.reduce((sum, e) => sum + e.delta, 0);
@@ -199,25 +194,25 @@ function filterOperationsSinceDays(operations, days) {
   return operations.filter((op) => startOfLocalDay(op.date) >= cutoff);
 }
 
-router.get('/me/balance', authenticate, (req, res) => {
-  const balance = userRepository.getTokenBalance(req.user.username);
+router.get('/me/balance', authenticate, asyncHandler(async (req, res) => {
+  const balance = await userRepository.getTokenBalance(req.user.username);
   if (!balance) return res.status(404).json({ error: 'User not found' });
   res.set('Cache-Control', 'no-store');
 
-  const allOperations = buildDailyOperations(req.user.username, balance.balance);
+  const allOperations = await buildDailyOperations(req.user.username, balance.balance);
   const operations = filterOperationsSinceDays(allOperations, BALANCE_DISPLAY_DAYS);
 
   res.json({
     balance: Math.max(0, tokensToCredits(balance.balance)),
     operations,
   });
-});
+}));
 
-router.get('/me/balance/export', authenticate, (req, res) => {
-  const balance = userRepository.getTokenBalance(req.user.username);
+router.get('/me/balance/export', authenticate, asyncHandler(async (req, res) => {
+  const balance = await userRepository.getTokenBalance(req.user.username);
   if (!balance) return res.status(404).json({ error: 'User not found' });
 
-  const allOperations = buildDailyOperations(req.user.username, balance.balance);
+  const allOperations = await buildDailyOperations(req.user.username, balance.balance);
   const operations = filterOperationsSinceDays(allOperations, BALANCE_EXPORT_DAYS);
   const csv = operationsToCsv(operations);
   const filename = `balance-history-${formatCsvDate(Date.now())}.csv`;
@@ -228,7 +223,7 @@ router.get('/me/balance/export', authenticate, (req, res) => {
     'Cache-Control': 'no-store',
   });
   res.send(csv);
-});
+}));
 
 const userPatchSchema = z.object({
   email: z.string().email().max(254).optional().or(z.literal('')),
@@ -236,6 +231,7 @@ const userPatchSchema = z.object({
   category: z.string().max(64).optional(),
   input_context_credits: z.number().int().min(0).max(limits.USER_INPUT_MAX).optional().nullable(),
   output_generation_credits: z.number().int().min(0).max(limits.USER_OUTPUT_MAX).optional().nullable(),
+  rag_enabled: z.boolean().optional(),
 }).strict();
 
 router.patch('/me', authenticate, asyncHandler(async (req, res) => {
@@ -246,7 +242,7 @@ router.patch('/me', authenticate, asyncHandler(async (req, res) => {
     return res.status(400).json({ detail: 'Некорректный формат данных', errors: parseResult.error.issues });
   }
 
-  const { password, email, category, input_context_credits, output_generation_credits } = parseResult.data;
+  const { password, email, category, input_context_credits, output_generation_credits, rag_enabled } = parseResult.data;
 
   const user = await userRepository.findByUsername(username);
   if (!user) return res.status(404).json({ error: 'User not found' });
@@ -276,6 +272,7 @@ router.patch('/me', authenticate, asyncHandler(async (req, res) => {
 
   if (input_context_credits !== undefined) user.input_context_credits = input_context_credits;
   if (output_generation_credits !== undefined) user.output_generation_credits = output_generation_credits;
+  if (rag_enabled !== undefined) user.rag_enabled = rag_enabled;
 
   const activeCategory = await categoryRepository.findByName(user.category);
   if (activeCategory) {

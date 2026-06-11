@@ -1,7 +1,7 @@
 const userRepository = require('../auth/user.repository');
 const logger = require('../../core/logger').scoped('TokenUsage');
 
-function recordTokenUsage({ user, usage, complexity = 1.0, source = 'chat' }) {
+async function recordTokenUsage({ user, usage, complexity = 1.0, source = 'chat' }) {
   if (!user || !usage) return null;
 
   const inputTokens = usage.prompt_tokens || 0;
@@ -9,9 +9,9 @@ function recordTokenUsage({ user, usage, complexity = 1.0, source = 'chat' }) {
   if (inputTokens <= 0 && outputTokens <= 0) return null;
 
   try {
-    const newBalance = userRepository.addTokenUsage(user.username, inputTokens, outputTokens, complexity);
+    const newBalance = await userRepository.addTokenUsage(user.username, inputTokens, outputTokens, complexity);
     if (newBalance && newBalance.allocated > 0 && newBalance.balance <= 0) {
-      userRepository.archiveAndBlock(user.username, 'tokens_exhausted');
+      await userRepository.archiveAndBlock(user.username, 'tokens_exhausted');
     }
     return newBalance;
   } catch (err) {

@@ -16,6 +16,8 @@ import { recordTokenUsage } from './token_usage.service';
 import { StreamEvent } from '../../types/chat.types';
 // @ts-ignore
 import logger = require('../../core/logger');
+// @ts-ignore
+const { isRagEffective } = require('../rag/rag.policy');
 
 const chatControllerLogger = logger.scoped('ChatController');
 
@@ -45,6 +47,7 @@ type ChatRequest = Request & {
 
 type CategorySettings = Record<string, unknown> & {
   model_name?: string;
+  rag_allowed?: boolean | number;
   rag_enabled?: boolean | number;
   sandbox_enabled?: boolean | number;
   complexity?: number;
@@ -87,7 +90,7 @@ class ChatController {
       });
     }
 
-    const balance = userRepository.getTokenBalance(user.username) as TokenBalance | null;
+    const balance = await userRepository.getTokenBalance(user.username) as TokenBalance | null;
     if (balance && balance.balance <= 0) {
       return res.status(403).json({
         error: {
@@ -105,7 +108,7 @@ class ChatController {
 
     const catSettings = await categoryRepository.findByName(categoryName) as CategorySettings | null || {};
 
-    const isFastPath = !catSettings.rag_enabled && !catSettings.sandbox_enabled && !body.run_id && !body.runId;
+    const isFastPath = !isRagEffective(catSettings, user) && !catSettings.sandbox_enabled && !body.run_id && !body.runId;
 
     let missionId = body.mission_id || body.missionId;
 
@@ -132,7 +135,7 @@ class ChatController {
 
     try {
       const result = await writeChatCompletionStream({ stream, res, modelName, isStreaming });
-      recordTokenUsage({
+      await recordTokenUsage({
         user,
         usage: result.usage,
         complexity: catSettings?.complexity ?? 1.0,

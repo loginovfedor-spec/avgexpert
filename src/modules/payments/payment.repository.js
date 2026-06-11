@@ -1,4 +1,5 @@
 const db = require('../../core/sqlite');
+const userRepository = require('../auth/user.repository');
 
 class PaymentRepository {
   createOrder({ username, packageId, credits, tokens, amountRub }) {
@@ -19,50 +20,37 @@ class PaymentRepository {
     return db.prepare('SELECT * FROM payment_orders WHERE inv_id = ?').get(invId);
   }
 
-  markPaidAndCredit(order, details) {
-    return db.transaction(() => {
-      const current = this.findByInvId(order.inv_id);
-      if (!current) throw new Error('Payment order not found');
-      if (current.status === 'paid') return { credited: false, order: current };
+  async markPaidAndCredit(order, details) {
+    const current = this.findByInvId(order.inv_id);
+    if (!current) throw new Error('Payment order not found');
+    if (current.status === 'paid') return { credited: false, order: current };
 
-      db.prepare(`
-        UPDATE payment_orders
-        SET status = 'paid',
-            robokassa_out_sum = @outSum,
-            robokassa_fee = @fee,
-            payment_method = @paymentMethod,
-            signature = @signature,
-            paid_at = @paidAt
-        WHERE inv_id = @invId AND status != 'paid'
-      `).run({
-        invId: order.inv_id,
-        outSum: details.outSum,
-        fee: details.fee || null,
-        paymentMethod: details.paymentMethod || null,
-        signature: details.signature,
-        paidAt: Date.now(),
-      });
+    const paidAt = Date.now();
+    const update = db.prepare(`
+      UPDATE payment_orders
+      SET status = 'paid',
+          robokassa_out_sum = @outSum,
+          robokassa_fee = @fee,
+          payment_method = @paymentMethod,
+          signature = @signature,
+          paid_at = @paidAt
+      WHERE inv_id = @invId AND status != 'paid'
+    `).run({
+      invId: order.inv_id,
+      outSum: details.outSum,
+      fee: details.fee || null,
+      paymentMethod: details.paymentMethod || null,
+      signature: details.signature,
+      paidAt,
+    });
 
-      db.prepare(`
-        UPDATE users
-        SET tokens_allocated = tokens_allocated + @tokens,
-            is_blocked = 0
-        WHERE username = @username
-      `).run({ username: order.username, tokens: order.tokens });
+    if (update.changes === 0) {
+      const latest = this.findByInvId(order.inv_id);
+      return { credited: false, order: latest };
+    }
 
-      db.prepare(`
-        INSERT INTO token_usage_history
-          (username, tokens_allocated, tokens_input, tokens_output, recorded_at, reason)
-        VALUES
-          (@username, @tokens_allocated, 0, 0, @recorded_at, 'robokassa_payment')
-      `).run({
-        username: order.username,
-        tokens_allocated: order.tokens,
-        recorded_at: Date.now(),
-      });
-
-      return { credited: true, order: this.findByInvId(order.inv_id) };
-    })();
+    await userRepository.creditTokens(order.username, order.tokens, 'robokassa_payment');
+    return { credited: true, order: this.findByInvId(order.inv_id) };
   }
 }
 

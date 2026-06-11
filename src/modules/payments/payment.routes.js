@@ -73,7 +73,7 @@ router.post('/robokassa/result', asyncHandler(async (req, res) => {
     return res.status(400).send('bad amount');
   }
 
-  paymentRepository.markPaidAndCredit(order, {
+  await paymentRepository.markPaidAndCredit(order, {
     outSum: verified.outSum,
     fee: params.Fee,
     paymentMethod: params.PaymentMethod,

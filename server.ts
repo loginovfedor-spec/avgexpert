@@ -21,6 +21,16 @@ require('./src/modules/observability/rag-metrics.service');
 const app = express();
 const serverLogger = logger.scoped('Server');
 
+const { initAppPg, isAppPgEnabled } = require('./src/core/pg');
+if (isAppPgEnabled()) {
+  initAppPg().catch((err: unknown) => {
+    serverLogger.error('App PG init failed', err);
+    if (process.env.NODE_ENV !== 'test') {
+      process.exit(1);
+    }
+  });
+}
+
 type RateLimitHandlerOptions = {
   statusCode: number;
   message: string;
@@ -106,7 +116,7 @@ app.use(cors((req, callback) => {
 }));
 
 app.use(compression());
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
 const authLimiter = process.env.NODE_ENV === 'test' ? (req: Request, res: Response, next: NextFunction) => next() : rateLimit({

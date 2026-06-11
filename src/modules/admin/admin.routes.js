@@ -133,16 +133,7 @@ router.post('/users/:username', asyncHandler(async (req, res) => {
   const newTokensAllocated = user.tokens_allocated || 0;
   const tokensDelta = newTokensAllocated - prevTokensAllocated;
   if (!isNew && tokensDelta !== 0) {
-    db.prepare(`
-      INSERT INTO token_usage_history
-        (username, tokens_allocated, tokens_input, tokens_output, recorded_at, reason)
-      VALUES
-        (@username, @tokens_allocated, 0, 0, @recorded_at, 'admin_adjustment')
-    `).run({
-      username,
-      tokens_allocated: tokensDelta,
-      recorded_at: Date.now(),
-    });
+    await userRepository.recordAdminTokenAdjustment(username, tokensDelta);
   }
   
   AuditService.log(
@@ -187,7 +178,7 @@ router.get('/users/:username/token-history', asyncHandler(async (req, res) => {
   } catch (err) {
     return res.status(400).json({ detail: err.message });
   }
-  const history = userRepository.getTokenHistory(username, 100);
+  const history = await userRepository.getTokenHistory(username, 100);
   res.json(history);
 }));
 
@@ -198,7 +189,7 @@ const CATEGORY_FIELDS = [
   'temperature', 'top_p', 'top_k', 'min_p', 'repeat_penalty',
   'input_context_default', 'input_context_max', 'max_tokens', 'system_prompt', 'routing_mode', 'fallback_provider',
   'extra_params', 'debug_mode', 'complexity', 'suggested_questions', 'sort_index',
-  'rag_enabled', 'retrieval_tier'
+  'rag_allowed', 'retrieval_tier'
 ];
 
 router.get('/categories', asyncHandler(async (req, res) => {
@@ -246,7 +237,7 @@ const categorySchema = z.object({
   complexity: z.number().min(0.01).max(99.99).optional().nullable(),
   suggested_questions: z.string().max(16000).optional().nullable(),
   sort_index: z.number().int().optional().nullable(),
-  rag_enabled: z.boolean().optional().nullable(),
+  rag_allowed: z.boolean().optional().nullable(),
   retrieval_tier: z.enum(['consultant', 'expert', 'sage']).optional().nullable(),
 });
 

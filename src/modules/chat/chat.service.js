@@ -78,7 +78,7 @@ class ChatService {
     let messages = await truncateMessages([...baseMessages], catSettings);
     const sessionId = body.session_id || body.sessionId;
     const ragOrchestrator = getRagOrchestrator();
-    const useRagV2 = ragOrchestrator.shouldUseRagV2(catSettings);
+    const useRagV2 = ragOrchestrator.shouldUseRagV2(catSettings, user);
 
     if (useRagV2) {
       mergedSettings = ragOrchestrator.resolve({ catSettings, mergedSettings });
@@ -108,7 +108,7 @@ class ChatService {
           return m;
         });
       }
-    } else if (KNOWLEDGE_GATEWAY_ENABLED && catSettings.rag_enabled) {
+    } else if (KNOWLEDGE_GATEWAY_ENABLED && require('../rag/rag.policy').isRagEffective(catSettings, user)) {
       const kgw = getKnowledgeGateway();
       const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
       const query = lastUserMessage?.content || '';
@@ -146,7 +146,11 @@ class ChatService {
     const ac = new AbortController();
     const reqCloseHandler = () => ac.abort(new Error('Client disconnected'));
     res.req.on('close', reqCloseHandler);
-    const timeoutId = setTimeout(() => ac.abort(new Error('Provider timeout')), PROVIDER_TIMEOUT);
+    const providerTimeoutMs = limits.getProviderTimeout(providerCfg, PROVIDER_TIMEOUT);
+    const timeoutId = setTimeout(
+      () => ac.abort(new Error(`Provider timeout (${providerTimeoutMs}ms)`)),
+      providerTimeoutMs
+    );
 
     try {
       // 6. Call ModelGateway
@@ -175,7 +179,7 @@ class ChatService {
         retrievalResult
       });
 
-      recordTokenUsage({
+      await recordTokenUsage({
         user,
         usage: result.usage,
         complexity: catSettings.complexity ?? 1.0,
