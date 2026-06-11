@@ -1,0 +1,14 @@
+# Override: TEI embedder на CPU, вся 8 GB VRAM — для Llama 7B full GPU
+# Usage:
+#   docker compose --env-file deploy/prod/.env \
+#     -f deploy/prod/compose.yml -f deploy/prod/compose.tei-cpu.override.yml up -d
+
+services:
+  tei-bge-m3:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.7
+    gpus: !reset null
+    mem_limit: 4g
+    cpus: "4"
+    environment:
+      HF_HUB_ENABLE_HF_TRANSFER: "0"
+      OMP_NUM_THREADS: "4"

@@ -2,6 +2,7 @@
 const { sanitizePromptText } = require('../../core/utils');
 const { ALLOWED_EXTRA_PARAMS } = require('../../core/config');
 const limits = require('./limit.service');
+const { stripNativeRag } = require('../rag/rag.orchestrator');
 
 const ADEQUACY_COVENANT = `
 ### ADEQUACY COVENANT
@@ -71,11 +72,15 @@ class ChatCompletionMapper {
 
     const mergedSettings = { 
       ...categorySettings,
-      extra_params: { ...(categorySettings.extra_params || {}) }
+      extra_params: stripNativeRag({ ...(categorySettings.extra_params || {}) }),
     };
 
     if (body.temperature !== undefined) mergedSettings.temperature = body.temperature;
     if (body.top_p !== undefined) mergedSettings.top_p = body.top_p;
+    if (body.top_k !== undefined) mergedSettings.top_k = body.top_k;
+    if (body.min_p !== undefined) mergedSettings.min_p = body.min_p;
+    if (body.repeat_penalty !== undefined) mergedSettings.repeat_penalty = body.repeat_penalty;
+    if (body.n_predict !== undefined) mergedSettings.n_predict = body.n_predict;
     
     if (body.extra_params) {
       const allowedKeys = user.is_admin ? ALLOWED_EXTRA_PARAMS.ADMIN : ALLOWED_EXTRA_PARAMS.USER;

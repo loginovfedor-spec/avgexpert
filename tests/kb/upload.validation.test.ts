@@ -19,7 +19,7 @@ test('upload validation: sanitize filename and reject path traversal', async () 
   assert.equal(ok.mime, 'text/markdown');
 });
 
-test('upload validation: rejects oversize, pdf and bad mime', async () => {
+test('upload validation: rejects oversize, legacy binary pdf and bad mime', async () => {
   const { validateUserUpload } = await import('../../src/modules/kb/upload.validation');
 
   assert.throws(
@@ -28,17 +28,40 @@ test('upload validation: rejects oversize, pdf and bad mime', async () => {
   );
 
   assert.throws(
-    () => validateUserUpload({ filename: 'scan.pdf', content: '%PDF', maxBytes: 1024 }),
-    /PDF/
+    () => validateUserUpload({ filename: 'legacy.doc', content: 'hello', maxBytes: 1024 }),
+    /не поддерживается/
   );
 
   assert.throws(
     () => validateUserUpload({
       filename: 'notes.txt',
       content: 'hello',
-      mime: 'application/pdf',
+      mime: 'application/octet-stream',
       maxBytes: 1024,
     }),
     /MIME/
+  );
+});
+
+test('upload validation: accepts extracted text from pdf and docx filenames', async () => {
+  const { validateUserUpload } = await import('../../src/modules/kb/upload.validation');
+
+  const pdf = validateUserUpload({
+    filename: 'report.pdf',
+    content: 'Extracted chapter text from PDF',
+    maxBytes: 1024 * 1024,
+  });
+  assert.equal(pdf.sanitizedFilename, 'report.pdf');
+  assert.equal(pdf.mime, 'application/pdf');
+
+  const docx = validateUserUpload({
+    filename: 'notes.docx',
+    content: 'Extracted body from DOCX',
+    maxBytes: 1024 * 1024,
+  });
+  assert.equal(docx.sanitizedFilename, 'notes.docx');
+  assert.equal(
+    docx.mime,
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   );
 });

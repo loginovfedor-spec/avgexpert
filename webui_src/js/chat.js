@@ -3,6 +3,7 @@ import { $, t, showToast } from './index.js';
 import { updateContextBadge, updateTokenInfo, autoResizeTextarea, renderMarkdown, estimateTokens, getTotalDocTokens, showTypingIndicator, renderDocChip, removeDoc, setWelcomeVisible } from './ui.js';
 import { SessionManager } from './sessions.js';
 import { uploadSessionAttachment, hasPendingAttachments, stopAllAttachmentPolling } from './session-attachments.js';
+import { filterSupportedDocumentFiles, parseDocumentFile } from './file-parse.js';
 
 const STREAM_RENDER_INTERVAL_MS = 80;
 const LARGE_REQUEST_CHARS = 100_000;
@@ -14,14 +15,6 @@ let largeRequestResolver = null;
 // Minimum number of new characters before triggering an intermediate re-render.
 // Avoids O(n²) cost on long responses by batching small token additions.
 const STREAM_RENDER_MIN_NEW_CHARS = 80;
-const pendingModuleLoads = new Map();
-
-function loadModuleOnce(key, importer) {
-  if (pendingModuleLoads.has(key)) return pendingModuleLoads.get(key);
-  const p = importer().finally(() => pendingModuleLoads.delete(key));
-  pendingModuleLoads.set(key, p);
-  return p;
-}
 
 function createStreamMarkdownRenderer(el, onRender) {
   let lastRenderAt = 0;
@@ -89,27 +82,32 @@ export function newChat(reloadList = true) {
 }
 
 export async function handleFiles(fileList) {
-  const files = Array.from(fileList).filter(f => /\.(txt|md|markdown|docx|pdf)$/i.test(f.name));
+  const files = filterSupportedDocumentFiles(fileList);
+  const useRag = isRagEffectiveForChat();
+
   for (const file of files) {
-    if (state.attachedDocs.length >= state.maxDocsAllowed) { showToast(`Максимум ${state.maxDocsAllowed} документов для вашей категории`); break; }
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    if (['txt', 'md', 'markdown'].includes(ext)) {
-      try {
-        const text = await file.text();
-        const uploaded = await uploadSessionAttachment(file, text);
-        if (!uploaded) continue;
-      } catch (e) {
-        console.error('Session attachment error:', e);
-        showToast('Не удалось загрузить вложение', 'error');
-      }
-      continue;
+    if (state.attachedDocs.length >= state.maxDocsAllowed) {
+      showToast(`Максимум ${state.maxDocsAllowed} документов для вашей категории`);
+      break;
     }
     try {
-      const text = await parseFile(file);
-      const tokens = estimateTokens(text);
-      state.attachedDocs.push({ name: file.name, text, tokens });
-      renderDocChip({ name: file.name, tokens }, state.attachedDocs.length - 1);
-    } catch (e) { console.error('File parse error:', e); }
+      const text = await parseDocumentFile(file);
+      if (!text?.trim()) {
+        showToast(`Не удалось извлечь текст из «${file.name}»`, 'error');
+        continue;
+      }
+      if (useRag) {
+        const uploaded = await uploadSessionAttachment(file, text);
+        if (!uploaded) continue;
+      } else {
+        const tokens = estimateTokens(text);
+        state.attachedDocs.push({ name: file.name, text, tokens });
+        renderDocChip({ name: file.name, tokens }, state.attachedDocs.length - 1);
+      }
+    } catch (e) {
+      console.error('File attach error:', e);
+      showToast('Не удалось обработать файл', 'error');
+    }
   }
   const fileInput = $('file-input');
   if(fileInput) fileInput.value = '';
@@ -119,37 +117,7 @@ export async function handleFiles(fileList) {
 }
 
 export async function parseFile(file) {
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (ext === 'txt' || ext === 'md') return await file.text();
-  if (ext === 'docx') {
-    const mammoth = await loadModuleOnce('mammoth', () => import('mammoth'));
-    const ab = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer: ab });
-    return result.value;
-  }
-  if (ext === 'pdf') {
-    const pdfjsLib = await loadModuleOnce('pdfjs', () => import('pdfjs-dist'));
-    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/build/pdf.worker.min.mjs',
-          import.meta.url
-        ).toString();
-      } catch {
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      }
-    }
-    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map(it => it.str).join(' ') + '\n';
-    }
-    return text;
-  }
-  return '';
+  return parseDocumentFile(file);
 }
 
 export function checkDocsFitContext() {
@@ -175,6 +143,13 @@ function getActiveCategoryName() {
 
 function getActiveCategoryData() {
   return state.categories?.[getActiveCategoryName()] || {};
+}
+
+function isRagEffectiveForChat() {
+  const cat = getActiveCategoryData();
+  const catAllowed = cat.rag_allowed === true || cat.rag_allowed === 1;
+  const userEnabled = state.currentUser?.rag_enabled !== false && state.currentUser?.rag_enabled !== 0;
+  return catAllowed && userEnabled;
 }
 
 function getRequestCharSize(messages) {

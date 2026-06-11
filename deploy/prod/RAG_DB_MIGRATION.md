@@ -184,6 +184,22 @@ docker volume rm avgexpert-prod_pg-data
 
 ---
 
+## Бэкап локального PG 18 (после переноса)
+
+```bash
+# Скрипт (рекомендуется)
+npm run prod:pg-backup
+# → deploy/prod/backups/avgexpert-pg18-YYYYMMDD-HHMMSS.dump
+
+# One-liner
+docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml \
+  exec -T postgres pg_dump -U avg -Fc avgexpert > avgexpert-backup.dump
+```
+
+Восстановление: `pg_restore --clean --if-exists` через `docker compose exec -T postgres` (см. вывод `pg-backup.sh`).
+
+---
+
 ## Чеклист
 
 - [ ] `migrate-rag-db.sh --dry-run` OK

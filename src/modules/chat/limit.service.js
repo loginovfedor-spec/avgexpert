@@ -3,6 +3,7 @@ const USER_INPUT_MAX = 1000;
 const USER_OUTPUT_MIN = 0;
 const USER_OUTPUT_MAX = 128;
 const TOKENS_PER_CREDIT = 1000;
+const LOCAL_PROVIDER_DEFAULT_TIMEOUT_MS = 300000;
 // Conservative upper bound for a single message body (~4 chars/token at max input budget).
 const MAX_MESSAGE_CONTENT_CHARS = USER_INPUT_MAX * TOKENS_PER_CREDIT * 4;
 
@@ -18,6 +19,23 @@ function clamp(value, min, max) {
 
 function creditsToTokens(credits) {
   return toPositiveInt(credits, 0) * TOKENS_PER_CREDIT;
+}
+
+function getProviderTimeout(providerCfg = {}, globalTimeoutMs = 60000) {
+  const env = providerCfg._env || {};
+  const fromEnv = toPositiveInt(
+    env.PROVIDER_TIMEOUT_MS ||
+    env.LLAMACPP_PROVIDER_TIMEOUT ||
+    providerCfg.provider_timeout_ms,
+    null
+  );
+  if (fromEnv != null && fromEnv > 0) {
+    return fromEnv;
+  }
+  if (['llamacpp', 'ollama'].includes(providerCfg.adapter)) {
+    return Math.max(globalTimeoutMs, LOCAL_PROVIDER_DEFAULT_TIMEOUT_MS);
+  }
+  return globalTimeoutMs;
 }
 
 function getAdapterCaps(providerCfg = {}) {
@@ -114,6 +132,8 @@ module.exports = {
   TOKENS_PER_CREDIT,
   MAX_MESSAGE_CONTENT_CHARS,
   creditsToTokens,
+  LOCAL_PROVIDER_DEFAULT_TIMEOUT_MS,
+  getProviderTimeout,
   getAdapterCaps,
   getInputLimit,
   getOutputLimit,

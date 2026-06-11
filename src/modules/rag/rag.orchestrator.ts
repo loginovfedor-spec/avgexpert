@@ -23,7 +23,19 @@ const NATIVE_RAG_KEYS = [
   'file_search',
 ] as const;
 
+/** Gateway-only keys stored in category extra_params; must not reach LLM provider APIs. */
+const GATEWAY_ONLY_EXTRA_PARAM_KEYS = [
+  'global_kb_enabled',
+  'user_kb_enabled',
+  'session_kb_enabled',
+  'rag_mode',
+  'rag_answerability_policy',
+  'endpoint_url',
+  'api_key',
+] as const;
+
 type CategorySettings = {
+  rag_allowed?: boolean | number;
   rag_enabled?: boolean | number;
   retrieval_tier?: string;
   rag_answerability_policy?: string;
@@ -34,6 +46,7 @@ type CategorySettings = {
 type RagUser = {
   id?: string;
   username?: string;
+  rag_enabled?: boolean | number;
 };
 
 type ResolveInput = {
@@ -57,6 +70,9 @@ type RagOrchestratorDeps = {
 function stripNativeRag(extraParams: Record<string, unknown> = {}): Record<string, unknown> {
   const cleaned = { ...extraParams };
   for (const key of NATIVE_RAG_KEYS) {
+    delete cleaned[key];
+  }
+  for (const key of GATEWAY_ONLY_EXTRA_PARAM_KEYS) {
     delete cleaned[key];
   }
 
@@ -127,8 +143,10 @@ export class RagOrchestrator {
     this.cache = deps.cache || scopedRetrievalCache;
   }
 
-  shouldUseRagV2(catSettings: CategorySettings): boolean {
-    return Boolean(RAG_V2_ENABLED && catSettings.rag_enabled);
+  shouldUseRagV2(catSettings: CategorySettings, user?: RagUser): boolean {
+    // @ts-ignore
+    const { isRagEffective } = require('./rag.policy');
+    return Boolean(RAG_V2_ENABLED && isRagEffective(catSettings, user));
   }
 
   resolve({ catSettings, mergedSettings }: ResolveInput): Record<string, unknown> {

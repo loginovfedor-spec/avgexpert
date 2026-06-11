@@ -45,6 +45,9 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 | `npm run prod:ps` | Статус контейнеров |
 | `npm run prod:logs` | Логи compose |
 | `npm run prod:post-deploy` | Health + `kb:pg:smoke` после деплоя |
+| `npm run prod:migrate-rag` | Перенос RAG с удалённого PG 18 → локальный |
+| `npm run prod:migrate-rag:dry` | Dry-run проверки источника |
+| `npm run prod:pg-backup` | `pg_dump -Fc` локального PG 18 |
 
 **Разработка на ноутбуке** (app локально, PG/TEI/Llama на pilot): [`deploy/dev/DEV_REMOTE.md`](../dev/DEV_REMOTE.md).
 

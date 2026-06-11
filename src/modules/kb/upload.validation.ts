@@ -1,14 +1,16 @@
 import path = require('path');
 
-export const USER_KB_ALLOWED_EXTENSIONS = new Set(['.txt', '.md', '.markdown']);
+export const USER_KB_ALLOWED_EXTENSIONS = new Set(['.txt', '.md', '.markdown', '.pdf', '.docx']);
 
 export const USER_KB_ALLOWED_MIMES = new Set([
   'text/plain',
   'text/markdown',
   'text/x-markdown',
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ]);
 
-export const USER_KB_REJECTED_EXTENSIONS = new Set(['.pdf', '.docx', '.doc', '.html', '.htm']);
+export const USER_KB_REJECTED_EXTENSIONS = new Set(['.doc', '.html', '.htm']);
 
 const FILENAME_MAX_LEN = 255;
 const SAFE_FILENAME_RE = /^[a-zA-Z0-9._\-\u0400-\u04FF ]+$/;
@@ -36,6 +38,10 @@ export function sanitizeFilename(filename: string): string {
 export function inferMimeFromFilename(filename: string): string {
   const ext = path.extname(filename).toLowerCase();
   if (ext === '.md' || ext === '.markdown') return 'text/markdown';
+  if (ext === '.pdf') return 'application/pdf';
+  if (ext === '.docx') {
+    return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  }
   return 'text/plain';
 }
 
@@ -49,11 +55,13 @@ export function validateUserUpload(params: {
   const ext = path.extname(sanitizedFilename).toLowerCase();
 
   if (USER_KB_REJECTED_EXTENSIONS.has(ext)) {
-    throw new Error(`Формат ${ext} не поддерживается для пользовательской базы (PDF и бинарные файлы отклоняются)`);
+    throw new Error(`Формат ${ext} не поддерживается для загрузки в базу знаний`);
   }
 
   if (!USER_KB_ALLOWED_EXTENSIONS.has(ext)) {
-    throw new Error(`Неподдерживаемый формат: ${ext || '(без расширения)'}. Допустимо: .txt, .md`);
+    throw new Error(
+      `Неподдерживаемый формат: ${ext || '(без расширения)'}. Допустимо: .txt, .md, .pdf, .docx`
+    );
   }
 
   const size = Buffer.byteLength(params.content, 'utf-8');

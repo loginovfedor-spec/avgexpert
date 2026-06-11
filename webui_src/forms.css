@@ -573,6 +573,19 @@ input[type="number"].setup-input {
   color: var(--muted);
 }
 
+.user-rag-admin-block {
+  color: var(--warning);
+}
+
+.toggle-option.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.toggle-option.is-disabled .toggle-slider {
+  cursor: not-allowed;
+}
+
 .model-select-row {
   display: flex;
   flex-direction: column;

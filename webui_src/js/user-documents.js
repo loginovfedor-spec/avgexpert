@@ -1,5 +1,6 @@
 import { state } from './state.js';
 import { $, showToast } from './index.js';
+import { filterSupportedDocumentFiles, isSupportedDocumentFile, parseDocumentFile } from './file-parse.js';
 
 const STATUS_LABELS = {
   pending: 'Ожидает',
@@ -35,7 +36,7 @@ function renderDocuments(data) {
   }
 
   if (docs.length === 0) {
-    listEl.innerHTML = '<div class="user-docs-empty">Загрузите .txt или .md — они будут доступны в RAG при чате.</div>';
+    listEl.innerHTML = '<div class="user-docs-empty">Загрузите .txt, .md, .pdf или .docx — они будут доступны в RAG при чате.</div>';
     return;
   }
 
@@ -97,13 +98,25 @@ export function stopUserDocumentsPolling() {
 }
 
 async function uploadFile(file) {
-  const ext = file.name.split('.').pop()?.toLowerCase();
-  if (!['txt', 'md', 'markdown'].includes(ext)) {
-    showToast('Для «Мои документы» поддерживаются только .txt и .md', 'error');
+  if (!isSupportedDocumentFile(file.name)) {
+    showToast('Поддерживаются .txt, .md, .pdf и .docx', 'error');
     return;
   }
 
-  const content = await file.text();
+  let content;
+  try {
+    content = await parseDocumentFile(file);
+  } catch (err) {
+    console.error('User document parse error', err);
+    showToast(`Не удалось прочитать «${file.name}»`, 'error');
+    return;
+  }
+
+  if (!content?.trim()) {
+    showToast(`Файл «${file.name}» не содержит текста`, 'error');
+    return;
+  }
+
   const res = await fetch('/api/user/documents', {
     method: 'POST',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
@@ -116,7 +129,7 @@ async function uploadFile(file) {
     return;
   }
 
-  showToast(`Документ «${file.name}» проиндексирован`, 'success');
+  showToast(`Документ «${file.name}» загружен. Он будет доступен после обработки на сервере.`, { variant: 'info' });
   await loadUserDocuments();
 }
 
@@ -141,7 +154,7 @@ export function initUserDocuments() {
 
   $('user-docs-file-input')?.addEventListener('change', async (e) => {
     const input = e.target;
-    const files = input.files ? Array.from(input.files) : [];
+    const files = filterSupportedDocumentFiles(input.files || []);
     for (const file of files) {
       await uploadFile(file);
     }

@@ -5,7 +5,7 @@ export function showToast(msg, options = {}) {
   if (typeof options === 'string') {
     options = { variant: options };
   }
-  const duration = Math.max(3000, Number(options.duration) || 3000);
+  const duration = Math.max(10000, Number(options.duration) || 10000);
   const variant = options.variant || 'success';
 
   const existing = document.querySelector('.toast');

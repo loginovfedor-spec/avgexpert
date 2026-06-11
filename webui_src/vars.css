@@ -220,7 +220,7 @@ button:focus:not(:focus-visible) {
   color: #fff;
   font-size: 0.9rem;
   z-index: 1000;
-  animation: slideUp var(--transition-slow), fadeOut var(--transition-slow) 2.5s forwards;
+  animation: slideUp var(--transition-slow), fadeOut var(--transition-slow) 9.5s forwards;
 }
 
 .toast--info {

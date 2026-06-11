@@ -125,8 +125,8 @@ export async function uploadSessionAttachment(file, content) {
   if (!state.authToken) return false;
 
   const ext = file.name.split('.').pop()?.toLowerCase();
-  if (!['txt', 'md', 'markdown'].includes(ext)) {
-    showToast('Для RAG-вложений поддерживаются только .txt и .md', 'error');
+  if (!['txt', 'md', 'markdown', 'pdf', 'docx'].includes(ext)) {
+    showToast('Поддерживаются .txt, .md, .pdf и .docx', 'error');
     return false;
   }
 

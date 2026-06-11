@@ -7,6 +7,9 @@ data/
 data_test/
 local-dev/data/
 .env
+deploy/prod/.env
+deploy/prod/.env.migrate
+deploy/prod/backups/
 src/modules/providers/config/*.env
 !src/modules/providers/config/*.env.example
 .DS_Store

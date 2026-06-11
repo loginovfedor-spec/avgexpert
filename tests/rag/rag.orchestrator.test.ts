@@ -16,7 +16,7 @@ test('RagOrchestrator.resolve strips native RAG params when RAG_V2 enabled', asy
   });
 
   const resolved = orchestrator.resolve({
-    catSettings: { rag_enabled: true },
+    catSettings: { rag_allowed: true },
     mergedSettings: {
       model_name: 'gpt-4.1-mini',
       extra_params: {
@@ -74,7 +74,7 @@ test('RagOrchestrator.retrieve uses scoped cache', async () => {
   const input = {
     query: 'test query',
     catSettings: {
-      rag_enabled: true,
+      rag_allowed: true,
       retrieval_tier: 'consultant',
     },
     user: { username: 'cache-user' },

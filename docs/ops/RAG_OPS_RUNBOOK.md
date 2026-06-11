@@ -72,7 +72,7 @@ Per §5.2 (updated S9: `yandex_file_search` no longer performs embed/search).
 | 4 | `kb_chunks` / PG data unchanged — safe to re-enable v2 later |
 | 5 | Re-enable: `RAG_V2_ENABLED=true` or `AVGEXPERT_DEPLOY_ENV=staging` |
 
-**Prod emergency:** category-level `rag_enabled=false` in admin UI disables retrieval per category without global flag.
+**Prod emergency:** category-level `rag_allowed=false` in admin UI disables retrieval for that category (users cannot override). Per-user `rag_enabled=false` in user settings also disables retrieval without global flag.
 
 ---
 
@@ -136,7 +136,7 @@ Local dev stays `AVGEXPERT_DEPLOY_ENV=development` + `RAG_V2_ENABLED=false` in `
 | ---- | ------ |
 | 1 | `RAG_V2_ENABLED=false` + restart gateway |
 | 2 | Legacy FTS path via `KnowledgeGateway` (consultant only) — **not recommended post-cutover** |
-| 3 | Or per-category `rag_enabled=false` in admin UI |
+| 3 | Or per-category `rag_allowed=false` in admin UI |
 | 4 | PG `kb_chunks` unchanged — re-enable v2 when ready |
 
 ### Post-cutover cleanup (after 7–14 days)

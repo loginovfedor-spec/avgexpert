@@ -26,6 +26,8 @@
   require('./v025_add_user_token_history_indexes'),
   require('./v026_add_category_rag_fields'),
   require('./v027_llm_cache_and_consultant_providers'),
-  require('./v028_tier_provider_categories')
+  require('./v028_tier_provider_categories'),
+  require('./v029_rag_hybrid_policy'),
+  require('./v030_consultant_local_llamacpp')
 ];
 

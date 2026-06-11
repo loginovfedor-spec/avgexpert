@@ -51,14 +51,7 @@ test('User KB documents API', async (t) => {
       .expect(401);
   });
 
-  await t.test('POST /api/user/documents rejects pdf and http source_uri', async () => {
-    const pdfRes = await request(app)
-      .post('/api/user/documents')
-      .set('Authorization', `Bearer ${tokenA}`)
-      .send({ filename: 'bad.pdf', content: '%PDF-1.4' })
-      .expect(400);
-    assert.match(pdfRes.body.detail, /PDF/i);
-
+  await t.test('POST /api/user/documents rejects http source_uri', async () => {
     const ssrfRes = await request(app)
       .post('/api/user/documents')
       .set('Authorization', `Bearer ${tokenA}`)
@@ -73,6 +66,41 @@ test('User KB documents API', async (t) => {
 
   const RUN_PG = process.env.SKIP_PG_INTEGRATION !== 'true';
   let docIdA = '';
+
+  await t.test(
+    'POST /api/user/documents accepts pdf and docx extracted text',
+    { skip: !RUN_PG },
+    async () => {
+      const { resolvePgConnectionString } = await import('../../src/modules/vector/pg/connection');
+      if (!resolvePgConnectionString()) {
+        t.skip('DATABASE_URL не найден');
+        return;
+      }
+
+      const pdfRes = await request(app)
+        .post('/api/user/documents')
+        .set('Authorization', `Bearer ${tokenA}`)
+        .send({ filename: 'report.pdf', content: 'Extracted PDF chapter text for indexing.' })
+        .expect(201);
+      assert.equal(pdfRes.body.filename, 'report.pdf');
+
+      const docxRes = await request(app)
+        .post('/api/user/documents')
+        .set('Authorization', `Bearer ${tokenA}`)
+        .send({ filename: 'notes.docx', content: 'Extracted DOCX body for indexing.' })
+        .expect(201);
+      assert.equal(docxRes.body.filename, 'notes.docx');
+
+      await request(app)
+        .delete(`/api/user/documents/${pdfRes.body.id}`)
+        .set('Authorization', `Bearer ${tokenA}`)
+        .expect(200);
+      await request(app)
+        .delete(`/api/user/documents/${docxRes.body.id}`)
+        .set('Authorization', `Bearer ${tokenA}`)
+        .expect(200);
+    }
+  );
 
   await t.test(
     'POST/GET/DELETE /api/user/documents with tenant isolation',

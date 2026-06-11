@@ -479,6 +479,17 @@
                         <!-- populated by JS -->
                     </select>
 
+                    <h4 class="section-subtitle mt-md">База знаний (RAG)</h4>
+                    <label class="toggle-option mt-xs" id="user-rag-toggle-label">
+                        <span class="toggle-label">RAG включён</span>
+                        <input type="checkbox" id="user-rag-enabled" checked aria-label="RAG включён">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <p class="hint-text mt-sm" id="user-rag-hint">При включённом RAG вложения в чате индексируются для поиска по документам.</p>
+                    <p class="hint-text mt-sm user-rag-admin-block hidden" id="user-rag-admin-block" role="status" aria-live="polite">
+                        Администратор отключил RAG для категории «<span id="user-rag-admin-category"></span>». Эта опция недоступна.
+                    </p>
+
                     <h4 class="section-subtitle mt-md">Лимиты запроса</h4>
                     <div class="mt-sm">
                         <label class="range-label">
@@ -503,9 +514,9 @@
                         <h3>Мои документы</h3>
                         <span class="user-docs-meta" id="user-docs-meta"></span>
                     </div>
-                    <p class="section-hint">Постоянная база знаний для RAG. Форматы: .txt, .md</p>
+                    <p class="section-hint">Постоянная база знаний для RAG. Форматы: .txt, .md, .pdf, .docx</p>
                     <div class="user-docs-actions">
-                        <input type="file" id="user-docs-file-input" accept=".txt,.md,.markdown,text/plain,text/markdown" class="hidden" multiple aria-hidden="true">
+                        <input type="file" id="user-docs-file-input" accept=".txt,.md,.markdown,.pdf,.docx" class="hidden" multiple aria-hidden="true">
                         <button type="button" class="nav-btn btn-secondary" id="user-docs-upload-btn">Загрузить документ</button>
                     </div>
                     <div id="user-docs-list" class="user-docs-list" aria-live="polite"></div>
@@ -762,8 +773,8 @@
                         <h4 class="section-subtitle--light mt-sm">RAG / Retrieval</h4>
                         <div class="grid-3col">
                             <label class="toggle-option">
-                                <span class="toggle-label">RAG включён</span>
-                                <input type="checkbox" id="admin-cat-rag-enabled" checked>
+                                <span class="toggle-label">RAG разрешён</span>
+                                <input type="checkbox" id="admin-cat-rag-allowed" checked>
                                 <span class="toggle-slider"></span>
                             </label>
                             <label class="toggle-option">

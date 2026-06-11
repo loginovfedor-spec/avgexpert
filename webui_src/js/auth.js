@@ -124,6 +124,27 @@ async function loadPublicCategories() {
   });
 }
 
+function isCategoryRagAllowed(categoryName) {
+  const cat = state.categories?.[categoryName];
+  return cat?.rag_allowed === true || cat?.rag_allowed === 1;
+}
+
+export function updateUserRagToggleState() {
+  const categoryName = $('user-default-category')?.value || state.currentUser?.category || '';
+  const allowed = isCategoryRagAllowed(categoryName);
+  const toggle = $('user-rag-enabled');
+  const label = $('user-rag-toggle-label');
+  const hint = $('user-rag-hint');
+  const block = $('user-rag-admin-block');
+  const catSpan = $('user-rag-admin-category');
+
+  if (toggle) toggle.disabled = !allowed;
+  if (label) label.classList.toggle('is-disabled', !allowed);
+  if (hint) hint.classList.toggle('hidden', !allowed);
+  if (block) block.classList.toggle('hidden', allowed);
+  if (catSpan) catSpan.textContent = categoryName;
+}
+
 function syncLimitSliders() {
   const categoryName = $('user-default-category')?.value || state.currentUser?.category;
   const category = state.categories?.[categoryName] || {};
@@ -150,6 +171,7 @@ function syncLimitSliders() {
   if ($('user-output-generation-max')) $('user-output-generation-max').textContent = outputMax;
   if ($('user-input-context-value')) $('user-input-context-value').textContent = inputValue;
   if ($('user-output-generation-value')) $('user-output-generation-value').textContent = outputValue;
+  updateUserRagToggleState();
 }
 
 export function updateLimitSliderLabels() {
@@ -276,6 +298,11 @@ export async function completeLogin() {
   
   if ($('user-email')) $('user-email').value = state.currentUser.email || '';
 
+  const ragToggle = $('user-rag-enabled');
+  if (ragToggle) {
+    ragToggle.checked = state.currentUser.rag_enabled !== false && state.currentUser.rag_enabled !== 0;
+  }
+
   // Populate token quota fields in Settings
   const tokensAllocated = state.currentUser.tokens_allocated || 0;
   const tokensInputUsed = state.currentUser.tokens_input_used || 0;
@@ -322,6 +349,7 @@ export async function completeLogin() {
       defaultCatSel.appendChild(opt);
     });
     defaultCatSel.onchange = syncLimitSliders;
+    updateUserRagToggleState();
   }
 
   if (chatSessionCat) {
@@ -566,6 +594,10 @@ export async function switchView(name) {
         const outUsed = state.currentUser.tokens_output_used || 0;
         if ($('user-tokens-balance')) $('user-tokens-balance').textContent = formatCredits(Math.round((alloc - inUsed - outUsed) / 1000));
         refreshBalancePanel();
+        const ragToggle = $('user-rag-enabled');
+        if (ragToggle) {
+          ragToggle.checked = state.currentUser.rag_enabled !== false && state.currentUser.rag_enabled !== 0;
+        }
         syncLimitSliders();
       }
     } catch(e) {}

@@ -8,8 +8,8 @@
 | ------- | -------------- |
 | Max file size | `KB_USER_MAX_FILE_BYTES` (default 5 MiB) |
 | Max documents per user | Category limits (3/5/10) or `KB_USER_MAX_DOCS` override |
-| MIME whitelist | `text/plain`, `text/markdown`, `text/x-markdown` |
-| Extension whitelist | `.txt`, `.md`, `.markdown` |
+| MIME whitelist | `text/plain`, `text/markdown`, `text/x-markdown`, `application/pdf`, `application/vnd...wordprocessingml.document` |
+| Extension whitelist | `.txt`, `.md`, `.markdown`, `.pdf`, `.docx` |
 | Filename sanitization | `path.basename`, strip unsafe chars, max 255 |
 | Empty file | Rejected |
 
@@ -28,13 +28,16 @@
 | HTTP(S) `source_uri` | Rejected via `assertSafeSourceUri` (same as admin ingest) |
 | Default `source_uri` | `user://{username}/{filename}` — non-fetchable |
 
-## PDF / malware policy (S5-7)
+## PDF / DOCX policy (S5-7, обновлено v1.4)
 
 | Control | Decision |
 | ------- | -------- |
-| PDF uploads | **Rejected** on server (client chat attach may parse locally; user KB index is text-only) |
-| DOCX / HTML / binary | **Rejected** by extension + MIME whitelist |
-| Malware scanning | Not in v1 — reject binaries; session async queue (S6) may add sandbox later |
+| PDF / DOCX на API | Принимаются **только как извлечённый UTF-8 текст** с оригинальным именем файла (парсинг в браузере: pdf.js / mammoth) |
+| Сырой бинарник `%PDF-…` | Не загружается с клиента; сервер не парсит PDF/DOCX в v1 |
+| `.doc`, HTML, прочие | **Rejected** by extension + MIME whitelist |
+| Malware scanning | Not in v1 — нет приёма бинарников; session async queue (S6) may add sandbox later |
+
+См. также §3.5.1 в `RAG_MIGRATION_PLAN.md` (единая политика чат vs «Мои документы»).
 
 ## Tenant isolation (S5-4, S5-8)
 

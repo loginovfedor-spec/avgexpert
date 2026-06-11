@@ -27,6 +27,20 @@ test('stripNativeRag removes GROK_COLLECTION_IDS from merged settings', async ()
   assert.equal(cleaned.temperature, 0.3);
 });
 
+test('stripNativeRag removes gateway-only KB flags from provider payload', async () => {
+  const { stripNativeRag } = await import('../../src/modules/rag/rag.orchestrator');
+  const cleaned = stripNativeRag({
+    global_kb_enabled: true,
+    user_kb_enabled: false,
+    session_kb_enabled: true,
+    temperature: 0.5,
+  });
+  assert.equal(cleaned.global_kb_enabled, undefined);
+  assert.equal(cleaned.user_kb_enabled, undefined);
+  assert.equal(cleaned.session_kb_enabled, undefined);
+  assert.equal(cleaned.temperature, 0.5);
+});
+
 test('grok.env does not define active GROK_COLLECTION_IDS', () => {
   const envPath = path.join(__dirname, '../../src/modules/providers/config/grok.env');
   const content = fs.readFileSync(envPath, 'utf8');

@@ -16,11 +16,12 @@ const providersConfig = {
   "llamacpp": {
     "name": "Локальная LLM (Llama.cpp)",
     "adapter": "llamacpp",
-    "endpoint_url": llamacppEnv.LLAMACPP_URL || "http://127.0.0.1:8201",
+    "endpoint_url": llamacppEnv.LLAMACPP_URL || "http://127.0.0.1:8201/v1",
     "api_key": llamacppEnv.LLAMACPP_API_KEY || "",
-    "defaultModel": "default",
+    "defaultModel": llamacppEnv.LLAMACPP_DEFAULT_MODEL || "qwen2.5-7b-instruct",
     "extra_params": {},
     "models": {
+      "qwen2.5-7b-instruct": { "name": "Qwen2.5 7B Instruct (local)", "extra_params": {} },
       "default": { "name": "Модель по умолчанию", "extra_params": {} }
     }
   },
@@ -177,6 +178,7 @@ try {
       providersConfig[id].defaultModel = cfg.defaultModel || providersConfig[id].defaultModel;
       providersConfig[id].models = { ...providersConfig[id].models, ...cfg.models };
       providersConfig[id].extra_params = { ...providersConfig[id].extra_params, ...cfg.extra_params };
+      providersConfig[id]._env = cfg._env || providersConfig[id]._env;
     }
   }
 } catch (e) {

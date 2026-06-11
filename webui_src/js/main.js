@@ -51,6 +51,10 @@ async function saveSettings() {
   if ($('user-output-generation-credits')) {
     payload.output_generation_credits = parseInt($('user-output-generation-credits').value || '0', 10);
   }
+  const ragToggle = $('user-rag-enabled');
+  if (ragToggle && !ragToggle.disabled) {
+    payload.rag_enabled = !!ragToggle.checked;
+  }
   
   if (Object.keys(payload).length > 0) {
     try {
@@ -79,6 +83,7 @@ async function saveSettings() {
         }
         if (payload.input_context_credits !== undefined) state.currentUser.input_context_credits = payload.input_context_credits;
         if (payload.output_generation_credits !== undefined) state.currentUser.output_generation_credits = payload.output_generation_credits;
+        if (payload.rag_enabled !== undefined) state.currentUser.rag_enabled = payload.rag_enabled;
       }
     } catch (e) {}
   }

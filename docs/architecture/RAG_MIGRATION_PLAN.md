@@ -1,7 +1,7 @@
 # Архитектурный концепт и план миграции RAG
 
 **Проект:** AvgExpert  
-**Версия документа:** 1.3  
+**Версия документа:** 1.4  
 **Дата:** 2026-06-09  
 **Статус:** Approved → Implementation (единый источник правды; архитектурные решения — §11)  
 
@@ -61,7 +61,7 @@
 | `yandex_file_search`            | Дублирует RAG; привязка embed к Yandex 256d               |
 | `grok.env` GROK_COLLECTION_IDS  | Облачный индекс, не согласован с PG                       |
 | `categories`                    | `rag_enabled` без `retrieval_tier`; provider смешан с RAG |
-| Ingestion                       | Только `.txt/.md` в SQLite, без embed                     |
+| Ingestion                       | User/session KB: `.txt/.md/.pdf/.docx` (текст с клиента); admin global ingest — отдельный pipeline |
 
 
 ---
@@ -234,6 +234,46 @@ sequenceDiagram
 | L4 Session KB   | attach в чате          | `session`      | GC при удалении сессии               |
 
 
+### 3.5.1 Политика загрузки документов (UI, v1.4)
+
+**Источник правды в коде:** `webui_src/js/file-parse.js`, `webui_src/js/chat.js` (`handleFiles`), `webui_src/js/user-documents.js`, `src/modules/kb/upload.validation.ts`.
+
+Поддерживаемые форматы везде в UI: **`.txt`, `.md`, `.pdf`, `.docx`**.  
+PDF и DOCX **парсятся в браузере** (pdf.js / mammoth); на API уходит **извлечённый UTF-8 текст**, не бинарник.
+
+#### Прикрепление в чате (кнопка «+» / drag-and-drop)
+
+Поведение определяется **`rag_enabled` активной категории** (поле в `/api/users/public/categories` и `/api/users/categories`), **не расширением файла**:
+
+| `rag_enabled` категории | Куда попадает любой поддерживаемый файл |
+| ----------------------- | --------------------------------------- |
+| **true**                | **L4 Session KB** — `POST /api/chat/sessions/:id/attachments`, индексация, retrieval при ответе |
+| **false**               | **Inline в сообщение** — текст вставляется в `messages[]` перед вызовом LLM (fast path) |
+
+Режим фиксируется **в момент загрузки** (смена категории после attach не переносит уже загруженные файлы).
+
+#### «Мои документы» (настройки пользователя, L3)
+
+- Всегда **scope=user**, только при работающем RAG на стороне категории при чате.
+- Те же форматы: `.txt`, `.md`, `.pdf`, `.docx` (клиентский parse → `POST /api/user/documents`).
+- Не зависит от переключателя «+» в чате; это постоянная личная база до удаления.
+
+#### Настройки категории в админке
+
+| Переключатель | Поле | Назначение |
+| ------------- | ---- | ---------- |
+| **RAG включён** | `categories.rag_enabled` | Вкл.: heavy path + `RagOrchestrator` (при `RAG_V2_ENABLED`). Выкл.: fast path без vector retrieval |
+| **Глобальная KB (L2)** | `extra_params.global_kb_enabled` | Участвует ли scope `global` в retrieval **для этой категории** (только если RAG включён) |
+| **Retrieval tier** | `categories.retrieval_tier` | Глубина поиска: consultant topK=3, expert 7, sage 12 |
+
+`global_kb_enabled`, `user_kb_enabled`, `session_kb_enabled` — **только gateway/RAG**, в LLM provider API **не передаются** (`stripNativeRag` + `chat_completion.mapper`).
+
+#### SQLite `missions`
+
+Таблица `missions` (v005): **нет** колонки `status`.  
+`MissionRepository.create` пишет `created_at` / `updated_at` и при необходимости создаёт placeholder-строку в `sessions` (FK `session_id, username`).
+
+
 ### 3.6 Три категории (tier policy)
 
 **Продуктовая модель (роли, не scope-ограничения):**
@@ -281,9 +321,14 @@ DATABASE_URL=postgresql://...
   "model_name": "aliceai-llm-flash/latest",
   "rag_enabled": true,
   "retrieval_tier": "consultant",
-  "extra_params": {}
+  "extra_params": {
+    "global_kb_enabled": true
+  }
 }
 ```
+
+**Gateway-only ключи в `extra_params`** (не уходят в OpenAI/Grok/Yandex API):  
+`global_kb_enabled`, `user_kb_enabled`, `session_kb_enabled`, `rag_mode`, `rag_answerability_policy`, `endpoint_url`, `api_key` — фильтруются в `rag.orchestrator` (`stripNativeRag`) и `chat_completion.mapper`.
 
 ### 3.8 Судьба существующих компонентов
 

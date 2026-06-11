@@ -427,7 +427,7 @@ export async function loadAdminCategories() {
     Object.entries(cats).forEach(([catName, data]) => {
       const providerLabel = data.provider ? data.provider.toUpperCase() : 'llamacpp';
       const tierLabel = data.retrieval_tier || 'consultant';
-      const ragLabel = data.rag_enabled ? 'RAG' : 'no-RAG';
+      const ragLabel = data.rag_allowed ? 'RAG' : 'no-RAG';
       const el = document.createElement('div');
       el.className = 'user-item';
       el.innerHTML = `
@@ -544,8 +544,8 @@ async function editAdminCategory(name, data) {
   const debugEl = $('admin-cat-debug-mode');
   if (debugEl) debugEl.checked = !!(data.debug_mode);
 
-  const ragEl = $('admin-cat-rag-enabled');
-  if (ragEl) ragEl.checked = data.rag_enabled !== false && data.rag_enabled !== 0;
+  const ragEl = $('admin-cat-rag-allowed');
+  if (ragEl) ragEl.checked = data.rag_allowed !== false && data.rag_allowed !== 0;
 
   const tierEl = $('admin-cat-retrieval-tier');
   if (tierEl) tierEl.value = data.retrieval_tier || 'consultant';
@@ -628,7 +628,7 @@ $('btn-save-cat')?.addEventListener('click', async (e) => {
     provider: $('admin-cat-provider').value || 'llamacpp',
     system_prompt: $('admin-cat-system-prompt').value || null,
     debug_mode: !!($('admin-cat-debug-mode')?.checked),
-    rag_enabled: !!($('admin-cat-rag-enabled')?.checked),
+    rag_allowed: !!($('admin-cat-rag-allowed')?.checked),
     retrieval_tier: $('admin-cat-retrieval-tier')?.value || 'consultant',
     complexity: parseFloat(parseFloat($('admin-cat-complexity')?.value || '1').toFixed(2)) || 1.0,
     input_context_default: parseGroupedInt($('admin-cat-input-context-default')?.value, 1000000),
