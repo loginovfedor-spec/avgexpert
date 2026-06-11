@@ -82,7 +82,7 @@ test('DegradedRetriever uses FTS when FTS_FALLBACK_ENABLED=true', async () => {
   });
 
     assert.equal(ftsCalled, true);
-    assert.equal(result.retrieverId, 'sqlite-fts-fallback');
+    assert.equal(result.retrieverId, 'pg-tsvector-fallback');
     assert.equal(result.chunks.length, 1);
   });
 });

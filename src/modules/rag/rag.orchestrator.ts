@@ -136,9 +136,8 @@ export class RagOrchestrator {
     } else {
       const tiered = createTieredRetrieverFromEnv();
       this.namespace = loadEmbeddingConfig().namespace;
-      // @ts-ignore legacy JS adapter default export
-      const SQLiteFTSRetriever = require('../knowledge/adapters/sqlite_fts.adapter');
-      this.retriever = new DegradedRetriever(tiered, new SQLiteFTSRetriever());
+      const { PgTsvectorRetriever } = require('../vector/retrievers/pg_tsvector.retriever');
+      this.retriever = new DegradedRetriever(tiered, new PgTsvectorRetriever());
     }
     this.cache = deps.cache || scopedRetrievalCache;
   }

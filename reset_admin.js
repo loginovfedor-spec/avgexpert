@@ -1,21 +1,28 @@
 /**
- * Admin Reset Utility (SQLite)
+ * Admin Reset Utility (PostgreSQL)
  */
 const bcrypt = require('bcrypt');
-const db = require('./src/core/sqlite');
+const { runAppMigrations, closePgPools, getDatabasePort } = require('./src/core/pg');
 
 async function resetAdmin() {
+  await runAppMigrations();
   const newPass = process.env.AVGEXPERT_ADMIN_PASSWORD || 'admin2026';
   const hash = bcrypt.hashSync(newPass, 10);
-  
-  const info = db.prepare('UPDATE users SET password_hash = ?, must_change_password = 1 WHERE username = ?')
-    .run(hash, 'admin');
+  const db = getDatabasePort();
+  const result = await db.run(
+    'UPDATE users SET password_hash = @hash, must_change_password = 1 WHERE username = @username',
+    { hash, username: 'admin' }
+  );
 
-  if (info.changes > 0) {
+  if (result.changes > 0) {
     console.log(`SUCCESS: Admin password reset to "${newPass}" (must change on next login)`);
   } else {
     console.log('ERROR: User "admin" not found in database');
   }
+  await closePgPools();
 }
 
-resetAdmin().catch(console.error);
+resetAdmin().catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});

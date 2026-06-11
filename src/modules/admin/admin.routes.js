@@ -17,8 +17,6 @@ const { TEST_TIMEOUT } = require('../../core/config');
 const providersConfig = require('../../core/providers.config');
 const limits = require('../chat/limit.service');
 const logger = require('../../core/logger').scoped('Admin');
-const db = require('../../core/sqlite');
-
 const router = Router();
 
 // All admin routes require auth + admin
@@ -442,8 +440,7 @@ router.get('/audit', asyncHandler(async (req, res) => {
 // ── MVP Dashboard ───────────────────────────────────────
 
 router.get('/dashboard/mvp', asyncHandler(async (req, res) => {
-  const sqliteDb = require('../../core/sqlite');
-  const { getDatabasePort, ensureAppPgReady, isAppPgEnabled } = require('../../core/pg');
+  const { getDatabasePort, ensureAppPgReady } = require('../../core/pg');
   const traceBus = require('../observability/trace.bus');
   const metricsService = require('../observability/metrics.service');
   const fs = require('fs');
@@ -451,19 +448,19 @@ router.get('/dashboard/mvp', asyncHandler(async (req, res) => {
 
   await ensureAppPgReady();
   const appDb = getDatabasePort();
-  const runStatusRows = isAppPgEnabled()
-    ? await appDb.all('SELECT state, COUNT(*)::int AS count FROM agent_runs GROUP BY state')
-    : sqliteDb.prepare('SELECT state, count(*) as count FROM agent_runs GROUP BY state').all();
+  const runStatusRows = await appDb.all('SELECT state, COUNT(*)::int AS count FROM agent_runs GROUP BY state');
   const runStatus = {};
   for (const row of runStatusRows) {
     runStatus[row.state] = row.count;
   }
 
-  const semanticRow = isAppPgEnabled()
-    ? await appDb.get('SELECT COUNT(*)::int AS count FROM audit_logs WHERE action = @action', { action: 'semantic' })
-    : sqliteDb.prepare('SELECT count(*) as count FROM audit_logs WHERE action = @action').get({ action: 'semantic' });
+  const semanticRow = await appDb.get(
+    'SELECT COUNT(*)::int AS count FROM audit_logs WHERE action = @action',
+    { action: 'semantic' }
+  );
   const semanticEvents = semanticRow.count;
-  const approvalEvents = sqliteDb.prepare('SELECT count(*) as count FROM approval_requests').get().count;
+  const approvalRow = await appDb.get('SELECT COUNT(*)::int AS count FROM approval_requests');
+  const approvalEvents = approvalRow.count;
   
   const metrics = metricsService.getMetrics();
   const ragMetrics = require('../observability/rag-metrics.service').getSnapshot();

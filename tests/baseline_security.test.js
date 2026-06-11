@@ -1,13 +1,17 @@
 const test = require('node:test');
-const { after } = require('node:test');
+const { after, before } = require('node:test');
 const assert = require('node:assert');
 const request = require('supertest');
 const { app, server } = require('../server');
-const db = require('../src/core/sqlite');
+const { ensureTestPg, teardownTestPg } = require('./helpers/pg_harness');
 
-after(() => {
+after(async () => {
   if (server) server.close();
-  db.close();
+  await teardownTestPg();
+});
+
+before(async () => {
+  await ensureTestPg();
 });
 
 test('Security Baseline: CORS enforcement', async () => {

@@ -13,7 +13,6 @@ import { errorHandler, AppError } from './src/core/errors';
 // @ts-ignore
 import logger = require('./src/core/logger');
 
-require('./src/core/sqlite');
 // Eager-load observability listeners (S10-4) before first RAG request
 require('./src/modules/observability/metrics.service');
 require('./src/modules/observability/rag-metrics.service');
@@ -159,9 +158,12 @@ app.get('/health', async (req: Request, res: Response) => {
   const vector = await getVectorHealthSection();
   res.status(200).json({ status: 'ok', vector });
 });
-app.get('/ready', (req: Request, res: Response) => {
+app.get('/ready', async (req: Request, res: Response) => {
   try {
-    require('./src/core/sqlite');
+    const { ensureAppPgReady } = require('./src/core/pg');
+    const { getPgPool } = require('./src/core/pg/pool');
+    await ensureAppPgReady();
+    await getPgPool().query('SELECT 1');
     res.status(200).json({ status: 'ready' });
   } catch (err) {
     res.status(503).json({ status: 'error', message: 'DB not ready' });

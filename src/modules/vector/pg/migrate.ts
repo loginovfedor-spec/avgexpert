@@ -40,6 +40,7 @@ export async function runVectorMigrations(options: {
     const migrations: Array<{ id: string; file: string; needsDims?: boolean }> = [
       { id: '001_kb_schema', file: '001_kb_schema.sql', needsDims: true },
       { id: '002_semantic_graph', file: '002_semantic_graph.sql' },
+      { id: '003_kb_fts', file: '003_kb_fts.sql' },
     ];
 
     for (const migration of migrations) {

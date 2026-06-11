@@ -40,7 +40,7 @@ test('DegradedRetriever falls back to FTS when primary throws', async () => {
   });
 
   assert.equal(result.degraded, true);
-  assert.equal(result.retrieverId, 'sqlite-fts-fallback');
+  assert.equal(result.retrieverId, 'pg-tsvector-fallback');
   assert.equal(result.chunks.length, 1);
   assert.match(result.chunks[0].text, /fts result/);
 });

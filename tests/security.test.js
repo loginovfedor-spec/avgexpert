@@ -19,11 +19,11 @@ test('Security Utility: sanitizePromptText', () => {
 const { after } = require('node:test');
 const request = require('supertest');
 const { app, server } = require('../server');
-const db = require('../src/core/sqlite');
+const { teardownTestPg } = require('./helpers/pg_harness');
 
-after(() => {
+after(async () => {
   if (server) server.close();
-  db.close();
+  await teardownTestPg();
 });
 
 test('Security API: /api/chat/completions', async (t) => {

@@ -6,7 +6,7 @@ import knowledgeCache = require('./knowledge.cache');
 import { formatRetrievalContext } from '../rag/format-context';
 // @ts-ignore
 import { KNOWLEDGE_GATEWAY_ENABLED } from '../../core/config';
-import SQLiteFTSRetriever = require('./adapters/sqlite_fts.adapter');
+import { PgTsvectorRetriever } from '../vector/retrievers/pg_tsvector.retriever';
 // @ts-ignore
 import traceBus = require('../observability/trace.bus');
 // @ts-ignore
@@ -131,7 +131,7 @@ class KnowledgeGateway {
   }
 
   private _setupDefaultRetriever() {
-    this.registerRetriever('default', new SQLiteFTSRetriever());
+    this.registerRetriever('default', new PgTsvectorRetriever());
     this.registerRetriever('mock', {
       search: async () => []
     });

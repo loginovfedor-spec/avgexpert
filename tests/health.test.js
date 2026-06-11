@@ -10,17 +10,21 @@ if (!process.env.AVGEXPERT_SECRET) {
 }
 
 const { app, server } = require('../server');
-const db = require('../src/core/sqlite');
 const { upsertTestUser } = require('./helpers/test_users');
+const { ensureTestPg, teardownTestPg } = require('./helpers/pg_harness');
 
 test('Provider Health Endpoint', async (t) => {
   let token = '';
   const username = 'healthtestuser';
   const password = 'HealthPass123!';
 
-  t.after(() => {
+  t.before(async () => {
+    await ensureTestPg();
+  });
+
+  t.after(async () => {
     if (server) server.close();
-    db.close();
+    await teardownTestPg();
   });
 
   await t.test('Setup: Create user and login', async () => {

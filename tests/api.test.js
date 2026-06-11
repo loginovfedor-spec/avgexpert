@@ -12,9 +12,9 @@ if (!process.env.AVGEXPERT_SECRET) {
 }
 
 const { app } = require('../server');
-const db = require('../src/core/sqlite');
 const userRepository = require('../src/modules/auth/user.repository');
 const { upsertTestUser, setTestPassword } = require('./helpers/test_users');
+const { ensureTestPg, teardownTestPg } = require('./helpers/pg_harness');
 
 let testServer;
 
@@ -23,19 +23,19 @@ test('API Integration Tests', async (t) => {
   let testUserId = 'test_user_' + Date.now();
   let testUserToken = '';
 
-  t.before((done) => {
-    testServer = app.listen(0, done);
+  t.before(async () => {
+    await ensureTestPg();
+    await new Promise((resolve) => {
+      testServer = app.listen(0, resolve);
+    });
   });
 
-  t.after((done) => {
-    // Cleanup
+  t.after(async () => {
     if (testServer) {
       testServer.closeAllConnections();
-      testServer.close(done);
-    } else {
-      done();
+      await new Promise((resolve) => testServer.close(resolve));
     }
-    db.close();
+    await teardownTestPg();
   });
 
   await t.test('POST /api/auth/login - should fail with invalid credentials', async () => {

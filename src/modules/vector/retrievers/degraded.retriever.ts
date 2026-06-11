@@ -90,7 +90,7 @@ export class DegradedRetriever implements Retriever {
         chunks: [],
         embedMs: 0,
         searchMs: Date.now() - searchStart,
-        retrieverId: 'sqlite-fts-fallback',
+        retrieverId: 'pg-tsvector-fallback',
         degraded: true,
       };
     }
@@ -102,7 +102,7 @@ export class DegradedRetriever implements Retriever {
       chunks,
       embedMs: 0,
       searchMs,
-      retrieverId: 'sqlite-fts-fallback',
+      retrieverId: 'pg-tsvector-fallback',
       degraded: true,
     };
   }
