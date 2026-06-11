@@ -1,0 +1,83 @@
+---
+description: Программа D (PG18) — старт чата, спринты D0…D6, RETRO, Bugbot
+alwaysApply: true
+---
+
+# Программа D — PG18 + Docker
+
+## Когда применяется
+
+Читать **`docs/sprints/SPRINT_STATE.md`** → поле `current_sprint`.
+
+| current_sprint | Действие |
+|----------------|----------|
+| `D0` … `D6` | **Этот регламент** — полный цикл спринта |
+| `—` или `S*` (legacy) | Только ADR/архитектура из плана D не трогать; RAG legacy — `rag-sprint-handoff.mdc` |
+
+---
+
+## Старт чата (пользователь НЕ дублирует план)
+
+Достаточно: **«продолжай»** / **«делай»** / описание проблемы.  
+**Не просить** номер спринта, ADR или copy-paste плана.
+
+### Порядок чтения (агент, автоматически)
+
+1. **`docs/sprints/SPRINT_STATE.md`** — `current_sprint`, таблица задач, ADR, блокеры
+2. **`docs/plans/PG18_DOCKER_UNIFIED_PLAN.md` §6** — только секция **Sprint D{N}** (= current_sprint) для DoD
+3. **`deploy/dev/DEV_REMOTE.md`** — если спринт D0–D5 и задачи про dev-remote / ноутбук
+4. **`git log`** + код — незавершённые `pending` / `in_progress`
+5. Продолжить **только** задачи текущего спринта
+
+**Не читать** и **не начинать** задачи других спринтов D.
+
+---
+
+## ADR (не переспрашивать)
+
+| ID | Решение |
+|----|---------|
+| ADR-1 | `pgvector/pgvector:pg18`, `ru_RU.UTF-8` |
+| ADR-2 | FTS fallback → PG `tsvector` (`russian` на `kb_chunks`) — код в **D4** |
+| ADR-3 | App SQLite не мигрировать до D2; RAG — dump с удалённого PG 18 |
+| ADR-4 | Dev: app на ноутбуке, сервисы в Docker на удалённом pilot |
+| ADR-5 | Один спринт = один чат |
+
+Полный текст: `PG18_DOCKER_UNIFIED_PLAN.md` §4.
+
+---
+
+## Во время спринта
+
+- Обновлять статусы задач в **`SPRINT_STATE.md`** (`pending` → `in_progress` → `done`)
+- Коммиты: `D{N}:` (например `D0: compose PG18 ru_RU.UTF-8`)
+- RAG upload policy / `stripNativeRag` — по `rag-sprint-handoff.mdc` (если трогаете UI/KB)
+
+---
+
+## Когда спрашивать пользователя
+
+- противоречие код / STATE / план D;
+- scope change или отклонение от ADR;
+- Bugbot critical/high без очевидного фикса в спринте.
+
+---
+
+## Конец спринта (обязательно)
+
+1. Тесты по задачам спринта
+2. **Bugbot-review** (`bugbot`, `readonly: true`, diff branch changes)
+3. **RETRO** — `### RETRO D{N}` в `SPRINT_STATE.md`
+4. В `SPRINT_STATE.md`:
+   - все задачи спринта `done` или явный блокер;
+   - `current_sprint` → следующий D;
+   - **скопировать таблицу задач** следующего спринта из плана §6 (DoD в колонке «Критерий»)
+5. commit + push (включая STATE)
+6. Краткий отчёт пользователю: «Открой **новый чат**, напиши **продолжай**»
+7. **Не начинать** следующий спринт в этом чате
+
+---
+
+## Отдельные файлы `SPRINT_D*.md`
+
+**Не использовать.** Единая точка входа — только `SPRINT_STATE.md` + план §6.

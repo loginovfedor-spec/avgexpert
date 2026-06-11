@@ -41,7 +41,30 @@ async function main(): Promise<void> {
 
   const pool = getPgPool(connectionString);
   const ping = await pool.query('SELECT version() AS version');
-  console.log(`[smoke] PostgreSQL: ${ping.rows[0].version}`);
+  const versionText = String(ping.rows[0].version);
+  console.log(`[smoke] PostgreSQL: ${versionText}`);
+
+  const majorMatch = versionText.match(/PostgreSQL (\d+)/);
+  const pgMajor = majorMatch ? parseInt(majorMatch[1], 10) : 0;
+  if (pgMajor >= 18) {
+    console.log(`[smoke] PostgreSQL major: ${pgMajor}`);
+  } else if (pgMajor > 0) {
+    console.warn(`[smoke] warning: PostgreSQL ${pgMajor} (ожидается 18+ на prod pilot)`);
+  }
+
+  const locale = await pool.query(`
+    SELECT datcollate, datctype
+    FROM pg_database
+    WHERE datname = current_database()
+  `);
+  const lcCollate = String(locale.rows[0].datcollate);
+  console.log(`[smoke] datcollate: ${lcCollate} (datctype: ${locale.rows[0].datctype})`);
+  if (pgMajor >= 18 && lcCollate !== 'ru_RU.UTF-8') {
+    throw new Error(`lc_collate=${lcCollate}, ожидался ru_RU.UTF-8 (ADR-1)`);
+  }
+
+  const applied = await runVectorMigrations({ connectionString });
+  console.log(`[smoke] migrations: ${applied.length ? applied.join(', ') : 'already applied'}`);
 
   const ext = await getPgVectorExtensionVersion(connectionString);
   if (!ext.installed || !ext.version) {
@@ -53,9 +76,6 @@ async function main(): Promise<void> {
     throw new Error(`pgvector ${ext.version} < 0.5 — HNSW недоступен`);
   }
   console.log('[smoke] pgvector >= 0.5: OK');
-
-  const applied = await runVectorMigrations({ connectionString });
-  console.log(`[smoke] migrations: ${applied.length ? applied.join(', ') : 'already applied'}`);
 
   const tables = await pool.query(`
     SELECT table_name

@@ -1,0 +1,204 @@
+# AvgExpert production — Tesla L4 vGPU-8-16-L4-8Q
+# 8 vCPU | 16 GB RAM | 8192 MB VRAM
+# Usage: docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml up -d --build
+
+name: avgexpert-prod
+
+services:
+  postgres:
+    build:
+      context: ./postgres
+    image: avgexpert-postgres:pg18-ru
+    container_name: avgexpert-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-avg}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-avgexpert}
+      POSTGRES_INITDB_ARGS: "--locale=ru_RU.UTF-8 --encoding=UTF8"
+      LANG: ru_RU.UTF-8
+      LC_ALL: ru_RU.UTF-8
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # PG 18+: mount parent dir (data → /var/lib/postgresql/18/docker). PG16 used /data.
+      - pg-data:/var/lib/postgresql
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=128MB
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-avg} -d ${POSTGRES_DB:-avgexpert}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    shm_size: "256mb"
+
+  tei-bge-m3:
+    image: ${TEI_CUDA_IMAGE:-ghcr.io/huggingface/text-embeddings-inference:89-1.7}
+    container_name: avgexpert-tei-embed
+    restart: unless-stopped
+    gpus: all
+    ports:
+      - "127.0.0.1:8090:80"
+    shm_size: "1gb"
+    mem_limit: 3g
+    volumes:
+      - tei-embed-data:/data
+    environment:
+      HF_HUB_ENABLE_HF_TRANSFER: "0"
+    command:
+      - --model-id
+      - BAAI/bge-m3
+      - --port
+      - "80"
+      # 8192 токенов OOM на 8 GB vGPU рядом с Llama; см. deploy/prod/README.md
+      - --max-batch-tokens
+      - "${TEI_MAX_BATCH_TOKENS:-2048}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 60
+      start_period: 600s
+
+  tei-bge-reranker:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.7
+    container_name: avgexpert-tei-rerank
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8091:80"
+    shm_size: "512mb"
+    mem_limit: 3g
+    cpus: "2"
+    volumes:
+      - tei-rerank-data:/data
+    environment:
+      HF_HUB_ENABLE_HF_TRANSFER: "0"
+      OMP_NUM_THREADS: "2"
+    command:
+      - --model-id
+      - BAAI/bge-reranker-v2-m3
+      - --port
+      - "80"
+      - --max-batch-tokens
+      - "2048"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 60
+      start_period: 600s
+
+  llama-cpp:
+    build:
+      context: ./llama-cpp
+    container_name: avgexpert-llama
+    restart: unless-stopped
+    gpus: all
+    ports:
+      - "127.0.0.1:8201:8080"
+    shm_size: "2gb"
+    mem_limit: 6g
+    volumes:
+      - llama-models:/models
+    environment:
+      LLAMA_MODEL_URL: ${LLAMA_MODEL_URL:-https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf}
+      LLAMA_MODEL_FILE: ${LLAMA_MODEL_FILE:-Qwen2.5-7B-Instruct-Q4_K_M.gguf}
+      # 8 GB vGPU: гибрид GPU+CPU, не все слои на GPU (см. README)
+      LLAMA_CTX_SIZE: ${LLAMA_CTX_SIZE:-4096}
+      LLAMA_THREADS: ${LLAMA_THREADS:-4}
+      LLAMA_BATCH: ${LLAMA_BATCH:-256}
+      LLAMA_N_GPU_LAYERS: ${LLAMA_N_GPU_LAYERS:-24}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 120
+      start_period: 3600s
+
+  envoy:
+    image: envoyproxy/envoy:v1.31-latest
+    container_name: avgexpert-envoy
+    restart: unless-stopped
+    volumes:
+      - ../../llm-network-proxy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+  # Internal only — no host port; app uses http://envoy:8080
+
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/prod/Dockerfile.app
+    container_name: avgexpert-gateway
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tei-bge-m3:
+        condition: service_healthy
+      tei-bge-reranker:
+        condition: service_healthy
+      llama-cpp:
+        condition: service_started
+      envoy:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      LANG: ru_RU.UTF-8
+      LC_ALL: ru_RU.UTF-8
+      AVGEXPERT_PORT: "8200"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-avg}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-avgexpert}
+      VECTOR_EMBEDDING_CONFIG: bge_m3.docker
+      VECTOR_RERANKER_CONFIG: bge_reranker_v2_m3.docker
+      EMBEDDING_MOCK: "false"
+      RERANK_MOCK: "false"
+      LLAMACPP_URL: http://llama-cpp:8080/v1
+    volumes:
+      - app-data:/app/data
+      - app-logs:/app/logs
+      - ./providers:/app/src/modules/providers/config:ro
+    mem_limit: 1g
+    ports:
+      - "127.0.0.1:8200:8200"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8200/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: avgexpert-nginx
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - certbot-www:/var/www/certbot:ro
+      - certbot-certs:/etc/letsencrypt:ro
+
+volumes:
+  pg-data:
+  tei-embed-data:
+  tei-rerank-data:
+  llama-models:
+  app-data:
+  app-logs:
+  certbot-www:
+  certbot-certs:

@@ -1,24 +1,96 @@
 # Sprint State
 
+> **Единая точка входа для агента и пользователя.** План в чат **не копировать**.  
+> Агент обновляет этот файл. Пользователь не редактирует (кроме ответов на вопросы).
 
+---
 
-> Агент обновляет этот файл. Пользователь **не редактирует** (кроме ответов на вопросы агента).
+## Для пользователя: новый чат
 
+Напишите одно из:
 
+- **продолжай**
+- **делай**
+- описание конкретной проблемы
+
+Номер спринта, ADR и план дублировать **не нужно** — агент читает этот файл и `.cursor/rules/pg18-sprint-handoff.mdc`.
+
+---
+
+## AGENT: старт (читать первым)
+
+| Шаг | Файл |
+|-----|------|
+| 1 | **Этот файл** — `current_sprint`, таблица задач ниже, ADR, блокеры |
+| 2 | [`PG18_DOCKER_UNIFIED_PLAN.md` §6](../plans/PG18_DOCKER_UNIFIED_PLAN.md) — только секция текущего `D{N}` |
+| 3 | [`DEV_REMOTE.md`](../deploy/dev/DEV_REMOTE.md) — если задачи про ноутбук / remote Docker |
+| 4 | `git log` + код → задачи `pending` / `in_progress` |
+
+**Не использовать** `SPRINT_D*.md` (удалены, дублирование запрещено).
+
+---
+
+## Метаданные
 
 | Поле | Значение |
-
 |------|----------|
+| **current_sprint** | `D1` |
+| **program** | [`PG18_DOCKER_UNIFIED_PLAN.md`](../plans/PG18_DOCKER_UNIFIED_PLAN.md) v1.2 |
+| **handoff** | `.cursor/rules/pg18-sprint-handoff.mdc` (`alwaysApply`) |
+| **RAG v2 (S0…S10)** | завершена 2026-06-10 |
+| **post-plan (2026-06)** | §3.5.1 upload; `stripNativeRag`; `missions` FK |
 
-| **current_sprint** | `—` (миграция RAG v2 завершена, S0…S10) |
+---
 
-| **plan** | [`RAG_MIGRATION_PLAN.md` §6](../architecture/RAG_MIGRATION_PLAN.md) |
+## ADR программы D (не переспрашивать)
 
+| ID | Решение |
+|----|---------|
+| ADR-1 | `pgvector/pgvector:pg18`, `ru_RU.UTF-8` |
+| ADR-2 | FTS fallback → PG `tsvector` (`russian`), реализация в **D4** |
+| ADR-3 | App SQLite не мигрировать до D2; RAG dump с удалённого PG 18 |
+| ADR-4 | Ноутбук = app; pilot Docker = PG, TEI, Llama, Envoy |
+| ADR-5 | Один спринт = один чат |
 
+---
+
+## Цель текущего спринта (D1)
+
+Перенос RAG (`kb_*`) с удалённого PG 18 на локальный PG 18 в Docker.  
+**Не:** app schema SQLite→PG (D2), tsvector FTS (D4).
+
+---
 
 ## Прогресс текущего спринта
 
-_Нет активного спринта. Последний: S10 (2026-06-10)._
+| ID | Задача | Критерий (DoD) | Статус |
+|----|--------|----------------|--------|
+| D1-1 | migrate-rag-db.sh PG 18 | dry-run + полный перенос | pending |
+| D1-2 | Перенос remote → local PG 18 | COUNT(kb_chunks) совпадает | pending |
+| D1-3 | vector_dims + namespace | SQL + `kb:pg:smoke` | pending |
+| D1-4 | embedding:smoke + RAG-чат | Контекст из корпуса | pending |
+| D1-5 | pg_dump backup script | Документирован one-liner | pending |
+| D1-6 | Убрать remote PG из .env | Только локальный DATABASE_URL | pending |
+
+### Блокеры
+
+_нет_
+
+---
+
+## Карта спринтов D (справка)
+
+| Спринт | Фокус |
+|--------|-------|
+| **D0** | PG 18 compose, ru_RU, dev-remote |
+| D1 | Перенос RAG |
+| D2 | App schema PG |
+| D3 | Chat, sessions |
+| D4 | PG tsvector + убрать SQLite |
+| D5 | Pilot workflow |
+| D6 | Приёмка |
+
+Полные DoD: план §6. При закрытии спринта агент **переносит** таблицу следующего спринта сюда.
 
 ## Завершённые спринты
 
@@ -70,6 +142,34 @@ _Нет активного спринта. Последний: S10 (2026-06-10).
 
 
 ## RETRO (последний сверху)
+
+### RETRO D0 — 2026-06-11
+
+**Выполнение:** D0-1…D0-7 done
+
+**Артефакты:** `deploy/prod/postgres/Dockerfile` (pgvector:pg18 + ru_RU.UTF-8), `compose.yml` (PG18, volume `/var/lib/postgresql`), `env.example`, `README.md` + `deploy/prod/README.md` (prod:up, DEV_REMOTE), `pgvector_smoke.ts` (PG18 locale + migration order), `RAG_DB_MIGRATION.md` §PG16→18
+
+**Соответствие плану:** PG18 volume path отличается от PG16 — задокументирован dump/restore; PG18 убрал `SHOW lc_collate` → проверка через `datcollate`
+
+**Качество:** `tsc --noEmit` PASS; `kb:pg:smoke` PASS на локальном PG 18.4 (pgvector 0.8.2, ru_RU.UTF-8); `pg_isready` OK
+
+**Метрики:** plan_accuracy ~98%; tech debt: pilot-сервер ещё на PG16 до деплоя compose; PG16 volume upgrade — только через pg_dump (документировано)
+
+**Bugbot-review:** findings 3 (0 critical, 1 high documented, 2 medium out-of-scope D0)
+
+| Severity | Location | Finding |
+|----------|----------|---------|
+| high | compose.yml volume | PG16 `/data` → PG18 `/var/lib/postgresql` — **mitigated** (RAG_DB_MIGRATION §PG16→18) |
+| medium | upload.validation | PDF bytes — pre-existing, не D0 |
+| medium | chat.service fast path | Llama timeout — pre-existing, не D0 |
+
+**Уроки:** PG18 Docker требует mount на `/var/lib/postgresql`; smoke должен запускать миграции до проверки extension; `datcollate` вместо `SHOW lc_collate` на PG18
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO S10 — 2026-06-10
 

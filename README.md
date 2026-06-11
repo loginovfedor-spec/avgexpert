@@ -59,6 +59,21 @@ graph TD
 
 Это позволяет безопасно выставлять сервер в интернет (например, через IIS или ngrok) — доступ получит только авторизованный пользователь.
 
+## 🐳 Docker prod и dev-remote
+
+| Сценарий | Документация |
+|----------|--------------|
+| **Prod** (PG 18, TEI, Llama на GPU-сервере) | [`deploy/prod/README.md`](deploy/prod/README.md) — `npm run prod:up` |
+| **Ноутбук** + сервисы на pilot (SSH-туннели) | [`deploy/dev/DEV_REMOTE.md`](deploy/dev/DEV_REMOTE.md) |
+
+## 📚 RAG и документы
+
+- Архитектура и политика загрузки (чат / «Мои документы» / админ-флаги): [`docs/architecture/RAG_MIGRATION_PLAN.md`](docs/architecture/RAG_MIGRATION_PLAN.md) §3.5, §3.5.1, §3.7.
+- Безопасность user KB: [`docs/ops/USER_KB_SECURITY.md`](docs/ops/USER_KB_SECURITY.md).
+- Справка пользователя: [`webui_src/assets/Help.md`](webui_src/assets/Help.md).
+
+**Правило UI (гибрид RAG):** эффективный RAG = `rag_allowed` категории **и** `rag_enabled` пользователя. При активном RAG все форматы (txt/md/pdf/docx) → session RAG; иначе → inline в сообщение. «Мои документы» — всегда user KB, те же форматы.
+
 ## 🧬 Testing
 
 The application includes an integration test suite built with Node.js native `node:test` and `supertest`.
