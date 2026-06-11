@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const db = require('../../core/sqlite');
+const { getDatabasePort, ensureAppPgReady } = require('../../core/pg');
 const logger = require('../../core/logger').scoped('LlmResponseCache');
 
 function generateCacheKey(providerId, payload) {
@@ -9,11 +9,14 @@ function generateCacheKey(providerId, payload) {
     .digest('hex');
 }
 
-function getCachedResponse(cacheKey) {
+async function getCachedResponse(cacheKey) {
   try {
-    const row = db
-      .prepare('SELECT response_text, usage FROM llm_response_cache WHERE cache_key = ?')
-      .get(cacheKey);
+    await ensureAppPgReady();
+    const db = getDatabasePort();
+    const row = await db.get(
+      'SELECT response_text, usage FROM llm_response_cache WHERE cache_key = @cacheKey',
+      { cacheKey }
+    );
     if (!row) return null;
     return {
       response_text: row.response_text,
@@ -25,13 +28,21 @@ function getCachedResponse(cacheKey) {
   }
 }
 
-function setCachedResponse(cacheKey, providerId, text, usage) {
+async function setCachedResponse(cacheKey, providerId, text, usage) {
   try {
-    db.prepare(`
+    await ensureAppPgReady();
+    const db = getDatabasePort();
+    await db.run(`
       INSERT INTO llm_response_cache (cache_key, provider_id, response_text, usage, created_at)
-      VALUES (?, ?, ?, ?, ?)
+      VALUES (@cacheKey, @providerId, @text, @usage, @createdAt)
       ON CONFLICT(cache_key) DO NOTHING
-    `).run(cacheKey, providerId, text, JSON.stringify(usage || {}), Date.now());
+    `, {
+      cacheKey,
+      providerId,
+      text,
+      usage: JSON.stringify(usage || {}),
+      createdAt: Date.now(),
+    });
   } catch (err) {
     logger.error('Cache write error', { message: err.message });
   }

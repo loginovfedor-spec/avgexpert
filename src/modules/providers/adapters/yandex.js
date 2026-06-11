@@ -163,7 +163,7 @@ class YandexProvider extends BaseProvider {
       temperature: params.temperature,
       max_output_tokens: params.max_output_tokens,
     });
-    const cached = getCachedResponse(cacheKey);
+    const cached = await getCachedResponse(cacheKey);
     if (cached) {
       yield ProviderEvents.delta(cached.response_text);
       yield ProviderEvents.done('stop', cached.usage);
@@ -193,7 +193,7 @@ class YandexProvider extends BaseProvider {
         const usageToCache = ProviderUtils.normalizeUsage(finalUsage)
           || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
         if (fullContent) {
-          setCachedResponse(cacheKey, this.id, fullContent, usageToCache);
+          await setCachedResponse(cacheKey, this.id, fullContent, usageToCache);
         }
         yield ProviderEvents.done(lastFinishReason, usageToCache);
       } else {
@@ -213,7 +213,7 @@ class YandexProvider extends BaseProvider {
           || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
 
         if (text) {
-          setCachedResponse(cacheKey, this.id, text, usage);
+          await setCachedResponse(cacheKey, this.id, text, usage);
           yield ProviderEvents.delta(text);
         }
         yield ProviderEvents.done(response.finish_reason || 'stop', usage);

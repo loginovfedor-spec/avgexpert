@@ -65,11 +65,11 @@ Chat, sessions, KB routes — перенос на PostgreSQL.
 
 | ID | Задача | Критерий (DoD) | Статус |
 |----|--------|----------------|--------|
-| D3-1 | `session.repository`, messages → PG | История чата сохраняется | pending |
-| D3-2 | `chat.service` без SQLite | SSE/stream работает | pending |
-| D3-3 | Payments / audit / mission repos → PG (если включены) | Соответствующие тесты PASS | pending |
-| D3-4 | `llm_response_cache` → PG | Кэш LLM работает | pending |
-| D3-5 | Интеграционные тесты на PG (`test:integration`) | CI-матрица обновлена | pending |
+| D3-1 | `session.repository`, messages → PG | История чата сохраняется | in_progress |
+| D3-2 | `chat.service` без SQLite | SSE/stream работает | in_progress |
+| D3-3 | Payments / audit / mission repos → PG (если включены) | Соответствующие тесты PASS | in_progress |
+| D3-4 | `llm_response_cache` → PG | Кэш LLM работает | in_progress |
+| D3-5 | Интеграционные тесты на PG (`test:integration`) | CI-матрица обновлена | in_progress |
 
 ### Блокеры
 

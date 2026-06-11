@@ -1,32 +1,44 @@
-const db = require('../../core/sqlite');
+const { getDatabasePort, ensureAppPgReady } = require('../../core/pg');
 const userRepository = require('../auth/user.repository');
 
 class PaymentRepository {
-  createOrder({ username, packageId, credits, tokens, amountRub }) {
+  async _db() {
+    await ensureAppPgReady();
+    return getDatabasePort();
+  }
+
+  async createOrder({ username, packageId, credits, tokens, amountRub }) {
+    const db = await this._db();
     const createdAt = Date.now();
-    const info = db.prepare(`
+    const row = await db.get(`
       INSERT INTO payment_orders
         (username, package_id, credits, tokens, amount_rub, status, created_at)
       VALUES
         (@username, @packageId, @credits, @tokens, @amountRub, 'pending', @createdAt)
-    `).run({ username, packageId, credits, tokens, amountRub, createdAt });
+      RETURNING id
+    `, { username, packageId, credits, tokens, amountRub, createdAt });
 
-    const invId = Number(info.lastInsertRowid);
-    db.prepare('UPDATE payment_orders SET inv_id = ? WHERE id = ?').run(invId, invId);
-    return this.findByInvId(invId);
+    const orderId = row.id;
+    await db.run(
+      'UPDATE payment_orders SET inv_id = @invId WHERE id = @id',
+      { invId: orderId, id: orderId }
+    );
+    return this.findByInvId(orderId);
   }
 
-  findByInvId(invId) {
-    return db.prepare('SELECT * FROM payment_orders WHERE inv_id = ?').get(invId);
+  async findByInvId(invId) {
+    const db = await this._db();
+    return db.get('SELECT * FROM payment_orders WHERE inv_id = @invId', { invId });
   }
 
   async markPaidAndCredit(order, details) {
-    const current = this.findByInvId(order.inv_id);
+    const current = await this.findByInvId(order.inv_id);
     if (!current) throw new Error('Payment order not found');
     if (current.status === 'paid') return { credited: false, order: current };
 
     const paidAt = Date.now();
-    const update = db.prepare(`
+    const db = await this._db();
+    const update = await db.run(`
       UPDATE payment_orders
       SET status = 'paid',
           robokassa_out_sum = @outSum,
@@ -35,7 +47,7 @@ class PaymentRepository {
           signature = @signature,
           paid_at = @paidAt
       WHERE inv_id = @invId AND status != 'paid'
-    `).run({
+    `, {
       invId: order.inv_id,
       outSum: details.outSum,
       fee: details.fee || null,
@@ -45,12 +57,12 @@ class PaymentRepository {
     });
 
     if (update.changes === 0) {
-      const latest = this.findByInvId(order.inv_id);
+      const latest = await this.findByInvId(order.inv_id);
       return { credited: false, order: latest };
     }
 
     await userRepository.creditTokens(order.username, order.tokens, 'robokassa_payment');
-    return { credited: true, order: this.findByInvId(order.inv_id) };
+    return { credited: true, order: await this.findByInvId(order.inv_id) };
   }
 }
 

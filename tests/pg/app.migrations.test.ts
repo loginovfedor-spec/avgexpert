@@ -28,6 +28,15 @@ test('app PG migrations + seed (requires DATABASE_URL)', async (t) => {
   const cats = await categoryRepository.listAll();
   assert.ok(cats['Консультант']);
   assert.ok(cats['Эксперт (OpenAI)']);
+
+  const tables = await pool.query(`
+    SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+      AND table_name IN ('sessions', 'missions', 'payment_orders', 'audit_logs', 'llm_response_cache')
+    ORDER BY table_name
+  `);
+  assert.equal(tables.rowCount, 5, 'D3 app tables present after 002_app_chat');
 });
 
 test.after(async () => {

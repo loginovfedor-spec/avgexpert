@@ -435,27 +435,35 @@ router.get('/audit', asyncHandler(async (req, res) => {
   const username = req.query.username || null;
   const action = req.query.action || null;
 
-  const logs = AuditService.getLogs({ limit, offset, username, action });
+  const logs = await AuditService.getLogs({ limit, offset, username, action });
   res.json(logs);
 }));
 
 // ── MVP Dashboard ───────────────────────────────────────
 
 router.get('/dashboard/mvp', asyncHandler(async (req, res) => {
-  const db = require('../../core/sqlite');
+  const sqliteDb = require('../../core/sqlite');
+  const { getDatabasePort, ensureAppPgReady, isAppPgEnabled } = require('../../core/pg');
   const traceBus = require('../observability/trace.bus');
   const metricsService = require('../observability/metrics.service');
   const fs = require('fs');
   const path = require('path');
-  
-  const runStatusRows = db.prepare('SELECT state, count(*) as count FROM agent_runs GROUP BY state').all();
+
+  await ensureAppPgReady();
+  const appDb = getDatabasePort();
+  const runStatusRows = isAppPgEnabled()
+    ? await appDb.all('SELECT state, COUNT(*)::int AS count FROM agent_runs GROUP BY state')
+    : sqliteDb.prepare('SELECT state, count(*) as count FROM agent_runs GROUP BY state').all();
   const runStatus = {};
   for (const row of runStatusRows) {
     runStatus[row.state] = row.count;
   }
 
-  const semanticEvents = db.prepare('SELECT count(*) as count FROM audit_logs WHERE action = @action').get({ action: 'semantic' }).count;
-  const approvalEvents = db.prepare('SELECT count(*) as count FROM approval_requests').get().count;
+  const semanticRow = isAppPgEnabled()
+    ? await appDb.get('SELECT COUNT(*)::int AS count FROM audit_logs WHERE action = @action', { action: 'semantic' })
+    : sqliteDb.prepare('SELECT count(*) as count FROM audit_logs WHERE action = @action').get({ action: 'semantic' });
+  const semanticEvents = semanticRow.count;
+  const approvalEvents = sqliteDb.prepare('SELECT count(*) as count FROM approval_requests').get().count;
   
   const metrics = metricsService.getMetrics();
   const ragMetrics = require('../observability/rag-metrics.service').getSnapshot();

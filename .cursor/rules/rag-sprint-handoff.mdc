@@ -5,14 +5,22 @@ alwaysApply: true
 
 # RAG v2 Migration
 
-## Старт чата (без запроса у пользователя)
+## Программа D (приоритет)
 
-1. `docs/sprints/SPRINT_STATE.md` — current_sprint, RETRO, блокеры
-2. `docs/architecture/RAG_MIGRATION_PLAN.md` §6, §11, §12 (открытые OPT)
-3. `git log` + код — что уже сделано
-4. Продолжить незавершённые задачи текущего спринта
+Если `docs/sprints/SPRINT_STATE.md` → `current_sprint` = **`D0`…`D6`**:
 
-Не просить пользователя называть спринт или пересказывать план.
+- **Спринт, DoD, RETRO, Bugbot** — только `.cursor/rules/pg18-sprint-handoff.mdc`
+- **Этот файл** — дополнительно: §3.5.1 upload policy, `stripNativeRag`, `missions` FK ниже
+- **Не** грузить `RAG_MIGRATION_PLAN.md` §6 для выбора задач
+
+## Старт чата (RAG legacy / политики)
+
+1. `docs/sprints/SPRINT_STATE.md` — если не программа D, см. pg18-handoff выше
+2. `docs/architecture/RAG_MIGRATION_PLAN.md` §3.5.1, §11, §12 (OPT) — политики и backlog
+3. §6 RAG — **только** если `current_sprint` = S* (история), не для D*
+4. `git log` + код
+
+Не просить пользователя дублировать план в чате.
 
 ## Когда спрашивать пользователя
 
@@ -31,12 +39,10 @@ alwaysApply: true
 ## Конец спринта (обязательный порядок)
 
 1. **Тесты** по задачам спринта
-2. **Bugbot-review** (обязательно после каждого спринта):
-   - Запустить subagent `bugbot` (`readonly: true`)
-   - Prompt: `Full Repository Path: <abs path avgexpert>\nDiff: branch changes`
-   - Сравнивать коммиты спринта с merge-base `main`
-   - Итог (findings / no issues) — в RETRO и таблицу Bugbot
-   - Critical/high: исправить в рамках спринта или эскалировать пользователю
+2. **Bugbot-review** — по `.cursor/rules/pg18-sprint-handoff.mdc` § «Bugbot-review (политика)»:
+   - Только файлы из `git diff --name-only` (merge-base..HEAD); без repo-wide search
+   - Subagent — только для auth/payments/pg/миграций/security; иначе self-review diff
+   - `run_in_background: true`; timeout > 3 мин → `skipped` в RETRO, без повторов
 3. **RETRO** — блок `### RETRO S{N}` в `SPRINT_STATE.md` (шаблон в файле)
 4. **OPT** — предложения в `RAG_MIGRATION_PLAN.md` §12 (`proposed`)
 5. **commit + push** (включая STATE/§12 если менялись)
@@ -54,3 +60,28 @@ alwaysApply: true
 
 - План: `docs/architecture/RAG_MIGRATION_PLAN.md`
 - Состояние + RETRO: `docs/sprints/SPRINT_STATE.md`
+
+## Политика загрузки документов (обязательно для агентов)
+
+**Не смешивать «формат файла» и «режим RAG».** Источник: `RAG_MIGRATION_PLAN.md` §3.5.1.
+
+1. **Форматы UI:** `.txt`, `.md`, `.pdf`, `.docx` — парсинг PDF/DOCX **в браузере** (`webui_src/js/file-parse.js`), на API только UTF-8 текст.
+2. **Чат («+» / drop):** ветвление по **эффективному RAG** = `rag_allowed` категории **и** `rag_enabled` пользователя:
+   - оба true → session RAG (`uploadSessionAttachment` → L4);
+   - иначе → inline в сообщение (`buildUserContent`, все форматы одинаково).
+3. **«Мои документы»:** всегда L3 (`POST /api/user/documents`), те же форматы; используется при retrieval, если эффективный RAG активен.
+4. **Не возвращать** поведение «txt/md → RAG, pdf/docx → inline» без явного запроса пользователя.
+
+## Gateway-only `extra_params` (обязательно)
+
+Ключи категории **только для gateway/RAG**, **никогда** в тело запроса LLM-провайдера:
+
+`global_kb_enabled`, `user_kb_enabled`, `session_kb_enabled`, `rag_mode`, `rag_answerability_policy`, `endpoint_url`, `api_key`
+
+Фильтрация: `stripNativeRag` (`rag.orchestrator.ts`) + `chat_completion.mapper.js` при сборке `mergedSettings`.  
+Новые внутренние флаги категории добавлять в тот же список, иначе провайдер вернёт `400 Unknown parameter`.
+
+## SQLite `missions`
+
+- Схема v005: колонки `created_at`, `updated_at`; **нет** `status`.
+- Перед `INSERT` в `missions` — убедиться, что строка `(session_id, username)` есть в `sessions` (placeholder при необходимости).

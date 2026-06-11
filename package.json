@@ -48,6 +48,7 @@
     "kb:pg:smoke": "tsx scripts/pgvector_smoke.ts",
     "app:pg:smoke": "tsx scripts/app_pg_smoke.ts",
     "test:d2": "tsx --test tests/pg/app.migrations.test.ts",
+    "test:d3": "tsx --test tests/pg/app.sessions.test.ts",
     "kb:ingest": "tsx scripts/kb_ingest.ts",
     "kb:reindex-books": "tsx scripts/kb_reindex_books.ts",
     "embedding:smoke": "tsx scripts/embedding_smoke.ts",

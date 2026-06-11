@@ -112,7 +112,7 @@ class ChatController {
 
     let missionId = body.mission_id || body.missionId;
 
-    missionId = missionBinding.ensureMission({ ...body, missionId }, user);
+    missionId = await missionBinding.ensureMission({ ...body, missionId }, user);
 
     if (isFastPath) {
       try {

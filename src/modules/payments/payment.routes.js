@@ -36,7 +36,7 @@ router.post('/robokassa/create', authenticate, asyncHandler(async (req, res) => 
     return res.status(400).json({ detail: 'Неизвестный пакет оплаты' });
   }
 
-  const order = paymentRepository.createOrder({
+  const order = await paymentRepository.createOrder({
     username: req.user.username,
     packageId: pack.id,
     credits: pack.credits,

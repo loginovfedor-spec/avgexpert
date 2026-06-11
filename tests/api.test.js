@@ -14,6 +14,7 @@ if (!process.env.AVGEXPERT_SECRET) {
 const { app } = require('../server');
 const db = require('../src/core/sqlite');
 const userRepository = require('../src/modules/auth/user.repository');
+const { upsertTestUser, setTestPassword } = require('./helpers/test_users');
 
 let testServer;
 
@@ -50,8 +51,7 @@ test('API Integration Tests', async (t) => {
     // Because we use a random admin password when initializing a new db, we might not know it.
     // However, we can manually set the admin password for testing directly in the DB
     const adminPass = 'TestAdminPass123!';
-    const hash = bcrypt.hashSync(adminPass, 10);
-    db.prepare('UPDATE users SET password_hash = ? WHERE username = ?').run(hash, 'admin');
+    await setTestPassword('admin', adminPass);
 
     const res = await request(testServer)
       .post('/api/auth/login')
@@ -134,19 +134,10 @@ test('API Integration Tests', async (t) => {
   await t.test('POST /api/auth/register - should copy allowed categories from user_a', async () => {
     const suffix = Date.now();
     const templateHash = bcrypt.hashSync('TemplatePass123!', 10);
-    db.prepare(`
-      INSERT INTO users (username, password_hash, category, allowed_categories, n_ctx)
-      VALUES (@username, @password_hash, @category, @allowed_categories, @n_ctx)
-      ON CONFLICT(username) DO UPDATE SET
-        password_hash = excluded.password_hash,
-        category = excluded.category,
-        allowed_categories = excluded.allowed_categories,
-        n_ctx = excluded.n_ctx
-    `).run({
-      username: 'user_a',
+    await upsertTestUser('user_a', {
       password_hash: templateHash,
       category: 'Консультант',
-      allowed_categories: JSON.stringify(['Консультант', 'Эксперт']),
+      allowed_categories: ['Консультант', 'Эксперт'],
       n_ctx: 4096,
     });
 
@@ -169,19 +160,10 @@ test('API Integration Tests', async (t) => {
 
   await t.test('GET /api/users/public/categories - should use allowed categories from user_a', async () => {
     const templateHash = bcrypt.hashSync('TemplatePass123!', 10);
-    db.prepare(`
-      INSERT INTO users (username, password_hash, category, allowed_categories, n_ctx)
-      VALUES (@username, @password_hash, @category, @allowed_categories, @n_ctx)
-      ON CONFLICT(username) DO UPDATE SET
-        password_hash = excluded.password_hash,
-        category = excluded.category,
-        allowed_categories = excluded.allowed_categories,
-        n_ctx = excluded.n_ctx
-    `).run({
-      username: 'user_a',
+    await upsertTestUser('user_a', {
       password_hash: templateHash,
       category: 'Консультант',
-      allowed_categories: JSON.stringify(['Консультант']),
+      allowed_categories: ['Консультант'],
       n_ctx: 4096,
     });
 
@@ -204,42 +186,17 @@ test('API Integration Tests', async (t) => {
 
   await t.test('POST /api/admin/users/:username - should create a new user', async () => {
     const templateHash = bcrypt.hashSync('TemplatePass123!', 10);
-    db.prepare(`
-      INSERT INTO users (
-        username, password_hash, email, category, allowed_categories, expiration_date,
-        n_ctx, system_prompt, is_admin, tokens_allocated, is_blocked,
-        input_context_credits, output_generation_credits
-      )
-      VALUES (
-        @username, @password_hash, @email, @category, @allowed_categories, @expiration_date,
-        @n_ctx, @system_prompt, @is_admin, @tokens_allocated, @is_blocked,
-        @input_context_credits, @output_generation_credits
-      )
-      ON CONFLICT(username) DO UPDATE SET
-        password_hash = excluded.password_hash,
-        email = excluded.email,
-        category = excluded.category,
-        allowed_categories = excluded.allowed_categories,
-        expiration_date = excluded.expiration_date,
-        n_ctx = excluded.n_ctx,
-        system_prompt = excluded.system_prompt,
-        is_admin = excluded.is_admin,
-        tokens_allocated = excluded.tokens_allocated,
-        is_blocked = excluded.is_blocked,
-        input_context_credits = excluded.input_context_credits,
-        output_generation_credits = excluded.output_generation_credits
-    `).run({
-      username: 'user_a',
+    await upsertTestUser('user_a', {
       password_hash: templateHash,
       email: 'template-user-a@example.com',
       category: 'Эксперт',
-      allowed_categories: JSON.stringify(['Консультант', 'Эксперт']),
+      allowed_categories: ['Консультант', 'Эксперт'],
       expiration_date: '2099-10-10',
       n_ctx: 8192,
       system_prompt: 'Template user_a prompt',
-      is_admin: 0,
+      is_admin: false,
       tokens_allocated: 321000,
-      is_blocked: 0,
+      is_blocked: false,
       input_context_credits: 777,
       output_generation_credits: 88,
     });

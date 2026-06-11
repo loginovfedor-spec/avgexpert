@@ -11,6 +11,7 @@ if (!process.env.AVGEXPERT_SECRET) {
 
 const { app, server } = require('../server');
 const db = require('../src/core/sqlite');
+const { upsertTestUser } = require('./helpers/test_users');
 
 test('Provider Health Endpoint', async (t) => {
   let token = '';
@@ -24,9 +25,10 @@ test('Provider Health Endpoint', async (t) => {
 
   await t.test('Setup: Create user and login', async () => {
     const hash = bcrypt.hashSync(password, 10);
-    db.prepare('INSERT OR REPLACE INTO users (username, password_hash, category, token_version) VALUES (?, ?, ?, ?)').run(
-      username, hash, 'Консультант', 1
-    );
+    await upsertTestUser(username, {
+      password_hash: hash,
+      category: 'Консультант',
+    });
 
     const res = await request(app)
       .post('/api/auth/login')

@@ -51,3 +51,9 @@ jobs:
       run: npm run test:knowledge
       env:
         NODE_ENV: test
+
+    - name: Run Integration Tests
+      run: npm run test:integration
+      env:
+        NODE_ENV: test
+        APP_PG_ENABLED: 'false'

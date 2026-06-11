@@ -16,10 +16,13 @@ async function main(): Promise<void> {
     SELECT table_name
     FROM information_schema.tables
     WHERE table_schema = 'public'
-      AND table_name IN ('users', 'categories', 'token_usage_history', 'app_migrations')
+      AND table_name IN (
+        'users', 'categories', 'token_usage_history', 'app_migrations',
+        'sessions', 'missions', 'payment_orders', 'audit_logs', 'llm_response_cache'
+      )
     ORDER BY table_name
   `);
-  assert.equal(tables.rowCount, 4, 'expected app tables in PG');
+  assert.equal(tables.rowCount, 9, 'expected app tables in PG');
 
   const admin = await userRepository.findByUsername('admin');
   assert.ok(admin, 'admin user seeded');

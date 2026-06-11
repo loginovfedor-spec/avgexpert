@@ -6,6 +6,7 @@ const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 
 const MIGRATIONS: Array<{ id: string; file: string }> = [
   { id: '001_app_core', file: '001_app_core.sql' },
+  { id: '002_app_chat', file: '002_app_chat.sql' },
 ];
 
 const APP_MIGRATION_LOCK_KEY = 83457292;

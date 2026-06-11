@@ -63,10 +63,44 @@ alwaysApply: true
 
 ---
 
+## Bugbot-review (политика — не раздувать scope)
+
+**Почему раньше тормозило:** subagent `bugbot` — отдельный агент без жёсткого лимита; при промпте «dual-DB / security / …» он уходит в **семантический поиск по всему репо** (~10k файлов), а не только по diff. `uncommitted changes` + длинные Custom Instructions усиливают обход.
+
+**Правило:** review **только изменённые файлы**. Не исследовать проект шире diff.
+
+### Когда запускать subagent `bugbot`
+
+| Условие | Действие |
+|---------|----------|
+| Diff затрагивает `auth/`, `payments/`, `core/pg/`, миграции, `server.ts`, security-тесты | **Bugbot** (scope ниже) |
+| Только docs / CI / мелкий refactor без DB/auth | **Без Bugbot** — краткий self-review diff в RETRO (1–3 пункта) |
+| Bugbot > 3 мин или прерван | Зафиксировать в RETRO: `Bugbot: skipped (timeout)`; не перезапускать в том же чате |
+
+### Как запускать (если нужен)
+
+1. Сначала **commit** спринта → `Diff: branch changes` (не `uncommitted changes`).
+2. Список файлов: `git diff --name-only $(git merge-base HEAD main)..HEAD` — передать в Custom Instructions.
+3. Запуск: `bugbot`, `readonly: true`, **`run_in_background: true`** — не блокировать RETRO/commit.
+4. **Custom Instructions** (шаблон, подставить пути из п.2):
+
+```text
+Review ONLY these changed files: <comma-separated paths from git diff --name-only>.
+Do NOT search or read files outside this list.
+Focus: regressions introduced by this diff in sprint D{N}.
+Max ~20 file reads; no repo-wide semantic search.
+```
+
+5. Итог — в RETRO (таблица findings или `no issues` / `skipped`).
+
+**Не добавлять** в Custom Instructions общие темы («dual-DB», «весь security surface») без привязки к конкретным файлам diff.
+
+---
+
 ## Конец спринта (обязательно)
 
 1. Тесты по задачам спринта
-2. **Bugbot-review** (`bugbot`, `readonly: true`, diff branch changes)
+2. **Bugbot-review** — по политике выше (не обязателен для каждого спринта)
 3. **RETRO** — `### RETRO D{N}` в `SPRINT_STATE.md`
 4. В `SPRINT_STATE.md`:
    - все задачи спринта `done` или явный блокер;
