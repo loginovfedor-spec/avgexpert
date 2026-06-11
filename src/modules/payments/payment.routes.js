@@ -62,7 +62,7 @@ router.post('/robokassa/result', asyncHandler(async (req, res) => {
     return res.status(400).send('bad signature');
   }
 
-  const order = paymentRepository.findByInvId(verified.invId);
+  const order = await paymentRepository.findByInvId(verified.invId);
   if (!order) {
     return res.status(404).send('order not found');
   }

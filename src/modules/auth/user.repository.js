@@ -236,12 +236,11 @@ class UserRepository {
     );
   }
 
-  async creditTokens(username, tokens, reason = 'payment') {
+  async creditTokens(username, tokens, reason = 'payment', executor = null) {
     const amount = Math.max(0, parseInt(tokens, 10) || 0);
     if (amount <= 0) return;
 
-    const db = await this._db();
-    await db.withTransaction(async (tx) => {
+    const applyCredit = async (tx) => {
       await tx.run(`
         UPDATE users
         SET tokens_allocated = tokens_allocated + @tokens,
@@ -260,7 +259,15 @@ class UserRepository {
         recorded_at: Date.now(),
         reason,
       });
-    });
+    };
+
+    if (executor) {
+      await applyCredit(executor);
+      return;
+    }
+
+    const db = await this._db();
+    await db.withTransaction(applyCredit);
   }
 
   async recordAdminTokenAdjustment(username, tokensDelta) {
