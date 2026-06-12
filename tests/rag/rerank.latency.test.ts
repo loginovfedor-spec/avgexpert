@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { asMock } from '../helpers/cast';
+import type { VectorStore } from '../../src/modules/vector/ports/vector.store';
 
 function percentile(values: number[], p: number): number {
   const sorted = [...values].sort((a, b) => a - b);
@@ -49,7 +51,7 @@ test('TieredRetriever sage: reports rerankMs in timing result', async () => {
     async health() { return true; },
   };
 
-  const retriever = new TieredRetriever(provider, store, 'ns', reranker);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), 'ns', reranker);
   const result = await retriever.retrieveWithTiming('analysis report', {
     userId: 'user-a',
     tier: 'sage',

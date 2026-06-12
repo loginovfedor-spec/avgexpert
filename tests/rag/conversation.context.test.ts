@@ -5,10 +5,10 @@ test('truncateConversationMessages keeps recent messages within token budget', a
   const { truncateConversationMessages } = await import('../../src/modules/rag/conversation.context');
 
   const messages = [
-    { role: 'system', content: 'System prompt' },
-    { role: 'user', content: 'old message '.repeat(200) },
-    { role: 'assistant', content: 'old reply '.repeat(200) },
-    { role: 'user', content: 'latest question' },
+    { role: 'system' as const, content: 'System prompt' },
+    { role: 'user' as const, content: 'old message '.repeat(200) },
+    { role: 'assistant' as const, content: 'old reply '.repeat(200) },
+    { role: 'user' as const, content: 'latest question' },
   ];
 
   const truncated = await truncateConversationMessages(messages, { maxTokens: 120 });

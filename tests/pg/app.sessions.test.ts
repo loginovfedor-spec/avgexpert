@@ -10,7 +10,7 @@ import {
   generateCacheKey,
   getCachedResponse,
   setCachedResponse,
-} from '../../src/modules/providers/llm_response_cache.repository';
+} from '../helpers/llm_cache';
 
 test('D3: sessions CRUD on PG (requires DATABASE_URL)', async (t) => {
   if (!isAppPgEnabled()) {

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { asMock } from '../helpers/cast';
+import type { VectorStore } from '../../src/modules/vector/ports/vector.store';
 
 const DIMS = 64;
 
@@ -49,7 +51,7 @@ test('TieredRetriever consultant: topK=3 and scopes filter', async () => {
     async health() { return true; },
   };
 
-  const retriever = new TieredRetriever(provider, store, namespace);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace);
 
   const globalResult = await retriever.retrieveWithTiming('query', {
     userId: 'user-a',

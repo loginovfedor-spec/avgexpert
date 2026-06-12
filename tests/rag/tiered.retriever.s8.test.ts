@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { asMock } from '../helpers/cast';
+import type { VectorStore } from '../../src/modules/vector/ports/vector.store';
 
 const DIMS = 64;
 
@@ -53,7 +55,7 @@ test('TieredRetriever expert: domain_tags filter removes off-domain tagged hits'
     ],
   });
 
-  const retriever = new TieredRetriever(provider, store, namespace);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace);
   const result = await retriever.retrieveWithTiming('reactor safety', {
     userId: 'user-a',
     tier: 'expert',
@@ -97,7 +99,7 @@ test('TieredRetriever sage: semantic graph expansion when enabled', async () => 
     },
   } as never, namespace);
 
-  const retriever = new TieredRetriever(provider, store, namespace, null, semanticGraph);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace, null, semanticGraph);
   const result = await retriever.retrieveWithTiming('analysis', {
     userId: 'user-a',
     tier: 'sage',

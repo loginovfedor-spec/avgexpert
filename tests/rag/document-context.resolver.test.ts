@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { asMock } from '../helpers/cast';
+import type { VectorStore } from '../../src/modules/vector/ports/vector.store';
 
 test('DocumentContextResolver: user+session scopes by default', async () => {
   const { DocumentContextResolver } = await import(
@@ -56,7 +58,7 @@ test('DocumentContextResolver: session scope only when sessionId present in retr
     async health() { return true; },
   };
 
-  const retriever = new TieredRetriever(new MockEmbeddingProvider({ dimensions: 8 }), store, 'ns');
+  const retriever = new TieredRetriever(new MockEmbeddingProvider({ dimensions: 8 }), asMock<VectorStore>(store), 'ns');
   await retriever.retrieve('q', {
     userId: 'u1',
     tier: 'consultant',

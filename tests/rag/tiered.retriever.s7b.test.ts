@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { asMock } from '../helpers/cast';
+import type { VectorStore } from '../../src/modules/vector/ports/vector.store';
 
 const DIMS = 64;
 
@@ -46,7 +48,7 @@ test('TieredRetriever expert: cross-encoder rerank reorders candidates', async (
     { id: 'mid-5', body: 'misc 5', score: 0.75, metadata: {} },
   ]);
 
-  const retriever = new TieredRetriever(provider, store, namespace, reranker);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace, reranker);
   const result = await retriever.retrieveWithTiming('reactor safety shutdown', {
     userId: 'user-a',
     tier: 'expert',
@@ -71,7 +73,7 @@ test('TieredRetriever consultant: skips reranker path', async () => {
     { id: 'rerank-win', body: 'reactor safety shutdown', score: 0.70 },
   ]);
 
-  const retriever = new TieredRetriever(provider, store, namespace, reranker);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace, reranker);
   const result = await retriever.retrieveWithTiming('reactor safety shutdown', {
     userId: 'user-a',
     tier: 'consultant',

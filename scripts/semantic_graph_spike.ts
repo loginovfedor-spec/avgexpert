@@ -1,6 +1,6 @@
-import fs = require('fs');
-import path = require('path');
-import dotenv = require('dotenv');
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
 import { ChunkingService } from '../src/modules/ingestion/chunking.service';
 import { entityExtractionService } from '../src/modules/semantic/entity-extraction.service';
 import { SemanticGraphRepository } from '../src/modules/semantic/semantic-graph.repository';
@@ -101,7 +101,7 @@ async function main(): Promise<void> {
         nodeType: 'domain',
         label: book.title,
         canonicalKey: book.title.toLowerCase().replace(/\s+/g, ' '),
-        metadata: { spike_doc_key: spikeDocKey },
+        metadata: { spike_doc_key: spikeDocKey, chunk_index: 0 },
       });
 
       await repository.upsertGraph({

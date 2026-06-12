@@ -10,9 +10,9 @@ if (!process.env.AVGEXPERT_SECRET) {
   process.env.AVGEXPERT_SECRET = 'test_secret_that_is_at_least_32_characters_long';
 }
 
-const { app } = require('../../server');
-const db = require('../../src/core/sqlite');
-
+import { app } from '../helpers/server';
+import { upsertTestUser, setTestPassword } from '../helpers/test_users';
+import { ensureTestPg, teardownTestPg } from '../helpers/pg_harness';
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -45,16 +45,17 @@ test('Session attachments API + GC', async (t) => {
   const username = `s6_user_${randomUUID().slice(0, 8)}`;
   const sessionId = randomUUID();
 
-  t.after(() => {
-    db.close();
+  t.before(async () => {
+    await ensureTestPg();
+  });
+
+  t.after(async () => {
+    await teardownTestPg();
   });
 
   await t.test('setup user and session', async () => {
-    const hash = bcrypt.hashSync(pass, 10);
-    db.prepare(`
-      INSERT INTO users (username, password_hash, category, n_ctx)
-      VALUES (@username, @password_hash, @category, @n_ctx)
-    `).run({ username, password_hash: hash, category: 'Консультант', n_ctx: 4096 });
+    await setTestPassword(username, pass);
+    await upsertTestUser(username, { category: 'Консультант', n_ctx: 4096 });
 
     const login = await request(app)
       .post('/api/auth/login')

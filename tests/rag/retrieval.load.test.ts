@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { asMock } from '../helpers/cast';
+import type { VectorStore } from '../../src/modules/vector/ports/vector.store';
 
 const NFR1_P95_MS = 300;
 const CONCURRENCY = 16;
@@ -65,7 +67,7 @@ test('S9-3: concurrent consultant retrieval p95 within NFR-1 (mock embedder)', a
     },
   };
 
-  const retriever = new TieredRetriever(provider, store, 'ns-load');
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), 'ns-load');
   const samples: number[] = [];
 
   for (let round = 0; round < ROUNDS; round++) {
@@ -107,7 +109,7 @@ test('S9-3: single retrieval reports embed/search timing', async () => {
     },
   };
 
-  const retriever = new TieredRetriever(provider, store, 'ns');
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), 'ns');
   const result = await retriever.retrieveWithTiming('query', {
     userId: 'u1',
     tier: 'consultant',

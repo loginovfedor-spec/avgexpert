@@ -1,5 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { asMock } from '../helpers/cast';
+import type { TieredRetriever } from '../../src/modules/vector/retrievers/tiered.retriever';
+import type { DegradedRetrieveResult } from '../../src/modules/vector/retrievers/degraded.retriever';
+import type { ScopedRetrievalCache } from '../../src/modules/rag/scoped.cache';
 
 test('RagOrchestrator.resolve strips native RAG params when RAG_V2 enabled', async () => {
   const prev = process.env.RAG_V2_ENABLED;
@@ -7,12 +11,12 @@ test('RagOrchestrator.resolve strips native RAG params when RAG_V2 enabled', asy
 
   const { RagOrchestrator } = await import('../../src/modules/rag/rag.orchestrator');
   const orchestrator = new RagOrchestrator({
-    retriever: {
-      retrieveWithTiming: async () => ({ chunks: [], embedMs: 1, searchMs: 2 }),
+    retriever: asMock<TieredRetriever>({
+      retrieveWithTiming: async () => asMock<DegradedRetrieveResult>({ chunks: [], embedMs: 1, searchMs: 2 }),
       retrieve: async () => [],
-    },
+    }),
     namespace: 'test-ns',
-    cache: { get: () => null, set: () => {}, clear: () => {} },
+    cache: asMock<ScopedRetrievalCache>({ get: () => null, set: () => {}, clear: () => {} }),
   });
 
   const resolved = orchestrator.resolve({
@@ -50,10 +54,10 @@ test('RagOrchestrator.retrieve uses scoped cache', async () => {
   let retrieveCalls = 0;
   const cache = new ScopedRetrievalCache();
   const orchestrator = new RagOrchestrator({
-    retriever: {
+    retriever: asMock<TieredRetriever>({
       retrieveWithTiming: async () => {
         retrieveCalls++;
-        return {
+        return asMock<DegradedRetrieveResult>({
           chunks: [{
             id: 'c1',
             sourceId: 'd1',
@@ -63,10 +67,10 @@ test('RagOrchestrator.retrieve uses scoped cache', async () => {
           }],
           embedMs: 5,
           searchMs: 10,
-        };
+        });
       },
       retrieve: async () => [],
-    },
+    }),
     namespace: 'test-ns',
     cache,
   });

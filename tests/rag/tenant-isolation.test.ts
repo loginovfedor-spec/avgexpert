@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { RetrievalResult } from '../../src/modules/knowledge/knowledge.types';
+import { asMock } from '../helpers/cast';
+import type { VectorStore } from '../../src/modules/vector/ports/vector.store';
 
 const DIMS = 64;
 
@@ -49,7 +51,7 @@ test('Tenant isolation: TieredRetriever owner_user_id filter', async () => {
     async health() { return true; },
   };
 
-  const retriever = new TieredRetriever(provider, store, namespace);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace);
 
   const userA = await retriever.retrieve('q', {
     userId: 'user-a',

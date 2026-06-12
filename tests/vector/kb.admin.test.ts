@@ -12,9 +12,9 @@ if (!process.env.AVGEXPERT_SECRET) {
   process.env.AVGEXPERT_SECRET = 'test_secret_that_is_at_least_32_characters_long';
 }
 
-const { app } = require('../../server');
-const db = require('../../src/core/sqlite');
-
+import { app } from '../helpers/server';
+import { setTestPassword } from '../helpers/test_users';
+import { ensureTestPg, teardownTestPg } from '../helpers/pg_harness';
 test('Admin KB ingest API', async (t) => {
   let adminToken = '';
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-admin-'));
@@ -28,16 +28,19 @@ test('Admin KB ingest API', async (t) => {
   const prevAllowedDir = process.env.KB_INGEST_ALLOWED_DIR;
   process.env.KB_INGEST_ALLOWED_DIR = allowedDir;
 
-  t.after(() => {
+  t.before(async () => {
+    await ensureTestPg();
+  });
+
+  t.after(async () => {
     process.env.KB_INGEST_ALLOWED_DIR = prevAllowedDir;
     fs.rmSync(tmpDir, { recursive: true, force: true });
-    db.close();
+    await teardownTestPg();
   });
 
   await t.test('setup admin login', async () => {
     const adminPass = 'TestAdminPass123!';
-    const hash = bcrypt.hashSync(adminPass, 10);
-    db.prepare('UPDATE users SET password_hash = ? WHERE username = ?').run(hash, 'admin');
+    await setTestPassword('admin', adminPass);
 
     const res = await request(app)
       .post('/api/auth/login')

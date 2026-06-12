@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { asMock } from '../helpers/cast';
+import type { VectorStore } from '../../src/modules/vector/ports/vector.store';
 
 const DIMS = 64;
 
@@ -53,7 +55,7 @@ test('TieredRetriever expert: topK=7 with metadata-weighted reorder', async () =
     ],
   });
 
-  const retriever = new TieredRetriever(provider, store, namespace);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace);
   const result = await retriever.retrieveWithTiming('reactor safety', {
     userId: 'user-a',
     tier: 'expert',
@@ -83,7 +85,7 @@ test('TieredRetriever sage: topK=12 with recency-aware scoring', async () => {
   }));
 
   const store = makeStore(namespace, { global: hits });
-  const retriever = new TieredRetriever(provider, store, namespace);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace);
   const result = await retriever.retrieveWithTiming('analysis report', {
     userId: 'user-a',
     tier: 'sage',
@@ -109,7 +111,7 @@ test('TieredRetriever consultant: no metadata rescoring path', async () => {
     ],
   });
 
-  const retriever = new TieredRetriever(provider, store, namespace);
+  const retriever = new TieredRetriever(provider, asMock<VectorStore>(store), namespace);
   const result = await retriever.retrieveWithTiming('query', {
     userId: 'user-a',
     tier: 'consultant',

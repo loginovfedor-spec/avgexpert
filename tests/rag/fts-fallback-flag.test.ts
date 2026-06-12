@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { asMock } from '../helpers/cast';
+import type { TieredRetriever } from '../../src/modules/vector/retrievers/tiered.retriever';
+import type { VectorHealthSection } from '../../src/modules/vector/vector.health';
 
 function withFtsFlag<T>(value: string, fn: () => Promise<T>): Promise<T> {
   const prev = process.env.FTS_FALLBACK_ENABLED;
@@ -18,19 +21,21 @@ test('DegradedRetriever skips FTS when FTS_FALLBACK_ENABLED=false', async () => 
   let ftsCalled = false;
 
   const retriever = new DegradedRetriever(
-    {
+    asMock<TieredRetriever>({
       retrieveWithTiming: async () => {
         throw new Error('primary down');
       },
       retrieve: async () => [],
-    },
+    }),
     {
       search: async () => {
         ftsCalled = true;
         return [];
       },
     },
-    async () => ({ store: 'unavailable', embedder: 'ok' })
+    asMock<() => Promise<VectorHealthSection>>(async () =>
+      asMock<VectorHealthSection>({ store: 'unavailable', embedder: 'ok', namespace: 'test', dimensions: 64 })
+    )
   );
 
   const result = await retriever.retrieveWithTiming('query', {
@@ -53,12 +58,12 @@ test('DegradedRetriever uses FTS when FTS_FALLBACK_ENABLED=true', async () => {
   let ftsCalled = false;
 
   const retriever = new DegradedRetriever(
-    {
+    asMock<TieredRetriever>({
       retrieveWithTiming: async () => {
         throw new Error('primary down');
       },
       retrieve: async () => [],
-    },
+    }),
     {
       search: async () => {
         ftsCalled = true;
@@ -71,7 +76,9 @@ test('DegradedRetriever uses FTS when FTS_FALLBACK_ENABLED=true', async () => {
         }];
       },
     },
-    async () => ({ store: 'unavailable', embedder: 'ok' })
+    asMock<() => Promise<VectorHealthSection>>(async () =>
+      asMock<VectorHealthSection>({ store: 'unavailable', embedder: 'ok', namespace: 'test', dimensions: 64 })
+    )
   );
 
   const result = await retriever.retrieveWithTiming('query', {
