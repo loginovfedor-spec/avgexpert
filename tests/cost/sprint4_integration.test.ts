@@ -72,7 +72,7 @@ test('Sprint 4: End-to-end Billing, Conversion, Debit, Overdraft & Blocking Inte
       username,
       packageId: 'standard',
       credits: 1000,
-      tokens: 1000000,
+      tokens: 0,
       amountRub: 900,
     });
 

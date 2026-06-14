@@ -2150,8 +2150,16 @@ select.setup-input option {
   font-size: 10px
 }
 
+.text-\[0\.9rem\] {
+  font-size: 0.9rem
+}
+
 .text-\[9px\] {
   font-size: 9px
+}
+
+.text-\[8px\] {
+  font-size: 8px
 }
 
 .text-base {
@@ -2397,9 +2405,85 @@ select.setup-input option {
               0 15px 15px -8px rgb(0 0 0 / 0.35);
 }
 
+.payment-modal-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: rgb(100 116 139);
+  cursor: pointer;
+  line-height: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: color 0.15s ease;
+}
+
+.payment-modal-close-btn:hover {
+  color: rgb(203 213 225);
+  background: none;
+}
+
+.payment-modal-close-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.custom-amount-input {
+  width: 100%;
+  background: rgb(2 6 23);
+  border: 1px solid rgb(51 65 85);
+  border-radius: 1rem;
+  padding: 1rem 3.5rem 1rem 1.25rem;
+  font-size: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  color: rgb(52 211 153);
+  caret-color: rgb(52 211 153);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.custom-amount-input::placeholder {
+  color: rgb(100 116 139);
+}
+
+.custom-amount-input:focus {
+  border-color: rgb(99 102 241);
+}
+
+.custom-modal-cancel-btn {
+  padding: 0.875rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(51 65 85);
+  background: none;
+  color: rgb(203 213 225);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.custom-modal-cancel-btn:hover {
+  background: rgb(30 41 59);
+  color: rgb(255 255 255);
+}
+
 .amount-display {
+  font-size: 2.4rem;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.amount-currency {
+  font-size: 1.2rem;
 }
 
 .preset-btn {

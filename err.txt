@@ -1,0 +1,1 @@
+[2026-06-13T11:15:17.925251900Z][Docker Desktop.exe] launching  <HOME>\AppData\Local\Programs\DockerDesktop\resources\com.docker.backend.exe

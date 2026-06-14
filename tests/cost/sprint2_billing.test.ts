@@ -95,7 +95,7 @@ test('Sprint 2: Billing & CBR exchange rates integration test', async (t) => {
     username,
     packageId: 'standard',
     credits: 12000,
-    tokens: 12000000,
+    tokens: 0,
     amountRub: 2000,
   });
 

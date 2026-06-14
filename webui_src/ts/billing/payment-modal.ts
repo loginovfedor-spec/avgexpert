@@ -3,10 +3,6 @@ import { $ } from '../index';
 import { showToast } from '../ui';
 import { showRegistrationPrompt } from '../auth';
 import { createRobokassaPayment, fetchExchangeRate } from '../api/billing.api';
-import sberbankIcon from '../../assets/icons/payment/sberbank.svg';
-import vtbIcon from '../../assets/icons/payment/vtb.svg';
-import mirIcon from '../../assets/icons/payment/mir.svg';
-import sbpIcon from '../../assets/icons/payment/sbp.svg';
 
 let exchangeRate = 90.0;
 let modalLoaded = false;
@@ -28,8 +24,8 @@ function renderPaymentForm(): HTMLElement {
     <div class="px-5 pt-4 pb-3 border-b border-slate-800 bg-slate-900/80">
         <div class="flex items-center justify-between">
             <h1 class="font-display text-2xl font-semibold tracking-tight">Пополнение баланса</h1>
-            <button id="payment-modal-close-btn" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-colors -mr-1">
-                <i class="fa-solid fa-times text-lg"></i>
+            <button id="payment-modal-close-btn" type="button" aria-label="Закрыть" class="payment-modal-close-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
         <p class="text-xs text-slate-400 -mt-0.5">Мгновенное зачисление кредитов</p>
@@ -41,10 +37,10 @@ function renderPaymentForm(): HTMLElement {
                 <div>
                     <div class="text-[10px] text-slate-400 tracking-wider">Сумма пополнения</div>
                     <div class="flex items-baseline gap-x-1 mt-0.5">
-                        <div id="amount-display" class="amount-display font-display text-5xl font-semibold tracking-tighter text-emerald-400 tabular-nums">
+                        <div id="amount-display" class="amount-display font-display font-semibold tracking-tighter text-emerald-400 tabular-nums">
                             1 000
                         </div>
-                        <div class="text-2xl font-medium text-emerald-400/90">₽</div>
+                        <div class="amount-currency font-medium text-emerald-400/90">₽</div>
                     </div>
                 </div>
                 <div class="flex flex-col items-end gap-y-1">
@@ -109,30 +105,12 @@ function renderPaymentForm(): HTMLElement {
                 <i class="fa-solid fa-arrow-right-long text-xl"></i>
             </button>
             <div class="flex items-center justify-center gap-x-2 mt-1">
-                <div class="text-xs text-center">
+                <div class="text-[0.9rem] text-center">
                     <span class="text-emerald-400">•</span> 
-                    <span class="text-slate-400 text-xs">Безопасная оплата через</span> 
+                    <span class="text-slate-400">Безопасная оплата через</span> 
                     <span class="font-semibold text-white">Robokassa</span>
                 </div>
             </div>
-        </div>
-        
-        <!-- Payment methods -->
-        <div class="payment-methods pt-1">
-            <ul class="payment-methods-list" role="list" aria-label="Поддерживаемые способы оплаты">
-                <li class="payment-method-badge" title="Сбербанк">
-                    <img src="${sberbankIcon}" alt="Сбербанк" class="payment-method-icon" width="32" height="20" loading="lazy" decoding="async">
-                </li>
-                <li class="payment-method-badge" title="ВТБ">
-                    <img src="${vtbIcon}" alt="ВТБ" class="payment-method-icon" width="32" height="20" loading="lazy" decoding="async">
-                </li>
-                <li class="payment-method-badge" title="МИР">
-                    <img src="${mirIcon}" alt="МИР" class="payment-method-icon" width="32" height="20" loading="lazy" decoding="async">
-                </li>
-                <li class="payment-method-badge payment-method-badge--sbp" title="Система быстрых платежей">
-                    <img src="${sbpIcon}" alt="СБП" class="payment-method-icon" width="32" height="20" loading="lazy" decoding="async">
-                </li>
-            </ul>
         </div>
     </div>
     
@@ -150,17 +128,17 @@ function renderPaymentForm(): HTMLElement {
         <div id="custom-modal-content" class="w-full max-w-[380px] bg-slate-900 border border-slate-700 rounded-3xl p-6 relative">
             <div class="flex justify-between items-center mb-5">
                 <div class="font-semibold text-xl">Введите сумму</div>
-                <button type="button" id="close-custom-modal" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center">
-                    <i class="fa-solid fa-times"></i>
+                <button type="button" id="close-custom-modal" class="payment-modal-close-btn" aria-label="Закрыть">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
             </div>
             <div class="relative">
-                <input type="text" id="custom-amount-input" class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-2xl py-4 px-5 text-4xl font-semibold tracking-tighter outline-none" placeholder="5000" inputmode="numeric">
+                <input type="text" id="custom-amount-input" class="custom-amount-input" placeholder="5000" inputmode="numeric">
                 <div class="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-slate-400 font-medium">₽</div>
             </div>
             <div class="text-xs text-slate-400 mt-2 px-1">От 100 до 20 000 ₽</div>
             <div class="grid grid-cols-2 gap-3 mt-6">
-                <button type="button" id="cancel-custom-modal" class="py-3.5 rounded-2xl border border-slate-700 text-sm font-medium hover:bg-slate-800 transition-colors">Отмена</button>
+                <button type="button" id="cancel-custom-modal" class="custom-modal-cancel-btn">Отмена</button>
                 <button type="button" id="apply-custom-modal" class="pay-button py-3.5 rounded-2xl text-white text-sm font-semibold">Применить</button>
             </div>
         </div>

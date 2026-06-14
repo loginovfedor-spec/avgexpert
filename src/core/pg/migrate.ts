@@ -13,6 +13,7 @@ const MIGRATIONS: Array<{ id: string; file: string }> = [
   { id: '006_sprint4_init', file: '006_sprint4_init.sql' },
   { id: '007_request_id_text', file: '007_request_id_text.sql' },
   { id: '008_payment_orders_credits', file: '008_payment_orders_credits.sql' },
+  { id: '009_user_token_limits', file: '009_user_token_limits.sql' },
 ];
 
 const APP_MIGRATION_LOCK_KEY = 83457292;

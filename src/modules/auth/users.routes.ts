@@ -101,10 +101,6 @@ router.get('/me', authenticate, (req: Request, res: Response) => {
   res.json(u);
 });
 
-function tokensToCredits(tokens: number): number {
-  return Math.round((Number(tokens) || 0) / 1000);
-}
-
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const BALANCE_DISPLAY_DAYS = 10;
 const BALANCE_EXPORT_DAYS = 90;
@@ -254,8 +250,8 @@ const userPatchSchema = z.object({
   email: z.string().email().max(254).optional().or(z.literal('')),
   password: z.string().min(8).max(128).optional(),
   category: z.string().max(64).optional(),
-  input_context_credits: z.number().int().min(0).max(limits.USER_INPUT_MAX).optional().nullable(),
-  output_generation_credits: z.number().int().min(0).max(limits.USER_OUTPUT_MAX).optional().nullable(),
+  input_context_limit: z.number().int().min(limits.USER_INPUT_MIN).optional().nullable(),
+  output_generation_limit: z.number().int().min(limits.USER_OUTPUT_MIN).optional().nullable(),
   rag_enabled: z.boolean().optional(),
 }).strict();
 
@@ -267,7 +263,7 @@ router.patch('/me', authenticate, asyncHandler(async (req: Request, res: Respons
     return res.status(400).json({ detail: 'Некорректный формат данных', errors: parseResult.error.issues });
   }
 
-  const { password, email, category, input_context_credits, output_generation_credits, rag_enabled } = parseResult.data;
+  const { password, email, category, input_context_limit, output_generation_limit, rag_enabled } = parseResult.data;
 
   const user = await userRepository.findByUsername(username);
   if (!user) return res.status(404).json({ error: 'User not found' });
@@ -295,21 +291,19 @@ router.patch('/me', authenticate, asyncHandler(async (req: Request, res: Respons
     user.category = category;
   }
 
-  if (input_context_credits !== undefined) user.input_context_credits = input_context_credits;
-  if (output_generation_credits !== undefined) user.output_generation_credits = output_generation_credits;
+  if (input_context_limit !== undefined) user.input_context_limit = input_context_limit;
+  if (output_generation_limit !== undefined) user.output_generation_limit = output_generation_limit;
   if (rag_enabled !== undefined) user.rag_enabled = rag_enabled;
 
   const activeCategory = await categoryRepository.findByName(user.category || '') as CategoryEntry | null;
-  if (activeCategory) {
-    const providerCfg = providersConfig[activeCategory.provider || 'llamacpp'] || {};
-    const limitCheck = limits.validateUserLimits({
-      userValues: user,
-      categorySettings: activeCategory as Record<string, unknown>,
-      providerCfg,
-    });
-    if (!limitCheck.ok) {
-      return res.status(400).json({ error: limitCheck.errors.join('; ') });
-    }
+  const providerCfg = activeCategory ? providersConfig[activeCategory.provider || 'llamacpp'] || {} : {};
+  const limitCheck = limits.validateUserLimits({
+    userValues: user,
+    categorySettings: (activeCategory || {}) as Record<string, unknown>,
+    providerCfg,
+  });
+  if (!limitCheck.ok) {
+    return res.status(400).json({ error: limitCheck.errors.join('; ') });
   }
 
   await userRepository.save(username, user);

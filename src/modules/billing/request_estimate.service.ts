@@ -17,8 +17,8 @@ type EstimateUser = {
   is_admin?: boolean | number;
   balance_usd?: number;
   credit_limit_usd?: number;
-  output_generation_credits?: number | null;
-  input_context_credits?: number | null;
+  output_generation_limit?: number | null;
+  input_context_limit?: number | null;
 };
 
 type EstimateInput = {
@@ -42,8 +42,8 @@ function estimateOutputTokens(
   nPredict?: number | null
 ): number {
   const categoryMax = parseInt(String(categorySettings.max_tokens ?? 128000), 10) || 128000;
-  const userOutputCredits = parseInt(String(user.output_generation_credits), 10);
-  const userOutputCap = Number.isFinite(userOutputCredits) ? userOutputCredits * 1000 : Number.MAX_SAFE_INTEGER;
+  const userOutputLimit = parseInt(String(user.output_generation_limit), 10);
+  const userOutputCap = Number.isFinite(userOutputLimit) ? userOutputLimit : Number.MAX_SAFE_INTEGER;
   const requested = parseInt(String(nPredict ?? 1024), 10) || 1024;
   return Math.min(requested, categoryMax, userOutputCap);
 }
@@ -125,7 +125,6 @@ export async function getPaymentPackagesPreview() {
     name: string;
   }) => ({
     ...pack,
-    tokens: pack.credits * 1000,
     creditedUsd: Number((pack.amountRub / usdRate).toFixed(4)),
   }));
   return { packages, usdRate };

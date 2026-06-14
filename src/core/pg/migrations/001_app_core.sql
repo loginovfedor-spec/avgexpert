@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
   tokens_input_used INTEGER NOT NULL DEFAULT 0,
   tokens_output_used INTEGER NOT NULL DEFAULT 0,
   is_blocked BOOLEAN NOT NULL DEFAULT FALSE,
-  input_context_credits INTEGER,
-  output_generation_credits INTEGER,
+  input_context_limit INTEGER,
+  output_generation_limit INTEGER,
   rag_enabled BOOLEAN NOT NULL DEFAULT TRUE
 );
 

@@ -25,8 +25,8 @@ test('Robokassa payment URL sends a readable service name and receipt item', () 
   const receipt = url.searchParams.get('Receipt');
   const decodedReceipt = JSON.parse(decodeURIComponent(receipt!));
 
-  assert.equal(url.searchParams.get('Description'), 'Пополнение баланса AVG Expert 1000 кредитов');
-  assert.equal(decodedReceipt.items[0].name, 'Пополнение баланса AVG Expert 1000 кредитов');
+  assert.equal(url.searchParams.get('Description'), '5 кредитов AVG Expert');
+  assert.equal(decodedReceipt.items[0].name, '5 кредитов AVG Expert');
   assert.equal(decodedReceipt.items[0].payment_object, 'service');
   assert.equal(decodedReceipt.items[0].tax, 'none');
   assert.equal(url.searchParams.get('Email'), 'buyer@example.com');

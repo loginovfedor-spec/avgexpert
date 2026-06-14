@@ -35,8 +35,8 @@ const adminUserSchema = z.object({
   is_blocked: z.boolean().optional().nullable(),
   balance_usd: z.number().min(-1000000).max(1000000).optional().nullable(),
   credit_limit_usd: z.number().min(0).max(1000000).optional().nullable(),
-  input_context_credits: z.number().int().min(0).max(limits.USER_INPUT_MAX).optional().nullable(),
-  output_generation_credits: z.number().int().min(0).max(limits.USER_OUTPUT_MAX).optional().nullable(),
+  input_context_limit: z.number().int().min(limits.USER_INPUT_MIN).optional().nullable(),
+  output_generation_limit: z.number().int().min(limits.USER_OUTPUT_MIN).optional().nullable(),
 });
 
 router.get('/', asyncHandler(async (_req: Request, res: Response) => {
@@ -77,8 +77,8 @@ router.post('/:username', asyncHandler(async (req: Request, res: Response) => {
       is_admin: false,
       is_blocked: false,
       allowed_categories: [],
-      input_context_credits: null,
-      output_generation_credits: null,
+      input_context_limit: null,
+      output_generation_limit: null,
       rag_enabled: true,
     };
     user.password_hash = await userRepository.hashPassword(data.password);
@@ -102,8 +102,8 @@ router.post('/:username', asyncHandler(async (req: Request, res: Response) => {
     user.is_blocked = false;
     user.is_admin = true;
   }
-  if (data.input_context_credits !== undefined) user.input_context_credits = data.input_context_credits;
-  if (data.output_generation_credits !== undefined) user.output_generation_credits = data.output_generation_credits;
+  if (data.input_context_limit !== undefined) user.input_context_limit = data.input_context_limit;
+  if (data.output_generation_limit !== undefined) user.output_generation_limit = data.output_generation_limit;
 
   const allowed = user.allowed_categories || [];
   if (allowed.length > 0 && (!user.category || !allowed.includes(user.category))) {
@@ -111,16 +111,14 @@ router.post('/:username', asyncHandler(async (req: Request, res: Response) => {
   }
 
   const userCategory = await categoryRepository.findByName(user.category || '');
-  if (userCategory) {
-    const providerCfg = providersConfig[userCategory.provider || 'llamacpp'] || {};
-    const limitCheck = limits.validateUserLimits({
-      userValues: user,
-      categorySettings: userCategory as Record<string, unknown>,
-      providerCfg,
-    });
-    if (!limitCheck.ok) {
-      return res.status(400).json({ detail: limitCheck.errors.join('; ') });
-    }
+  const providerCfg = userCategory ? providersConfig[userCategory.provider || 'llamacpp'] || {} : {};
+  const limitCheck = limits.validateUserLimits({
+    userValues: user,
+    categorySettings: (userCategory || {}) as Record<string, unknown>,
+    providerCfg,
+  });
+  if (!limitCheck.ok) {
+    return res.status(400).json({ detail: limitCheck.errors.join('; ') });
   }
 
   if (user.email) {

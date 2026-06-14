@@ -17,8 +17,8 @@ type UserRecord = {
   allowed_categories: string[];
   is_admin: boolean;
   is_blocked: boolean;
-  input_context_credits: number | null;
-  output_generation_credits: number | null;
+  input_context_limit: number | null;
+  output_generation_limit: number | null;
   rag_enabled: boolean;
   balance_usd?: number;
   credit_limit_usd?: number;
@@ -31,8 +31,8 @@ type UserRow = Record<string, unknown> & {
   must_change_password?: number | boolean;
   is_admin?: number | boolean;
   is_blocked?: number | boolean;
-  input_context_credits?: number | string | null;
-  output_generation_credits?: number | string | null;
+  input_context_limit?: number | string | null;
+  output_generation_limit?: number | string | null;
   rag_enabled?: number | boolean;
   balance_usd?: number | string;
   credit_limit_usd?: number | string;
@@ -59,8 +59,8 @@ class UserRepository {
       must_change_password: !!row.must_change_password,
       is_admin: !!row.is_admin,
       is_blocked: !!row.is_blocked,
-      input_context_credits: row.input_context_credits != null ? parseInt(String(row.input_context_credits), 10) : null,
-      output_generation_credits: row.output_generation_credits != null ? parseInt(String(row.output_generation_credits), 10) : null,
+      input_context_limit: row.input_context_limit != null ? parseInt(String(row.input_context_limit), 10) : null,
+      output_generation_limit: row.output_generation_limit != null ? parseInt(String(row.output_generation_limit), 10) : null,
       rag_enabled: row.rag_enabled !== 0 && row.rag_enabled !== false,
       balance_usd: row.balance_usd != null ? parseFloat(String(row.balance_usd)) : 0.0,
       credit_limit_usd: row.credit_limit_usd != null ? parseFloat(String(row.credit_limit_usd)) : 0.0,
@@ -91,8 +91,8 @@ class UserRepository {
       : (typeof user.allowed_categories === 'string' ? user.allowed_categories : null);
 
     await db.run(`
-      INSERT INTO users (username, password_hash, category, expiration_date, n_ctx, system_prompt, email, must_change_password, token_version, allowed_categories, is_admin, is_blocked, input_context_credits, output_generation_credits, rag_enabled, balance_usd, credit_limit_usd)
-      VALUES (@username, @password_hash, @category, @expiration_date, @n_ctx, @system_prompt, @email, @must_change_password, 0, @allowed_categories, @is_admin, @is_blocked, @input_context_credits, @output_generation_credits, @rag_enabled, @balance_usd, @credit_limit_usd)
+      INSERT INTO users (username, password_hash, category, expiration_date, n_ctx, system_prompt, email, must_change_password, token_version, allowed_categories, is_admin, is_blocked, input_context_limit, output_generation_limit, rag_enabled, balance_usd, credit_limit_usd)
+      VALUES (@username, @password_hash, @category, @expiration_date, @n_ctx, @system_prompt, @email, @must_change_password, 0, @allowed_categories, @is_admin, @is_blocked, @input_context_limit, @output_generation_limit, @rag_enabled, @balance_usd, @credit_limit_usd)
       ON CONFLICT(username) DO UPDATE SET
         password_hash=excluded.password_hash,
         category=excluded.category,
@@ -104,8 +104,8 @@ class UserRepository {
         allowed_categories=excluded.allowed_categories,
         is_admin=excluded.is_admin,
         is_blocked=excluded.is_blocked,
-        input_context_credits=excluded.input_context_credits,
-        output_generation_credits=excluded.output_generation_credits,
+        input_context_limit=excluded.input_context_limit,
+        output_generation_limit=excluded.output_generation_limit,
         rag_enabled=excluded.rag_enabled,
         balance_usd=excluded.balance_usd,
         credit_limit_usd=excluded.credit_limit_usd,
@@ -122,8 +122,8 @@ class UserRepository {
       allowed_categories: allowedCategoriesStr,
       is_admin: user.is_admin ? 1 : 0,
       is_blocked: user.is_blocked ? 1 : 0,
-      input_context_credits: user.input_context_credits != null ? parseInt(String(user.input_context_credits), 10) : null,
-      output_generation_credits: user.output_generation_credits != null ? parseInt(String(user.output_generation_credits), 10) : null,
+      input_context_limit: user.input_context_limit != null ? parseInt(String(user.input_context_limit), 10) : null,
+      output_generation_limit: user.output_generation_limit != null ? parseInt(String(user.output_generation_limit), 10) : null,
       rag_enabled: user.rag_enabled === false ? 0 : 1,
       balance_usd: user.balance_usd != null ? parseFloat(String(user.balance_usd)) : 0.0,
       credit_limit_usd: user.credit_limit_usd != null ? parseFloat(String(user.credit_limit_usd)) : 0.0,

@@ -20,7 +20,7 @@ type Package = {
   name: string;
 };
 
-type PackageWithTokens = Package & { tokens: number };
+type PackageWithBalance = Package & { tokens: number };
 
 type PaymentRequest = Request & {
   user?: { email?: string | null };
@@ -48,13 +48,13 @@ const PACKAGES = Object.freeze({
 
 const PAYMENT_METHODS = Object.freeze(['BankCard', 'SBP']);
 
-function getPackage(packageId: string): PackageWithTokens | null {
+function getPackage(packageId: string): PackageWithBalance | null {
   const pack = PACKAGES[packageId];
   if (!pack) return null;
-  return { ...pack, tokens: pack.credits * 1000 };
+  return { ...pack, tokens: 0 };
 }
 
-async function getCustomPackage(amountRub: number): Promise<PackageWithTokens | null> {
+async function getCustomPackage(amountRub: number): Promise<PackageWithBalance | null> {
   if (amountRub < 200 || amountRub > 20000) return null;
   const exchangeRate = await getUsdExchangeRate();
   const credits = parseFloat((amountRub / exchangeRate).toFixed(2));
@@ -63,7 +63,7 @@ async function getCustomPackage(amountRub: number): Promise<PackageWithTokens | 
     amountRub,
     credits,
     name: `${credits} кредитов AVG Expert`,
-    tokens: Math.round(credits * 1000),
+    tokens: 0,
   };
 }
 

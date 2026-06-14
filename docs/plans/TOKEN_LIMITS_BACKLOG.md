@@ -43,7 +43,7 @@
 
 ### Этап 0. Подготовка
 
-Статус: `backlog`
+Статус: `done`
 
 Задачи:
 
@@ -56,49 +56,49 @@
 
 ### Спринт TL-1. Модель данных и backend
 
-Статус: `backlog`
+Статус: `done`
 
 Цель: перевести backend на прямые токенные лимиты и удалить кредитные поля.
 
 Задачи:
 
-- [ ] Сделать миграцию БД: удалить `input_context_credits`, `output_generation_credits`.
-- [ ] Добавить в `users` поля `input_context_limit INTEGER NULL`, `output_generation_limit INTEGER NULL`.
-- [ ] Обновить `src/modules/auth/user.repository.ts`: типы, чтение, insert/update.
-- [ ] Обновить `src/modules/admin/admin.users.routes.ts`: schema, payload, validation.
-- [ ] Обновить `src/modules/auth/users.routes.ts`: schema, payload, profile update.
-- [ ] Удалить fallback/conversion `credits * 1000`.
-- [ ] Обновить ответы API, чтобы фронтенд получал только новые поля.
+- [x] Сделать миграцию БД: удалить `input_context_credits`, `output_generation_credits`.
+- [x] Добавить в `users` поля `input_context_limit INTEGER NULL`, `output_generation_limit INTEGER NULL`.
+- [x] Обновить `src/modules/auth/user.repository.ts`: типы, чтение, insert/update.
+- [x] Обновить `src/modules/admin/admin.users.routes.ts`: schema, payload, validation.
+- [x] Обновить `src/modules/auth/users.routes.ts`: schema, payload, profile update.
+- [x] Удалить fallback/conversion `credits * 1000`.
+- [x] Обновить ответы API, чтобы фронтенд получал только новые поля.
 
 DoD:
 
-- [ ] В backend нет рабочих ссылок на `input_context_credits` и `output_generation_credits`.
-- [ ] Создание и обновление пользователя работают с `input_context_limit` и `output_generation_limit`.
-- [ ] Значения валидируются как токены.
+- [x] В backend нет рабочих ссылок на `input_context_credits` и `output_generation_credits`.
+- [x] Создание и обновление пользователя работают с `input_context_limit` и `output_generation_limit`.
+- [x] Значения валидируются как токены.
 
 ---
 
 ### Спринт TL-2. Limit service и caps адаптеров
 
-Статус: `backlog`
+Статус: `done`
 
 Цель: убрать credit-based расчеты из runtime-лимитов чата.
 
 Задачи:
 
-- [ ] В `src/modules/chat/limit.service.ts` удалить `TOKENS_PER_CREDIT`.
-- [ ] Удалить `creditsToTokens`.
-- [ ] Удалить credit-based `USER_INPUT_MAX = 1000`, `USER_OUTPUT_MAX = 128`.
-- [ ] Добавить `TOKEN_LIMIT_STEP = 4096`.
-- [ ] Рассчитывать лимиты напрямую из `input_context_limit` и `output_generation_limit`.
-- [ ] Clamp делать по минимуму из user limit, category limit и adapter caps.
-- [ ] Обновить сообщения ошибок валидации.
+- [x] В `src/modules/chat/limit.service.ts` удалить `TOKENS_PER_CREDIT`.
+- [x] Удалить `creditsToTokens`.
+- [x] Удалить credit-based `USER_INPUT_MAX = 1000`, `USER_OUTPUT_MAX = 128`.
+- [x] Добавить `TOKEN_LIMIT_STEP = 4096`.
+- [x] Рассчитывать лимиты напрямую из `input_context_limit` и `output_generation_limit`.
+- [x] Clamp делать по минимуму из user limit, category limit и adapter caps.
+- [x] Обновить сообщения ошибок валидации.
 
 DoD:
 
-- [ ] `4096` остается `4096`, без умножения на `1000`.
-- [ ] Значения ниже `4096`, некратные `4096` и выше caps отклоняются.
-- [ ] Chat runtime использует новые поля.
+- [x] `4096` остается `4096`, без умножения на `1000`.
+- [x] Значения ниже `4096`, некратные `4096` и выше caps отклоняются.
+- [x] Chat runtime использует новые поля.
 
 ---
 

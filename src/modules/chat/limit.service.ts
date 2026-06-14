@@ -1,12 +1,10 @@
 import type { ChatMessage } from '../../types/chat.types';
 
-export const USER_INPUT_MIN = 0;
-export const USER_INPUT_MAX = 1000;
-export const USER_OUTPUT_MIN = 0;
-export const USER_OUTPUT_MAX = 128;
-export const TOKENS_PER_CREDIT = 1000;
+export const TOKEN_LIMIT_STEP = 4096;
+export const USER_INPUT_MIN = TOKEN_LIMIT_STEP;
+export const USER_OUTPUT_MIN = TOKEN_LIMIT_STEP;
 export const LOCAL_PROVIDER_DEFAULT_TIMEOUT_MS = 300000;
-export const MAX_MESSAGE_CONTENT_CHARS = USER_INPUT_MAX * TOKENS_PER_CREDIT * 4;
+export const MAX_MESSAGE_CONTENT_CHARS = 1000000 * 4;
 
 type ProviderCfg = Record<string, unknown> & {
   adapter?: string;
@@ -24,8 +22,8 @@ type CategorySettings = Record<string, unknown> & {
 };
 
 type LimitUser = Record<string, unknown> & {
-  input_context_credits?: number | string | null;
-  output_generation_credits?: number | string | null;
+  input_context_limit?: number | string | null;
+  output_generation_limit?: number | string | null;
 };
 
 type AdapterCaps = {
@@ -47,10 +45,6 @@ function toPositiveInt(value: unknown, fallback: number | null = null): number |
 function clamp(value: unknown, min: number, max: number): number {
   const n = toPositiveInt(value, min) ?? min;
   return Math.min(Math.max(n, min), max);
-}
-
-function creditsToTokens(credits: unknown): number {
-  return (toPositiveInt(credits, 0) ?? 0) * TOKENS_PER_CREDIT;
 }
 
 function getProviderTimeout(providerCfg: ProviderCfg = {}, globalTimeoutMs = 60000): number {
@@ -99,8 +93,8 @@ function getInputLimit(user: LimitUser = {}, categorySettings: CategorySettings 
   const caps = getAdapterCaps(providerCfg);
   const categoryMax = toPositiveInt(categorySettings.input_context_max, Number.MAX_SAFE_INTEGER) ?? Number.MAX_SAFE_INTEGER;
   const categoryDefault = toPositiveInt(categorySettings.input_context_default, categoryMax) ?? categoryMax;
-  const requestedTokens = user.input_context_credits != null
-    ? creditsToTokens(user.input_context_credits)
+  const requestedTokens = user.input_context_limit != null
+    ? toPositiveInt(user.input_context_limit, categoryDefault)
     : categoryDefault;
   return clamp(requestedTokens, 0, Math.min(categoryMax, caps.input));
 }
@@ -108,8 +102,8 @@ function getInputLimit(user: LimitUser = {}, categorySettings: CategorySettings 
 function getOutputLimit(user: LimitUser = {}, categorySettings: CategorySettings = {}, providerCfg: ProviderCfg = {}): number {
   const caps = getAdapterCaps(providerCfg);
   const categoryMax = toPositiveInt(categorySettings.max_tokens, Number.MAX_SAFE_INTEGER) ?? Number.MAX_SAFE_INTEGER;
-  const requestedTokens = user.output_generation_credits != null
-    ? creditsToTokens(user.output_generation_credits)
+  const requestedTokens = user.output_generation_limit != null
+    ? toPositiveInt(user.output_generation_limit, categoryMax)
     : categoryMax;
   return clamp(requestedTokens, 0, Math.min(categoryMax, caps.output));
 }
@@ -153,28 +147,42 @@ function validateUserLimits({
   categorySettings?: CategorySettings;
   providerCfg?: ProviderCfg;
 } = {}): { ok: boolean; errors: string[]; inputMax: number; outputMax: number } {
-  void categorySettings;
-  void providerCfg;
   const errors: string[] = [];
+  const caps = getAdapterCaps(providerCfg);
+  const inputMax = Math.min(
+    toPositiveInt(categorySettings.input_context_max, Number.MAX_SAFE_INTEGER) ?? Number.MAX_SAFE_INTEGER,
+    caps.input
+  );
+  const outputMax = Math.min(
+    toPositiveInt(categorySettings.max_tokens, Number.MAX_SAFE_INTEGER) ?? Number.MAX_SAFE_INTEGER,
+    caps.output
+  );
 
-  if (userValues.input_context_credits != null) {
-    const value = toPositiveInt(userValues.input_context_credits, -1) ?? -1;
-    if (value < USER_INPUT_MIN || value > USER_INPUT_MAX) {
-      errors.push(`input_context_credits должен быть от ${USER_INPUT_MIN} до ${USER_INPUT_MAX}`);
+  if (userValues.input_context_limit != null) {
+    const value = toPositiveInt(userValues.input_context_limit, -1) ?? -1;
+    if (value < USER_INPUT_MIN) {
+      errors.push(`input_context_limit должен быть не меньше ${USER_INPUT_MIN}`);
+    } else if (value % TOKEN_LIMIT_STEP !== 0) {
+      errors.push(`input_context_limit должен быть кратен ${TOKEN_LIMIT_STEP}`);
+    } else if (value > inputMax) {
+      errors.push(`input_context_limit не может быть больше ${inputMax}`);
     }
   }
-  if (userValues.output_generation_credits != null) {
-    const value = toPositiveInt(userValues.output_generation_credits, -1) ?? -1;
-    if (value < USER_OUTPUT_MIN || value > USER_OUTPUT_MAX) {
-      errors.push(`output_generation_credits должен быть от ${USER_OUTPUT_MIN} до ${USER_OUTPUT_MAX}`);
+  if (userValues.output_generation_limit != null) {
+    const value = toPositiveInt(userValues.output_generation_limit, -1) ?? -1;
+    if (value < USER_OUTPUT_MIN) {
+      errors.push(`output_generation_limit должен быть не меньше ${USER_OUTPUT_MIN}`);
+    } else if (value % TOKEN_LIMIT_STEP !== 0) {
+      errors.push(`output_generation_limit должен быть кратен ${TOKEN_LIMIT_STEP}`);
+    } else if (value > outputMax) {
+      errors.push(`output_generation_limit не может быть больше ${outputMax}`);
     }
   }
 
-  return { ok: errors.length === 0, errors, inputMax: USER_INPUT_MAX, outputMax: USER_OUTPUT_MAX };
+  return { ok: errors.length === 0, errors, inputMax, outputMax };
 }
 
 export {
-  creditsToTokens,
   getProviderTimeout,
   getAdapterCaps,
   getInputLimit,

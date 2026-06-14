@@ -33,6 +33,7 @@ test('API Integration Tests', async (t) => {
   await t.test('POST /api/auth/login - should succeed as admin', async () => {
     const adminPass = 'TestAdminPass123!';
     await setTestPassword('admin', adminPass);
+    await upsertTestUser('admin', { category: 'Администратор' });
 
     const res = await request(app)
       .post('/api/auth/login')
@@ -168,16 +169,16 @@ test('API Integration Tests', async (t) => {
     await upsertTestUser('user_a', {
       password_hash: templateHash,
       email: 'template-user-a@example.com',
-      category: 'Эксперт',
-      allowed_categories: ['Консультант', 'Эксперт'],
+      category: 'Эксперт (OpenAI)',
+      allowed_categories: ['Консультант', 'Эксперт (OpenAI)'],
       expiration_date: '2099-10-10',
       n_ctx: 8192,
       system_prompt: 'Template user_a prompt',
       is_admin: false,
       balance_usd: 321.0,
       is_blocked: false,
-      input_context_credits: 777,
-      output_generation_credits: 88,
+      input_context_limit: 8192,
+      output_generation_limit: 4096,
     });
 
     const res = await request(app)
@@ -192,14 +193,14 @@ test('API Integration Tests', async (t) => {
     assert.strictEqual(res.body.status, 'success');
     const user = await userRepository.findByUsername(testUserId);
     assert.strictEqual(user?.email, `${testUserId}-initial@example.com`);
-    assert.strictEqual(user?.category, 'Эксперт');
-    assert.deepStrictEqual(user?.allowed_categories, ['Консультант', 'Эксперт']);
+    assert.strictEqual(user?.category, 'Эксперт (OpenAI)');
+    assert.deepStrictEqual(user?.allowed_categories, ['Консультант', 'Эксперт (OpenAI)']);
     assert.strictEqual(user?.expiration_date, '2099-10-10');
     assert.strictEqual(user?.n_ctx, 8192);
     assert.strictEqual(user?.system_prompt, 'Template user_a prompt');
     assert.strictEqual(user?.balance_usd, 321.0);
-    assert.strictEqual(user?.input_context_credits, 777);
-    assert.strictEqual(user?.output_generation_credits, 88);
+    assert.strictEqual(user?.input_context_limit, 8192);
+    assert.strictEqual(user?.output_generation_limit, 4096);
   });
 
   await t.test('POST /api/admin/users/:username - should update user email', async () => {
@@ -209,7 +210,7 @@ test('API Integration Tests', async (t) => {
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
         email,
-        category: 'Консультант',
+        category: 'Эксперт (OpenAI)',
         n_ctx: 2048,
       })
       .expect(200);
@@ -226,7 +227,7 @@ test('API Integration Tests', async (t) => {
       .send({
         password: 'DuplicatePass123!',
         email: `${testUserId}@example.com`,
-        category: 'Консультант',
+        category: 'Эксперт (OpenAI)',
         n_ctx: 2048,
       })
       .expect(409);
