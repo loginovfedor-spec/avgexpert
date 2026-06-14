@@ -21,8 +21,8 @@ for arg in "$@"; do
 done
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-COMPOSE_FILE="$ROOT/deploy/prod/compose.yml"
 ENV_FILE="$ROOT/deploy/prod/.env"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PASS=0
 FAIL=0
 
@@ -30,17 +30,19 @@ log_pass() { echo "[PASS] $*"; PASS=$((PASS + 1)); }
 log_fail() { echo "[FAIL] $*" >&2; FAIL=$((FAIL + 1)); }
 log_step() { echo ""; echo "=== $* ==="; }
 
+[[ -f "$ENV_FILE" ]] || { echo "Missing $ENV_FILE"; exit 1; }
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+# shellcheck source=compose-stack.sh
+source "$SCRIPT_DIR/compose-stack.sh"
+
 compose() {
-  docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+  compose_prod "$@"
 }
 
 app_exec() {
   compose exec -T app "$@"
 }
-
-[[ -f "$ENV_FILE" ]] || { echo "Missing $ENV_FILE"; exit 1; }
-# shellcheck disable=SC1090
-source "$ENV_FILE"
 
 cd "$ROOT"
 

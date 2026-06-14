@@ -87,12 +87,13 @@ fi
 # --- Build & start ---
 echo "[6/6] Starting stack (first run: model downloads 30–90 min)..."
 cd "$APP_ROOT"
-docker compose --env-file "$ENV_FILE" -f "$DEPLOY_DIR/compose.yml" up -d --build
+echo "  COMPOSE_STACK=${COMPOSE_STACK:-cpu-pilot}"
+bash "$DEPLOY_DIR/scripts/compose-stack.sh" run up -d --build
 
 echo ""
 echo "=== Stack starting ==="
-echo "  docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml ps"
-echo "  docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml logs -f tei-bge-m3 llama-cpp"
+echo "  bash deploy/prod/scripts/compose-stack.sh run ps"
+echo "  bash deploy/prod/scripts/compose-stack.sh run logs -f tei-bge-m3 llama-cpp"
 echo ""
 echo "After all services healthy:"
 echo "  bash deploy/prod/scripts/post-deploy.sh"

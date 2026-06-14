@@ -28,24 +28,33 @@ source "$CONFIG_FILE"
 DEPLOY_MODE="${DEPLOY_MODE:-git}"
 SSH_PORT="${SSH_PORT:-22}"
 GIT_BRANCH="${GIT_BRANCH:-main}"
+COMPOSE_STACK="${COMPOSE_STACK:-cpu-pilot}"
 
 SSH_OPTS=(-p "$SSH_PORT" -o BatchMode=yes -o ConnectTimeout=15)
+[[ -n "${SSH_IDENTITY:-}" ]] && SSH_OPTS+=(-i "$SSH_IDENTITY")
 REMOTE_APP="$REMOTE_ROOT/avgexpert"
 
 ssh_cmd() {
   ssh "${SSH_OPTS[@]}" "$SERVER" "$@"
 }
 
+remote_compose() {
+  local remote_args
+  remote_args=$(printf '%q ' "$@")
+  ssh_cmd "cd '$REMOTE_APP' && COMPOSE_STACK='$COMPOSE_STACK' bash deploy/prod/scripts/compose-stack.sh run ${remote_args}"
+}
+
 echo "=== AvgExpert SSH deploy ($ACTION) ==="
 echo "Server: $SERVER"
 echo "Remote: $REMOTE_APP"
+echo "Stack:  $COMPOSE_STACK"
 
 echo "[check] SSH connection..."
 ssh_cmd "echo OK && uname -a"
 
 sync_code() {
   if [[ "$DEPLOY_MODE" == "rsync" ]]; then
-  : "${LOCAL_REPO_ROOT:?set LOCAL_REPO_ROOT for rsync mode}"
+    : "${LOCAL_REPO_ROOT:?set LOCAL_REPO_ROOT for rsync mode}"
     echo "[sync] rsync → $SERVER:$REMOTE_ROOT"
     ssh_cmd "mkdir -p '$REMOTE_ROOT'"
     rsync -avz --delete \
@@ -58,12 +67,16 @@ sync_code() {
       --exclude local-dev/data \
       "$LOCAL_REPO_ROOT/" "$SERVER:$REMOTE_ROOT/"
   else
-    echo "[sync] git clone/pull on server"
+    : "${GIT_REPO:?set GIT_REPO for git mode}"
+    echo "[sync] git pull on server ($GIT_REPO)"
     ssh_cmd "mkdir -p '$REMOTE_ROOT' && \
       if [[ -d '$REMOTE_APP/.git' ]]; then \
-        cd '$REMOTE_APP' && git fetch && git checkout '$GIT_BRANCH' && git pull; \
+        cd '$REMOTE_APP' && git fetch origin && git checkout '$GIT_BRANCH' && git reset --hard origin/$GIT_BRANCH; \
+      elif [[ -d '$REMOTE_APP' ]]; then \
+        cd '$REMOTE_APP' && git init && git remote add origin '$GIT_REPO' && \
+          git fetch origin && git reset --hard origin/$GIT_BRANCH; \
       else \
-        git clone -b '$GIT_BRANCH' '$GIT_REPO' '$REMOTE_ROOT'; \
+        git clone -b '$GIT_BRANCH' '$GIT_REPO' '$REMOTE_APP'; \
       fi"
   fi
 }
@@ -79,34 +92,33 @@ case "$ACTION" in
     sync_code
     echo "[prepare] server prep (skip if already done)..."
     ssh_cmd "cd '$REMOTE_APP' && sudo bash deploy/prod/scripts/prepare-server.sh" || true
-    echo "[install] remote install.sh (Docker, GPU, compose up)..."
-    ssh_cmd "cd '$REMOTE_APP' && sudo bash deploy/prod/install.sh"
+    echo "[install] remote install.sh (Docker, GPU toolkit, compose up)..."
+    ssh_cmd "cd '$REMOTE_APP' && COMPOSE_STACK='$COMPOSE_STACK' sudo -E bash deploy/prod/install.sh"
     echo ""
     echo "=== Next steps (on server) ==="
     echo "  ssh $SERVER"
     echo "  cd $REMOTE_APP"
-    echo "  nano deploy/prod/.env          # admin password, domain"
-    echo "  nano deploy/prod/providers/openai_gpt4_1.env  # API keys"
-    echo "  docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml up -d"
-    echo "  bash deploy/prod/scripts/post-deploy.sh"
+    echo "  nano deploy/prod/.env          # COMPOSE_STACK, admin password, domain"
+    echo "  bash deploy/prod/scripts/compose-stack.sh run ps"
+    echo "  sudo bash deploy/prod/scripts/post-deploy.sh"
     ;;
   update)
     sync_code
-    echo "[update] rebuild app..."
-    ssh_cmd "cd '$REMOTE_APP' && \
-      docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml up -d --build app && \
-      bash deploy/prod/scripts/post-deploy.sh"
+    echo "[update] rebuild app (stack=$COMPOSE_STACK)..."
+    remote_compose up -d --build app
+    ssh_cmd "cd '$REMOTE_APP' && COMPOSE_STACK='$COMPOSE_STACK' sudo bash deploy/prod/scripts/post-deploy.sh"
     ;;
   status)
-    ssh_cmd "cd '$REMOTE_APP' && docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml ps && bash deploy/prod/scripts/check-gpu.sh"
+    remote_compose ps
+    ssh_cmd "cd '$REMOTE_APP' && bash deploy/prod/scripts/check-gpu.sh"
     ;;
   logs)
-    ssh_cmd "cd '$REMOTE_APP' && docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml logs -f --tail=100"
+    remote_compose logs -f --tail=100
     ;;
   acceptance)
     shift || true
     EXTRA_ARGS=("$@")
-    ssh_cmd "cd '$REMOTE_APP' && bash deploy/prod/scripts/pilot-acceptance.sh ${EXTRA_ARGS[*]:-}"
+    ssh_cmd "cd '$REMOTE_APP' && COMPOSE_STACK='$COMPOSE_STACK' bash deploy/prod/scripts/pilot-acceptance.sh ${EXTRA_ARGS[*]:-}"
     ;;
   *)
     usage
