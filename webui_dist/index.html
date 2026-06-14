@@ -16,14 +16,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>AVG Expert</title>
-    <script type="module" crossorigin src="/assets/index-Cbs6u3Pu.js"></script>
+    <script type="module" crossorigin src="/assets/index-O8WPJOoU.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/preload-helper-zJ_50EbN.js">
-  <link rel="modulepreload" crossorigin href="/assets/ts-DTDGPsh0.js">
+  <link rel="modulepreload" crossorigin href="/assets/ts-kwE7-3-9.js">
   <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-CMxvf4Kt.js">
   <link rel="modulepreload" crossorigin href="/assets/file-parse-JL2CQ01B.js">
-  <link rel="modulepreload" crossorigin href="/assets/auth-CgVv9Bg4.js">
-  <link rel="modulepreload" crossorigin href="/assets/user-documents-pTvHXT5F.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-CgJI2txf.css">
+  <link rel="modulepreload" crossorigin href="/assets/auth-4FqY7Iz-.js">
+  <link rel="modulepreload" crossorigin href="/assets/user-documents-cjyi6BdM.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-DUVQ9xqL.css">
 </head>
 <body>
     <!-- ===== LOGIN SCREEN ===== -->
@@ -79,7 +79,7 @@
 
     <div id="credits-modal" class="credits-modal hidden" role="dialog" aria-label="Оплата" aria-modal="true">
         <div class="credits-modal-backdrop" id="credits-modal-backdrop"></div>
-        <div id="payment-container" class="relative z-10 w-full max-w-[420px] mx-auto min-h-screen flex items-center justify-center p-4"></div>
+        <div id="payment-container" class="payment-modal-panel"></div>
     </div>
 
     <div id="about-modal" class="credits-modal hidden" role="dialog" aria-label="О нас" aria-modal="true">
@@ -448,17 +448,17 @@
                     <h4 class="section-subtitle mt-md">Лимиты запроса</h4>
                     <div class="mt-sm">
                         <label class="range-label">
-                            <span>Входной контекст, кредиты</span>
-                            <span><output id="user-input-context-value">0</output> / <span id="user-input-context-max">1000</span></span>
+                            <span>Входной контекст, токены</span>
+                            <span><output id="user-input-context-value">4096</output> / <span id="user-input-context-max">4096</span></span>
                         </label>
-                        <input type="range" id="user-input-context-credits" min="0" max="1000" step="1" value="0" class="setup-input" aria-label="Входной контекст в кредитах">
+                        <input type="range" id="user-input-context-limit" min="4096" max="4096" step="4096" value="4096" class="setup-input" aria-label="Входной контекст в токенах">
                     </div>
                     <div class="mt-sm">
                         <label class="range-label">
-                            <span>Выходная генерация, кредиты</span>
-                            <span><output id="user-output-generation-value">0</output> / <span id="user-output-generation-max">128</span></span>
+                            <span>Выходная генерация, токены</span>
+                            <span><output id="user-output-generation-value">4096</output> / <span id="user-output-generation-max">4096</span></span>
                         </label>
-                        <input type="range" id="user-output-generation-credits" min="0" max="128" step="1" value="0" class="setup-input" aria-label="Выходная генерация в кредитах">
+                        <input type="range" id="user-output-generation-limit" min="4096" max="4096" step="4096" value="4096" class="setup-input" aria-label="Выходная генерация в токенах">
                     </div>
 
                 </div>
@@ -641,18 +641,17 @@
                         </label>
 
                         <input type="date" id="admin-expiration" class="setup-input mt-sm" title="Дата окончания доступа" aria-label="Дата окончания доступа">
-                        <input type="number" id="admin-n-ctx" class="setup-input mt-sm" placeholder="Размер контекста, токены" aria-label="Размер контекста в токенах">
                         <h4 class="section-subtitle mt-sm">Категория по умолчанию</h4>
                         <select id="admin-default-category" class="setup-input mt-sm" aria-label="Категория пользователя по умолчанию"></select>
                         <h4 class="section-subtitle mt-sm">Лимиты запроса</h4>
                         <div class="grid-2col mt-sm">
                             <div>
-                                <label class="field-label">Входной контекст, кредиты</label>
-                                <input type="number" id="admin-input-context-credits" class="setup-input" min="0" max="1000" step="1" placeholder="0" aria-label="Входной контекст в кредитах">
+                                <label class="field-label">Входной контекст, токены</label>
+                                <input type="number" id="admin-input-context-limit" class="setup-input" min="4096" step="4096" placeholder="4096" aria-label="Входной контекст в токенах">
                             </div>
                             <div>
-                                <label class="field-label">Выходная генерация, кредиты</label>
-                                <input type="number" id="admin-output-generation-credits" class="setup-input" min="0" max="128" step="1" placeholder="0" aria-label="Выходная генерация в кредитах">
+                                <label class="field-label">Выходная генерация, токены</label>
+                                <input type="number" id="admin-output-generation-limit" class="setup-input" min="4096" step="4096" placeholder="4096" aria-label="Выходная генерация в токенах">
                             </div>
                         </div>
                         
@@ -705,9 +704,9 @@
 
                         <h4 class="section-subtitle--light mt-sm">Лимиты категории</h4>
                         <div class="grid-3col">
-                            <input type="text" id="admin-cat-input-context-default" class="setup-input" inputmode="numeric" pattern="[0-9 ]*" placeholder="Вход default токены" aria-label="Входной контекст по умолчанию в токенах">
-                            <input type="text" id="admin-cat-input-context-max" class="setup-input" inputmode="numeric" pattern="[0-9 ]*" placeholder="Вход max токены" aria-label="Максимум входного контекста в токенах">
-                            <input type="text" id="admin-cat-max-tokens" class="setup-input" inputmode="numeric" pattern="[0-9 ]*" placeholder="Выход max_tokens" aria-label="Максимум выходной генерации">
+                            <input type="number" id="admin-cat-input-context-default" class="setup-input" min="4096" step="4096" placeholder="Вход default токены" aria-label="Входной контекст по умолчанию в токенах">
+                            <input type="number" id="admin-cat-input-context-max" class="setup-input" min="4096" step="4096" placeholder="Вход max токены" aria-label="Максимум входного контекста в токенах">
+                            <input type="number" id="admin-cat-max-tokens" class="setup-input" min="4096" step="4096" placeholder="Выход max_tokens" aria-label="Максимум выходной генерации в токенах">
                         </div>
 
                         <h4 class="section-subtitle--light mt-sm">Индекс сортировки <span class="hint-text">(целое число, по умолчанию 0)</span></h4>

@@ -16,35 +16,35 @@ function formatAmount(amount: number): string {
 
 function renderPaymentForm(): HTMLElement {
   const container = document.createElement('div');
-  container.className = 'form-container w-full max-w-[420px] mx-auto';
+  container.className = 'form-container payment-form-wrap w-full mx-auto';
   
   container.innerHTML = `
-    <div class="modern-card bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+    <div class="modern-card payment-form bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
     <!-- Header -->
-    <div class="px-5 pt-4 pb-3 border-b border-slate-800 bg-slate-900/80">
+    <div class="payment-form__header">
         <div class="flex items-center justify-between">
             <h1 class="font-display text-2xl font-semibold tracking-tight">Пополнение баланса</h1>
             <button id="payment-modal-close-btn" type="button" aria-label="Закрыть" class="payment-modal-close-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
-        <p class="text-xs text-slate-400 -mt-0.5">Мгновенное зачисление кредитов</p>
+        <p class="text-slate-400">Мгновенное зачисление кредитов</p>
     </div>
-    <div class="p-4 space-y-4">
+    <div class="payment-form__body">
         <!-- Amount Section -->
         <div>
-            <div class="flex items-baseline justify-between mb-1">
+            <div class="flex items-baseline justify-between">
                 <div>
-                    <div class="text-[10px] text-slate-400 tracking-wider">Сумма пополнения</div>
-                    <div class="flex items-baseline gap-x-1 mt-0.5">
+                    <div class="payment-form__amount-label">Сумма пополнения</div>
+                    <div class="payment-form__amount-row flex items-baseline gap-x-2">
                         <div id="amount-display" class="amount-display font-display font-semibold tracking-tighter text-emerald-400 tabular-nums">
                             1 000
                         </div>
                         <div class="amount-currency font-medium text-emerald-400/90">₽</div>
                     </div>
                 </div>
-                <div class="flex flex-col items-end gap-y-1">
-                    <div id="custom-amount-btn" class="cursor-pointer flex items-center gap-x-1.5 px-3 py-1.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-400 hover:text-slate-300 transition-colors">
+                <div class="flex flex-col items-end gap-y-2">
+                    <div id="custom-amount-btn" class="payment-form__custom-btn cursor-pointer flex items-center gap-x-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-slate-300 transition-colors">
                         <i class="fa-solid fa-pen text-[10px]"></i>
                         <span>Ввести</span>
                     </div>
@@ -58,29 +58,29 @@ function renderPaymentForm(): HTMLElement {
             </div>
 
             <!-- Slider -->
-            <div class="px-1 pt-0.5 pb-0">
+            <div class="payment-form__slider">
                 <input type="range" id="amount-slider" min="100" max="20000" step="50" value="1000" class="slider w-full accent-indigo-500 cursor-pointer">
-                <div class="flex justify-between text-[10px] text-slate-500 px-0.5 mt-0">
+                <div class="flex justify-between text-[10px] text-slate-500 px-0.5 mt-1">
                     <div>100 ₽</div>
                     <div>20 000 ₽</div>
                 </div>
             </div>
 
             <!-- Preset buttons -->
-            <div class="grid grid-cols-4 gap-2 mt-2">
-                <button type="button" class="preset-btn px-3 py-2 text-sm font-medium rounded-2xl border border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300 active:scale-[0.985] text-center" data-val="500">500 ₽</button>
-                <button type="button" class="preset-btn px-3 py-2 text-sm font-medium rounded-2xl border border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300 active:scale-[0.985] text-center" data-val="2000">2 000 ₽</button>
-                <button type="button" class="preset-btn px-3 py-2 text-sm font-medium rounded-2xl border border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300 active:scale-[0.985] text-center" data-val="5000">5 000 ₽</button>
-                <button type="button" class="preset-btn px-3 py-2 text-sm font-medium rounded-2xl border border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300 active:scale-[0.985] text-center" data-val="max">Макс.</button>
+            <div class="payment-form__presets">
+                <button type="button" class="preset-btn payment-form__preset-btn active:scale-[0.985] text-center" data-val="500">500 ₽</button>
+                <button type="button" class="preset-btn payment-form__preset-btn active:scale-[0.985] text-center" data-val="2000">2 000 ₽</button>
+                <button type="button" class="preset-btn payment-form__preset-btn active:scale-[0.985] text-center" data-val="5000">5 000 ₽</button>
+                <button type="button" class="preset-btn payment-form__preset-btn active:scale-[0.985] text-center" data-val="max">Макс.</button>
             </div>
         </div>
 
         <!-- Credits received -->
-        <div class="bg-slate-950 border border-slate-800 rounded-3xl p-3">
+        <div class="payment-form__credits">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="section-label text-slate-400">По курсу ЦБ вы получите</div>
-                    <div class="flex items-baseline gap-x-2 mt-2">
+                    <div class="flex items-baseline gap-x-2 mt-3">
                         <div id="credits-amount" class="credit-value font-display text-4xl font-semibold tracking-tighter text-white">0</div>
                         <div class="text-xl text-slate-300 font-medium">кредитов</div>
                     </div>
@@ -92,19 +92,19 @@ function renderPaymentForm(): HTMLElement {
                 </div>
             </div>
             
-            <div class="mt-1.5 pt-1.5 border-t border-slate-800 text-[10px] text-slate-500 flex items-center gap-x-2">
+            <div class="payment-form__credits-note">
                 <i class="fa-solid fa-info-circle"></i>
                 <span>1 кредит ≈ 1 USD по курсу ЦБ на день оплаты</span>
             </div>
         </div>
 
         <!-- Pay Button -->
-        <div>
-            <button id="pay-button" class="pay-button w-full py-3.5 px-6 rounded-3xl text-white font-semibold text-base tracking-tight flex items-center justify-center gap-x-2 shadow-xl active:scale-[0.985]">
+        <div class="payment-form__pay">
+            <button id="pay-button" class="pay-button payment-form__pay-btn w-full rounded-3xl text-white font-semibold text-base tracking-tight flex items-center justify-center gap-x-2 shadow-xl active:scale-[0.985]">
                 <span id="pay-text">Оплатить 1 000 ₽</span>
                 <i class="fa-solid fa-arrow-right-long text-xl"></i>
             </button>
-            <div class="flex items-center justify-center gap-x-2 mt-1">
+            <div class="flex items-center justify-center gap-x-2 mt-2">
                 <div class="text-[0.9rem] text-center">
                     <span class="text-emerald-400">•</span> 
                     <span class="text-slate-400">Безопасная оплата через</span> 
@@ -117,15 +117,15 @@ function renderPaymentForm(): HTMLElement {
     
 </div>
 <!-- Trust footer -->
-<div class="text-center mt-5 px-1">
-    <div class="inline-flex items-center gap-x-2 text-xs text-slate-500">
+<div class="payment-form__trust text-center">
+    <div class="inline-flex items-center gap-x-2 text-slate-500">
         <i class="fa-solid fa-shield-halved text-emerald-500"></i>
         <span>Защищено SSL • Robokassa • 256-bit шифрование</span>
     </div>
 </div>
 <!-- Custom amount modal -->
     <div id="custom-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-        <div id="custom-modal-content" class="w-full max-w-[380px] bg-slate-900 border border-slate-700 rounded-3xl p-6 relative">
+        <div id="custom-modal-content" class="w-full max-w-[456px] bg-slate-900 border border-slate-700 rounded-3xl p-7 relative">
             <div class="flex justify-between items-center mb-5">
                 <div class="font-semibold text-xl">Введите сумму</div>
                 <button type="button" id="close-custom-modal" class="payment-modal-close-btn" aria-label="Закрыть">

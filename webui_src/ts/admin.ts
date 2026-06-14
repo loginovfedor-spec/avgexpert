@@ -3,6 +3,7 @@ import { $, showToast } from './index';
 import { formatAdminBalanceSummary, isUserBlocked, readAdminBillingPayload, setAdminBillingFields } from './billing/admin-billing';
 import type { AppUser, CategoryData } from './types';
 
+const TOKEN_LIMIT_STEP = 4096;
 const USERNAME_RE = /^[a-zA-Z0-9_-]+$/;
 
 interface ApiErrorBody {
@@ -57,16 +58,100 @@ function formatApiErrors(data: ApiErrorBody | null | undefined, fallback = 'Ош
   return data?.detail || data?.error?.message || data?.message || fallback;
 }
 
-function parseOptionalIntInput(id: string) {
-  const el = $<HTMLInputElement>(id);
-  const value = el?.value;
-  if (value === undefined || value === null || value === '') return null;
-  const parsed = parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
 let adminCategoriesCache: Record<string, CategoryData> = {};
 let adminUsersCache: Record<string, AdminUserRecord> = {};
+
+function normalizeTokenLimitMax(value: unknown, fallback: number) {
+  const parsed = parseInt(String(value ?? fallback), 10);
+  const raw = Number.isFinite(parsed) && parsed >= TOKEN_LIMIT_STEP ? parsed : fallback;
+  return Math.max(TOKEN_LIMIT_STEP, Math.floor(raw / TOKEN_LIMIT_STEP) * TOKEN_LIMIT_STEP);
+}
+
+function normalizeTokenLimitValue(value: unknown, fallback: number, max: number) {
+  const parsed = parseInt(String(value ?? fallback), 10);
+  const raw = Number.isFinite(parsed) && parsed >= TOKEN_LIMIT_STEP ? parsed : fallback;
+  const clamped = Math.min(max, raw);
+  return Math.max(TOKEN_LIMIT_STEP, Math.floor(clamped / TOKEN_LIMIT_STEP) * TOKEN_LIMIT_STEP);
+}
+
+function getAdminUserLimitBounds(categoryName: string) {
+  const category = adminCategoriesCache[categoryName] || state.categories?.[categoryName] || {};
+  const inputMax = normalizeTokenLimitMax(category.input_context_max, 1000000);
+  const outputMax = normalizeTokenLimitMax(category.max_tokens, 128000);
+  const inputDefault = normalizeTokenLimitValue(category.input_context_default, inputMax, inputMax);
+  return { inputMax, outputMax, inputDefault, outputDefault: outputMax };
+}
+
+function setTokenLimitInput(id: string, value: number | null | undefined, max: number, fallback: number) {
+  const el = $<HTMLInputElement>(id);
+  if (!el) return;
+  el.min = String(TOKEN_LIMIT_STEP);
+  el.step = String(TOKEN_LIMIT_STEP);
+  el.max = String(max);
+  if (value == null || value === undefined) {
+    el.value = String(fallback);
+    return;
+  }
+  el.value = String(normalizeTokenLimitValue(value, fallback, max));
+}
+
+function updateAdminUserTokenLimitBounds(keepValues = true) {
+  const defaultCategory = $<HTMLSelectElement>('admin-default-category')?.value || '';
+  const { inputMax, outputMax, inputDefault, outputDefault } = getAdminUserLimitBounds(defaultCategory);
+  const inputEl = $<HTMLInputElement>('admin-input-context-limit');
+  const outputEl = $<HTMLInputElement>('admin-output-generation-limit');
+
+  if (inputEl) {
+    inputEl.min = String(TOKEN_LIMIT_STEP);
+    inputEl.step = String(TOKEN_LIMIT_STEP);
+    inputEl.max = String(inputMax);
+    if (!keepValues || !inputEl.value) {
+      inputEl.value = String(inputDefault);
+    }
+  }
+  if (outputEl) {
+    outputEl.min = String(TOKEN_LIMIT_STEP);
+    outputEl.step = String(TOKEN_LIMIT_STEP);
+    outputEl.max = String(outputMax);
+    if (!keepValues || !outputEl.value) {
+      outputEl.value = String(outputDefault);
+    }
+  }
+}
+
+function readAdminTokenLimit(id: string, label: string) {
+  const el = $<HTMLInputElement>(id);
+  if (!el || el.value === '') return null;
+  const value = parseInt(el.value, 10);
+  const max = parseInt(el.max || '0', 10);
+  if (!Number.isFinite(value) || value < TOKEN_LIMIT_STEP) {
+    showToast(`❌ ${label} должен быть не меньше ${TOKEN_LIMIT_STEP}`);
+    return undefined;
+  }
+  if (value % TOKEN_LIMIT_STEP !== 0) {
+    showToast(`❌ ${label} должен быть кратен ${TOKEN_LIMIT_STEP}`);
+    return undefined;
+  }
+  if (Number.isFinite(max) && max >= TOKEN_LIMIT_STEP && value > max) {
+    showToast(`❌ ${label} не может быть больше ${max}`);
+    return undefined;
+  }
+  return value;
+}
+
+function readCategoryTokenLimit(id: string, label: string, fallback: number) {
+  const el = $<HTMLInputElement>(id);
+  const value = parseGroupedInt(el?.value, fallback);
+  if (!Number.isFinite(value) || value < TOKEN_LIMIT_STEP) {
+    showToast(`❌ ${label} должен быть не меньше ${TOKEN_LIMIT_STEP} токенов`);
+    return undefined;
+  }
+  if (value % TOKEN_LIMIT_STEP !== 0) {
+    showToast(`❌ ${label} должен быть кратен ${TOKEN_LIMIT_STEP} токенам`);
+    return undefined;
+  }
+  return value;
+}
 
 async function getAdminCategories() {
   try {
@@ -143,8 +228,12 @@ function populateDefaultCategorySelect(selectedCategory = '') {
 function bindAllowedCategorySync(selectedCategory = '') {
   populateDefaultCategorySelect(selectedCategory);
   document.querySelectorAll('.admin-allowed-cat-chk').forEach(chk => {
-    chk.addEventListener('change', () => populateDefaultCategorySelect());
+    chk.addEventListener('change', () => {
+      populateDefaultCategorySelect();
+      updateAdminUserTokenLimitBounds();
+    });
   });
+  $<HTMLSelectElement>('admin-default-category')?.addEventListener('change', () => updateAdminUserTokenLimitBounds());
 }
 
 export function initAdminTabs() {
@@ -290,7 +379,7 @@ export async function loadAdminUsers() {
             <span class="user-item-name">${DOMPurify.sanitize(username)}</span>
             <span class="status-badge ${statusClass}">${statusLabel}</span>
           </div>
-          <span class="user-item-cat">${DOMPurify.sanitize(u.email || 'E-mail не задан')} | ${DOMPurify.sanitize(u.category || '')} | Контекст: ${u.n_ctx || 4096} | ${billingInfo}</span>
+          <span class="user-item-cat">${DOMPurify.sanitize(u.email || 'E-mail не задан')} | ${DOMPurify.sanitize(u.category || '')} | ${billingInfo}</span>
           ${u.expiration_date ? `<span class="user-expiration">Срок до: ${DOMPurify.sanitize(u.expiration_date)}</span>` : ''}
         </div>
         <div class="user-item-actions">
@@ -352,12 +441,9 @@ async function editAdminUser(username: string, usersMap: Record<string, AdminUse
     if (isBlockedEl) isBlockedEl.checked = !!u.is_blocked;
     const expirationEl = $<HTMLInputElement>('admin-expiration');
     if (expirationEl) expirationEl.value = u.expiration_date || '';
-    const nCtxEl = $<HTMLInputElement>('admin-n-ctx');
-    if (nCtxEl) nCtxEl.value = String(u.n_ctx || 4096);
-    const inputCreditsEl = $<HTMLInputElement>('admin-input-context-credits');
-    if (inputCreditsEl) inputCreditsEl.value = String(u.input_context_credits ?? '');
-    const outputCreditsEl = $<HTMLInputElement>('admin-output-generation-credits');
-    if (outputCreditsEl) outputCreditsEl.value = String(u.output_generation_credits ?? '');
+    const { inputMax, outputMax, inputDefault, outputDefault } = getAdminUserLimitBounds(u.category || '');
+    setTokenLimitInput('admin-input-context-limit', u.input_context_limit, inputMax, inputDefault);
+    setTokenLimitInput('admin-output-generation-limit', u.output_generation_limit, outputMax, outputDefault);
     const sysPromptEl = $<HTMLTextAreaElement>('admin-system-prompt');
     if (sysPromptEl) sysPromptEl.value = u.system_prompt || '';
 
@@ -369,16 +455,12 @@ async function editAdminUser(username: string, usersMap: Record<string, AdminUse
     if (isBlockedEl) isBlockedEl.checked = false;
     const expirationEl = $<HTMLInputElement>('admin-expiration');
     if (expirationEl) expirationEl.value = '2099-12-31';
-    const nCtxEl = $<HTMLInputElement>('admin-n-ctx');
-    if (nCtxEl) nCtxEl.value = '4096';
-    const inputCreditsEl = $<HTMLInputElement>('admin-input-context-credits');
-    if (inputCreditsEl) inputCreditsEl.value = '1000';
-    const outputCreditsEl = $<HTMLInputElement>('admin-output-generation-credits');
-    if (outputCreditsEl) outputCreditsEl.value = '128';
+    updateAdminUserTokenLimitBounds(false);
     const sysPromptEl = $<HTMLTextAreaElement>('admin-system-prompt');
     if (sysPromptEl) sysPromptEl.value = 'Ты — полезный ИИ-ассистент Gemma 4. Отвечай точно и по существу.';
     setAdminBillingFields({ balance_usd: 0, credit_limit_usd: 0, cost_usd_used: 0 });
   }
+  updateAdminUserTokenLimitBounds();
   $('admin-edit-card')?.scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -413,6 +495,10 @@ $('btn-save-user')?.addEventListener('click', async (e: MouseEvent) => {
   const is_admin = $<HTMLInputElement>('admin-is-admin')?.checked;
   const is_blocked = $<HTMLInputElement>('admin-is-blocked')?.checked;
   const billing = readAdminBillingPayload();
+  const inputLimit = readAdminTokenLimit('admin-input-context-limit', 'Входной контекст');
+  if (inputLimit === undefined) return;
+  const outputLimit = readAdminTokenLimit('admin-output-generation-limit', 'Выходная генерация');
+  if (outputLimit === undefined) return;
 
   const payload: Record<string, unknown> = {
     email: $<HTMLInputElement>('admin-email')?.value.trim() || null,
@@ -421,9 +507,8 @@ $('btn-save-user')?.addEventListener('click', async (e: MouseEvent) => {
     balance_usd: billing.balance_usd,
     credit_limit_usd: billing.credit_limit_usd,
     expiration_date: $<HTMLInputElement>('admin-expiration')?.value || null,
-    n_ctx: parseOptionalIntInput('admin-n-ctx') ?? 4096,
-    input_context_credits: parseOptionalIntInput('admin-input-context-credits'),
-    output_generation_credits: parseOptionalIntInput('admin-output-generation-credits'),
+    input_context_limit: inputLimit,
+    output_generation_limit: outputLimit,
     system_prompt: $<HTMLTextAreaElement>('admin-system-prompt')?.value || null,
     category: defaultCategory,
     allowed_categories: allowed_categories
@@ -484,12 +569,16 @@ export async function loadAdminCategories() {
       const providerLabel = data.provider ? data.provider.toUpperCase() : 'llamacpp';
       const tierLabel = data.retrieval_tier || 'consultant';
       const ragLabel = data.rag_allowed ? 'RAG' : 'no-RAG';
+      const inputDefault = formatGroupedInt(data.input_context_default ?? TOKEN_LIMIT_STEP);
+      const inputMax = formatGroupedInt(data.input_context_max ?? TOKEN_LIMIT_STEP);
+      const outputMax = formatGroupedInt(data.max_tokens ?? TOKEN_LIMIT_STEP);
       const el = document.createElement('div');
       el.className = 'user-item';
       el.innerHTML = `
         <div class="user-item-info">
           <span class="user-item-name">${DOMPurify.sanitize(catName)}</span>
           <span class="user-item-cat">${DOMPurify.sanitize(providerLabel)} | ${DOMPurify.sanitize(tierLabel)} | ${ragLabel}</span>
+          <span class="user-item-cat">Вход: ${DOMPurify.sanitize(inputDefault)} / ${DOMPurify.sanitize(inputMax)} токенов | Выход: ${DOMPurify.sanitize(outputMax)} токенов</span>
         </div>
         <div class="user-item-actions">
           <button class="nav-btn btn-action-sm edit-cat-btn" data-cat="${DOMPurify.sanitize(catName)}" aria-label="Редактировать ${DOMPurify.sanitize(catName)}">✏️</button>
@@ -624,15 +713,12 @@ async function editAdminCategory(name: string, data: CategoryData) {
   const complexityEl = $<HTMLInputElement>('admin-cat-complexity');
   if (complexityEl) complexityEl.value = parseFloat(String(data.complexity ?? 1.0)).toFixed(2);
 
-  bindGroupedNumberInput('admin-cat-input-context-default');
-  bindGroupedNumberInput('admin-cat-input-context-max');
-  bindGroupedNumberInput('admin-cat-max-tokens');
   const inputDefaultEl = $<HTMLInputElement>('admin-cat-input-context-default');
-  if (inputDefaultEl) inputDefaultEl.value = formatGroupedInt(data.input_context_default != null ? data.input_context_default : 1000000);
+  if (inputDefaultEl) inputDefaultEl.value = String(data.input_context_default != null ? data.input_context_default : 1000000);
   const inputMaxEl = $<HTMLInputElement>('admin-cat-input-context-max');
-  if (inputMaxEl) inputMaxEl.value = formatGroupedInt(data.input_context_max != null ? data.input_context_max : 1000000);
+  if (inputMaxEl) inputMaxEl.value = String(data.input_context_max != null ? data.input_context_max : 1000000);
   const maxTokensEl = $<HTMLInputElement>('admin-cat-max-tokens');
-  if (maxTokensEl) maxTokensEl.value = formatGroupedInt(data.max_tokens != null ? data.max_tokens : 1024);
+  if (maxTokensEl) maxTokensEl.value = String(data.max_tokens != null ? data.max_tokens : TOKEN_LIMIT_STEP);
 
   $('admin-cat-edit-card')?.scrollIntoView({ behavior: 'smooth' });
 }
@@ -692,6 +778,14 @@ $('btn-save-cat')?.addEventListener('click', async (e: MouseEvent) => {
   }
   extraParams.global_kb_enabled = !!($<HTMLInputElement>('admin-cat-global-kb-enabled')?.checked);
 
+  const inputContextDefault = readCategoryTokenLimit('admin-cat-input-context-default', 'Входной контекст по умолчанию', 1000000);
+  const inputContextMax = readCategoryTokenLimit('admin-cat-input-context-max', 'Максимум входного контекста', 1000000);
+  const maxTokens = readCategoryTokenLimit('admin-cat-max-tokens', 'Максимум выходной генерации', TOKEN_LIMIT_STEP);
+  if (inputContextDefault === undefined || inputContextMax === undefined || maxTokens === undefined) return;
+  if (inputContextDefault > inputContextMax) {
+    return showToast('❌ Входной контекст по умолчанию не может быть больше максимума входного контекста');
+  }
+
   const payload = {
     provider: $<HTMLSelectElement>('admin-cat-provider')?.value || 'llamacpp',
     system_prompt: $<HTMLTextAreaElement>('admin-cat-system-prompt')?.value || null,
@@ -699,9 +793,9 @@ $('btn-save-cat')?.addEventListener('click', async (e: MouseEvent) => {
     rag_allowed: !!($<HTMLInputElement>('admin-cat-rag-allowed')?.checked),
     retrieval_tier: $<HTMLSelectElement>('admin-cat-retrieval-tier')?.value || 'consultant',
     complexity: parseFloat(parseFloat($<HTMLInputElement>('admin-cat-complexity')?.value || '1').toFixed(2)) || 1.0,
-    input_context_default: parseGroupedInt($<HTMLInputElement>('admin-cat-input-context-default')?.value, 1000000),
-    input_context_max: parseGroupedInt($<HTMLInputElement>('admin-cat-input-context-max')?.value, 1000000),
-    max_tokens: parseGroupedInt($<HTMLInputElement>('admin-cat-max-tokens')?.value, 1024),
+    input_context_default: inputContextDefault,
+    input_context_max: inputContextMax,
+    max_tokens: maxTokens,
     sort_index: parseInt($<HTMLInputElement>('admin-cat-sort-index')?.value || '0', 10),
     suggested_questions: $<HTMLTextAreaElement>('admin-cat-suggested-questions')?.value || '',
     extra_params: extraParams,

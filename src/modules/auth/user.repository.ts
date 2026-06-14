@@ -9,7 +9,6 @@ type UserRecord = {
   password_hash?: string;
   category?: string | null;
   expiration_date?: string | null;
-  n_ctx?: number | null;
   system_prompt?: string | null;
   email?: string | null;
   must_change_password: boolean;
@@ -91,13 +90,12 @@ class UserRepository {
       : (typeof user.allowed_categories === 'string' ? user.allowed_categories : null);
 
     await db.run(`
-      INSERT INTO users (username, password_hash, category, expiration_date, n_ctx, system_prompt, email, must_change_password, token_version, allowed_categories, is_admin, is_blocked, input_context_limit, output_generation_limit, rag_enabled, balance_usd, credit_limit_usd)
-      VALUES (@username, @password_hash, @category, @expiration_date, @n_ctx, @system_prompt, @email, @must_change_password, 0, @allowed_categories, @is_admin, @is_blocked, @input_context_limit, @output_generation_limit, @rag_enabled, @balance_usd, @credit_limit_usd)
+      INSERT INTO users (username, password_hash, category, expiration_date, system_prompt, email, must_change_password, token_version, allowed_categories, is_admin, is_blocked, input_context_limit, output_generation_limit, rag_enabled, balance_usd, credit_limit_usd)
+      VALUES (@username, @password_hash, @category, @expiration_date, @system_prompt, @email, @must_change_password, 0, @allowed_categories, @is_admin, @is_blocked, @input_context_limit, @output_generation_limit, @rag_enabled, @balance_usd, @credit_limit_usd)
       ON CONFLICT(username) DO UPDATE SET
         password_hash=excluded.password_hash,
         category=excluded.category,
         expiration_date=excluded.expiration_date,
-        n_ctx=excluded.n_ctx,
         system_prompt=excluded.system_prompt,
         email=excluded.email,
         must_change_password=excluded.must_change_password,
@@ -115,7 +113,6 @@ class UserRepository {
       password_hash: user.password_hash,
       category: user.category || null,
       expiration_date: user.expiration_date || null,
-      n_ctx: user.n_ctx || null,
       system_prompt: user.system_prompt || null,
       email: user.email || null,
       must_change_password: user.must_change_password ? 1 : 0,

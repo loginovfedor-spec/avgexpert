@@ -14,7 +14,7 @@ router.get('/template/:providerId/:modelName', asyncHandler(async (req: Request,
     endpoint_url: cfg.endpoint_url || '',
     api_key: cfg.api_key || '',
     temperature: 0.7,
-    max_tokens: 2048,
+    max_tokens: 4096,
     ...cfg.extra_params,
   };
 

@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   category TEXT,
   expiration_date TEXT,
-  n_ctx INTEGER,
   system_prompt TEXT,
   email TEXT,
   must_change_password BOOLEAN DEFAULT FALSE,

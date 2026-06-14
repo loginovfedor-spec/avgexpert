@@ -11,6 +11,8 @@ import { initPaymentModal, openCreditsModal, closeCreditsModal } from './billing
 import { initLargeRequestModal } from './billing/large-request';
 import type { BookEntry } from './types';
 
+const TOKEN_LIMIT_STEP = 4096;
+
 function init() {
   applyTheme();
   applyLang();
@@ -48,14 +50,35 @@ async function saveSettings() {
   if (defaultCatSel && defaultCatSel.value) {
     payload.category = defaultCatSel.value;
   }
-  const inputCredits = $<HTMLInputElement>('user-input-context-credits');
-  if (inputCredits) {
-    payload.input_context_credits = parseInt(inputCredits.value || '0', 10);
-  }
-  const outputCredits = $<HTMLInputElement>('user-output-generation-credits');
-  if (outputCredits) {
-    payload.output_generation_credits = parseInt(outputCredits.value || '0', 10);
-  }
+
+  const readTokenLimit = (elementId: string, label: string): number | null => {
+    const el = $<HTMLInputElement>(elementId);
+    if (!el) return null;
+    const value = parseInt(el.value || '0', 10);
+    const max = parseInt(el.max || '0', 10);
+    if (!Number.isFinite(value) || value < TOKEN_LIMIT_STEP) {
+      showToast(`${label} должен быть не меньше ${TOKEN_LIMIT_STEP}`, { variant: 'error' });
+      return null;
+    }
+    if (value % TOKEN_LIMIT_STEP !== 0) {
+      showToast(`${label} должен быть кратен ${TOKEN_LIMIT_STEP}`, { variant: 'error' });
+      return null;
+    }
+    if (Number.isFinite(max) && max >= TOKEN_LIMIT_STEP && value > max) {
+      showToast(`${label} не может быть больше ${max}`, { variant: 'error' });
+      return null;
+    }
+    return value;
+  };
+
+  const inputLimit = readTokenLimit('user-input-context-limit', 'Входной контекст');
+  if (inputLimit === null) return;
+  payload.input_context_limit = inputLimit;
+
+  const outputLimit = readTokenLimit('user-output-generation-limit', 'Выходная генерация');
+  if (outputLimit === null) return;
+  payload.output_generation_limit = outputLimit;
+
   const ragToggle = $<HTMLInputElement>('user-rag-enabled');
   if (ragToggle && !ragToggle.disabled) {
     payload.rag_enabled = !!ragToggle.checked;
@@ -68,7 +91,13 @@ async function saveSettings() {
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.authToken },
         body: JSON.stringify(payload)
       });
-      if (r.ok && state.currentUser) {
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({})) as { detail?: string; error?: string };
+        showToast(data.detail || data.error || 'Не удалось сохранить настройки', { variant: 'error' });
+        return;
+      }
+
+      if (state.currentUser) {
         if (payload.password) {
           const pwd = $<HTMLInputElement>('user-password');
           if (pwd) pwd.value = '';
@@ -86,8 +115,11 @@ async function saveSettings() {
             titleEl.textContent = payload.category as string;
           }
         }
-        if (payload.input_context_credits !== undefined) state.currentUser.input_context_credits = payload.input_context_credits as number;
-        if (payload.output_generation_credits !== undefined) state.currentUser.output_generation_credits = payload.output_generation_credits as number;
+        if (payload.input_context_limit !== undefined) {
+          state.currentUser.input_context_limit = payload.input_context_limit as number;
+          state.contextSize = payload.input_context_limit as number;
+        }
+        if (payload.output_generation_limit !== undefined) state.currentUser.output_generation_limit = payload.output_generation_limit as number;
         if (payload.rag_enabled !== undefined) state.currentUser.rag_enabled = payload.rag_enabled as boolean;
       }
     } catch { /* ignore */ }
@@ -343,8 +375,8 @@ function bindEvents() {
   }));
   $('new-chat-btn')?.addEventListener('click', () => newChat());
   $('save-btn')?.addEventListener('click', () => { saveSettings(); switchView('chat'); });
-  $('user-input-context-credits')?.addEventListener('input', updateLimitSliderLabels);
-  $('user-output-generation-credits')?.addEventListener('input', updateLimitSliderLabels);
+  $('user-input-context-limit')?.addEventListener('input', updateLimitSliderLabels);
+  $('user-output-generation-limit')?.addEventListener('input', updateLimitSliderLabels);
   const loginForm = $('login-form');
   if (loginForm) {
     loginForm.addEventListener('submit', handleLogin);

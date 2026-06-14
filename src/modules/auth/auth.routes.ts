@@ -130,7 +130,6 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
     password_hash,
     email,
     category: selectedCategory || null,
-    n_ctx: 4096,
     system_prompt: DEFAULT_SYSTEM_PROMPT,
     allowed_categories: allowedCategories,
     must_change_password: false,

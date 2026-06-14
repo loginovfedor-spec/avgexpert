@@ -104,20 +104,20 @@ DoD:
 
 ### Спринт TL-3. Категории
 
-Статус: `backlog`
+Статус: `done`
 
 Цель: привести лимиты категорий к шагу `4096` и caps адаптеров.
 
 Задачи:
 
-- [ ] В `src/modules/admin/admin.categories.routes.ts` добавить проверку кратности `4096`.
-- [ ] Проверять `input_context_default >= 4096`.
-- [ ] Проверять `input_context_max >= 4096`.
-- [ ] Проверять `max_tokens >= 4096`.
-- [ ] Проверять `input_context_default <= input_context_max`.
-- [ ] Проверять `input_context_max <= caps.input`.
-- [ ] Проверять `max_tokens <= caps.output`.
-- [ ] Заменить дефолты меньше `4096` в seed/config.
+- [x] В `src/modules/admin/admin.categories.routes.ts` добавить проверку кратности `4096`.
+- [x] Проверять `input_context_default >= 4096`.
+- [x] Проверять `input_context_max >= 4096`.
+- [x] Проверять `max_tokens >= 4096`.
+- [x] Проверять `input_context_default <= input_context_max`.
+- [x] Проверять `input_context_max <= caps.input`.
+- [x] Проверять `max_tokens <= caps.output`.
+- [x] Заменить дефолты меньше `4096` в seed/config.
 
 Кандидаты для проверки:
 
@@ -127,135 +127,141 @@ DoD:
 
 DoD:
 
-- [ ] Категорию нельзя сохранить с `1024`, `2048` или некратным шагу значением.
-- [ ] Категорийные лимиты не превышают caps адаптера.
+- [x] Категорию нельзя сохранить с `1024`, `2048` или некратным шагу значением.
+- [x] Категорийные лимиты не превышают caps адаптера.
 
 ---
 
 ### Спринт TL-4. Frontend: профиль пользователя
 
-Статус: `backlog`
+Статус: `done`
 
 Цель: форма `Пользователь` управляет реальными токенами.
 
 Задачи:
 
-- [ ] В `webui_src/index.html` переименовать `user-input-context-credits` в `user-input-context-limit`.
-- [ ] Переименовать `user-output-generation-credits` в `user-output-generation-limit`.
-- [ ] Установить controls `min="4096"`, `step="4096"`.
-- [ ] Выставлять `max` динамически по категории/адаптеру.
-- [ ] В `webui_src/ts/auth.ts` удалить деление/умножение на `1000`.
-- [ ] В `webui_src/ts/auth.ts` использовать `currentUser.input_context_limit`, `currentUser.output_generation_limit`.
-- [ ] В `webui_src/ts/main.ts` отправлять новые поля в payload.
-- [ ] Добавить frontend validation шага `4096`.
+- [x] В `webui_src/index.html` переименовать `user-input-context-credits` в `user-input-context-limit`.
+- [x] Переименовать `user-output-generation-credits` в `user-output-generation-limit`.
+- [x] Установить controls `min="4096"`, `step="4096"`.
+- [x] Выставлять `max` динамически по категории/адаптеру.
+- [x] В `webui_src/ts/auth.ts` удалить деление/умножение на `1000`.
+- [x] В `webui_src/ts/auth.ts` использовать `currentUser.input_context_limit`, `currentUser.output_generation_limit`.
+- [x] В `webui_src/ts/main.ts` отправлять новые поля в payload.
+- [x] Добавить frontend validation шага `4096`.
 
 DoD:
 
-- [ ] В профиле пользователь видит значения токенов.
-- [ ] Сохранение `4096`, `8192`, `12288` проходит.
-- [ ] Сохранение `1024`, `5000` блокируется до отправки или backend-валидацией.
+- [x] В профиле пользователь видит значения токенов.
+- [x] Сохранение `4096`, `8192`, `12288` проходит.
+- [x] Сохранение `1024`, `5000` блокируется до отправки или backend-валидацией.
 
 ---
 
 ### Спринт TL-5. Frontend: админка пользователей
 
-Статус: `backlog`
+Статус: `done`
 
 Цель: формы `Пользователи` и `Пользователь` в админке работают с токенными лимитами.
 
 Задачи:
 
-- [ ] В `webui_src/index.html` переименовать `admin-input-context-credits` в `admin-input-context-limit`.
-- [ ] Переименовать `admin-output-generation-credits` в `admin-output-generation-limit`.
-- [ ] Установить controls `min="4096"`, `step="4096"`.
-- [ ] В `webui_src/ts/admin.ts` заменить чтение `u.input_context_credits` на `u.input_context_limit`.
-- [ ] Заменить чтение `u.output_generation_credits` на `u.output_generation_limit`.
-- [ ] В payload заменить `input_context_credits` на `input_context_limit`.
-- [ ] В payload заменить `output_generation_credits` на `output_generation_limit`.
-- [ ] При смене категории обновлять допустимые максимумы.
-- [ ] Добавить frontend validation шага `4096`.
+- [x] В `webui_src/index.html` переименовать `admin-input-context-credits` в `admin-input-context-limit`.
+- [x] Переименовать `admin-output-generation-credits` в `admin-output-generation-limit`.
+- [x] Установить controls `min="4096"`, `step="4096"`.
+- [x] В `webui_src/ts/admin.ts` заменить чтение `u.input_context_credits` на `u.input_context_limit`.
+- [x] Заменить чтение `u.output_generation_credits` на `u.output_generation_limit`.
+- [x] В payload заменить `input_context_credits` на `input_context_limit`.
+- [x] В payload заменить `output_generation_credits` на `output_generation_limit`.
+- [x] При смене категории обновлять допустимые максимумы.
+- [x] Добавить frontend validation шага `4096`.
 
 DoD:
 
-- [ ] Админ может создать пользователя с токенными лимитами.
-- [ ] Админ может отредактировать лимиты пользователя.
-- [ ] Значения выше лимитов категории/caps отклоняются.
+- [x] Админ может создать пользователя с токенными лимитами.
+- [x] Админ может отредактировать лимиты пользователя.
+- [x] Значения выше лимитов категории/caps отклоняются.
 
 ---
 
 ### Спринт TL-6. Frontend: категории
 
-Статус: `backlog`
+Статус: `done`
 
 Цель: формы `Категории` и `Категория` используют движки/поля с шагом `4096`.
 
 Задачи:
 
-- [ ] В `webui_src/index.html` для `admin-cat-input-context-default` установить `min="4096"`, `step="4096"`.
-- [ ] Для `admin-cat-input-context-max` установить `min="4096"`, `step="4096"`.
-- [ ] Для `admin-cat-max-tokens` установить `min="4096"`, `step="4096"`.
-- [ ] В `webui_src/ts/admin.ts` валидировать категорийные лимиты перед сохранением.
-- [ ] В списке категорий показывать лимиты как токены, форматированно.
-- [ ] Убрать терминологию кредитов из этих форм.
+- [x] В `webui_src/index.html` для `admin-cat-input-context-default` установить `min="4096"`, `step="4096"`.
+- [x] Для `admin-cat-input-context-max` установить `min="4096"`, `step="4096"`.
+- [x] Для `admin-cat-max-tokens` установить `min="4096"`, `step="4096"`.
+- [x] В `webui_src/ts/admin.ts` валидировать категорийные лимиты перед сохранением.
+- [x] В списке категорий показывать лимиты как токены, форматированно.
+- [x] Убрать терминологию кредитов из этих форм.
 
 DoD:
 
-- [ ] Категорийные лимиты в UI задаются шагом `4096`.
-- [ ] Некратные значения не сохраняются.
-- [ ] Список категорий показывает токенные лимиты без слова "кредиты".
+- [x] Категорийные лимиты в UI задаются шагом `4096`.
+- [x] Некратные значения не сохраняются.
+- [x] Список категорий показывает токенные лимиты без слова "кредиты".
 
 ---
 
 ### Спринт TL-7. Типы и чистка хвостов
 
-Статус: `backlog`
+Статус: `done`
 
 Цель: удалить старую терминологию из кода и типов.
 
 Задачи:
 
-- [ ] В `webui_src/ts/types.ts` удалить `input_context_credits`.
-- [ ] Удалить `output_generation_credits`.
-- [ ] Добавить `input_context_limit?: number | null`.
-- [ ] Добавить `output_generation_limit?: number | null`.
-- [ ] Обновить backend interfaces/types.
-- [ ] Найти и удалить рабочие упоминания `TOKENS_PER_CREDIT`.
-- [ ] Найти и удалить рабочие упоминания `creditsToTokens`.
-- [ ] Найти и удалить тексты "в кредитах" для лимитов.
-- [ ] Не трогать billing-кредиты, если они относятся к оплате/балансу.
+- [x] В `webui_src/ts/types.ts` удалить `input_context_credits`.
+- [x] Удалить `output_generation_credits`.
+- [x] Добавить `input_context_limit?: number | null`.
+- [x] Добавить `output_generation_limit?: number | null`.
+- [x] Обновить backend interfaces/types.
+- [x] Найти и удалить рабочие упоминания `TOKENS_PER_CREDIT`.
+- [x] Найти и удалить рабочие упоминания `creditsToTokens`.
+- [x] Найти и удалить тексты "в кредитах" для лимитов.
+- [x] Не трогать billing-кредиты, если они относятся к оплате/балансу.
 
 DoD:
 
-- [ ] В user/category limit path нет credit-based терминологии.
-- [ ] Billing path не сломан и отделен от token limits.
+- [x] В user/category limit path нет credit-based терминологии.
+- [x] Billing path не сломан и отделен от token limits.
+
+Примечание: повторный поиск нашел `input_context_credits`/`output_generation_credits` только в миграции удаления колонок, а тексты `в кредитах`/`кредитов` остались только в billing/балансе/покупке кредитов.
 
 ---
 
 ### Спринт TL-8. Проверка
 
-Статус: `backlog`
+Статус: `done`
 
 Цель: подтвердить сквозную работу новой модели.
 
 Задачи:
 
-- [ ] Запустить TypeScript build/check.
-- [ ] Проверить создание пользователя с `input_context_limit = 4096`.
-- [ ] Проверить отказ на `1024`.
-- [ ] Проверить отказ на `5000`.
-- [ ] Проверить отказ выше caps адаптера.
-- [ ] Проверить сохранение категории с `max_tokens = 4096`.
-- [ ] Проверить отказ категории с `max_tokens = 1024`.
-- [ ] Проверить профиль пользователя в UI.
-- [ ] Проверить админскую форму пользователя в UI.
-- [ ] Проверить форму категории в UI.
-- [ ] Проверить, что чат получает лимит напрямую.
+- [x] Запустить TypeScript build/check.
+- [x] Проверить создание пользователя с `input_context_limit = 4096`.
+- [x] Проверить отказ на `1024`.
+- [x] Проверить отказ на `5000`.
+- [x] Проверить отказ выше caps адаптера.
+- [x] Проверить сохранение категории с `max_tokens = 4096`.
+- [x] Проверить отказ категории с `max_tokens = 1024`.
+- [x] Проверить профиль пользователя в UI.
+- [x] Проверить админскую форму пользователя в UI.
+- [x] Проверить форму категории в UI.
+- [x] Проверить, что чат получает лимит напрямую.
 
 DoD:
 
-- [ ] Build/check проходит.
-- [ ] Smoke-test UI пройден.
-- [ ] Runtime chat limits используют значения без скрытых множителей.
+- [x] Build/check проходит.
+- [x] Smoke-test UI пройден.
+- [x] Runtime chat limits используют значения без скрытых множителей.
+
+Примечание: 2026-06-14 выполнены `npm run typecheck`, `npm run build:web`,
+`npx tsx --test tests/limit_service.test.ts tests/api.test.ts`,
+одноразовый API smoke для `4096`/`1024`/`5000`/caps/category и Browser UI smoke.
 
 ---
 
@@ -276,6 +282,6 @@ DoD:
 
 ## Статус
 
-`backlog`
+`done`
 
-Документ готов к постановке в активную программу после завершения текущего D6 или по отдельному решению пользователя.
+TL-8 завершен.

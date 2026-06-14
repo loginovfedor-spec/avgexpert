@@ -8,6 +8,7 @@ import type { AppUser } from './types';
 
 export { exportBalanceHistoryCsv };
 
+const TOKEN_LIMIT_STEP = 4096;
 const USERNAME_RE = /^[a-zA-Z0-9_-]+$/;
 
 interface ApiErrorBody {
@@ -158,22 +159,35 @@ export function updateUserRagToggleState() {
 function syncLimitSliders() {
   const categoryName = $<HTMLSelectElement>('user-default-category')?.value || state.currentUser?.category;
   const category = state.categories?.[categoryName || ''] || {};
-  const inputCategoryTokens = parseInt(String(category.input_context_max ?? 1000000), 10) || 1000000;
-  const outputCategoryTokens = parseInt(String(category.max_tokens ?? 128000), 10) || 128000;
-  const inputMax = Math.min(1000, Math.ceil(inputCategoryTokens / 1000));
-  const outputMax = Math.min(128, Math.ceil(outputCategoryTokens / 1000));
-  const inputDefault = Math.ceil((parseInt(String(category.input_context_default ?? inputCategoryTokens), 10) || inputCategoryTokens) / 1000);
-  const outputDefault = Math.ceil(outputCategoryTokens / 1000);
-  const inputValue = Math.min(inputMax, parseInt(String(state.currentUser?.input_context_credits ?? inputDefault), 10) || 0);
-  const outputValue = Math.min(outputMax, parseInt(String(state.currentUser?.output_generation_credits ?? outputDefault), 10) || 0);
+  const normalizeMax = (value: unknown, fallback: number) => {
+    const parsed = parseInt(String(value ?? fallback), 10);
+    const raw = Number.isFinite(parsed) && parsed >= TOKEN_LIMIT_STEP ? parsed : fallback;
+    return Math.max(TOKEN_LIMIT_STEP, Math.floor(raw / TOKEN_LIMIT_STEP) * TOKEN_LIMIT_STEP);
+  };
+  const normalizeValue = (value: unknown, fallback: number, max: number) => {
+    const parsed = parseInt(String(value ?? fallback), 10);
+    const raw = Number.isFinite(parsed) && parsed >= TOKEN_LIMIT_STEP ? parsed : fallback;
+    const clamped = Math.min(max, raw);
+    return Math.max(TOKEN_LIMIT_STEP, Math.floor(clamped / TOKEN_LIMIT_STEP) * TOKEN_LIMIT_STEP);
+  };
+  const inputMax = normalizeMax(category.input_context_max, 1000000);
+  const outputMax = normalizeMax(category.max_tokens, 128000);
+  const inputDefault = normalizeValue(category.input_context_default, inputMax, inputMax);
+  const outputDefault = outputMax;
+  const inputValue = normalizeValue(state.currentUser?.input_context_limit, inputDefault, inputMax);
+  const outputValue = normalizeValue(state.currentUser?.output_generation_limit, outputDefault, outputMax);
 
-  const inputEl = $<HTMLInputElement>('user-input-context-credits');
-  const outputEl = $<HTMLInputElement>('user-output-generation-credits');
+  const inputEl = $<HTMLInputElement>('user-input-context-limit');
+  const outputEl = $<HTMLInputElement>('user-output-generation-limit');
   if (inputEl) {
+    inputEl.min = String(TOKEN_LIMIT_STEP);
+    inputEl.step = String(TOKEN_LIMIT_STEP);
     inputEl.max = String(inputMax);
     inputEl.value = String(inputValue);
   }
   if (outputEl) {
+    outputEl.min = String(TOKEN_LIMIT_STEP);
+    outputEl.step = String(TOKEN_LIMIT_STEP);
     outputEl.max = String(outputMax);
     outputEl.value = String(outputValue);
   }
@@ -185,17 +199,18 @@ function syncLimitSliders() {
   if (inputValEl) inputValEl.textContent = String(inputValue);
   const outputValEl = $('user-output-generation-value');
   if (outputValEl) outputValEl.textContent = String(outputValue);
+  state.contextSize = inputValue;
   updateUserRagToggleState();
 }
 
 export function updateLimitSliderLabels() {
-  const inputCredits = $<HTMLInputElement>('user-input-context-credits');
-  const outputCredits = $<HTMLInputElement>('user-output-generation-credits');
-  if ($('user-input-context-value') && inputCredits) {
-    $('user-input-context-value')!.textContent = inputCredits.value;
+  const inputLimit = $<HTMLInputElement>('user-input-context-limit');
+  const outputLimit = $<HTMLInputElement>('user-output-generation-limit');
+  if ($('user-input-context-value') && inputLimit) {
+    $('user-input-context-value')!.textContent = inputLimit.value;
   }
-  if ($('user-output-generation-value') && outputCredits) {
-    $('user-output-generation-value')!.textContent = outputCredits.value;
+  if ($('user-output-generation-value') && outputLimit) {
+    $('user-output-generation-value')!.textContent = outputLimit.value;
   }
 }
 
@@ -208,10 +223,7 @@ export async function completeLogin() {
   const titleEl = $('chat-title-category');
   if (titleEl) titleEl.textContent = state.currentUser.category || 'Gemma AI';
 
-  const TOKENS_PER_CREDIT = 1000;
-  state.contextSize = state.currentUser.input_context_credits != null
-    ? state.currentUser.input_context_credits * TOKENS_PER_CREDIT
-    : (state.currentUser.n_ctx || 4096);
+  state.contextSize = state.currentUser.input_context_limit ?? TOKEN_LIMIT_STEP;
 
   if (state.currentUser.category === 'Консультант') state.maxDocsAllowed = 3;
   else if (state.currentUser.category === 'Эксперт') state.maxDocsAllowed = 5;
@@ -274,6 +286,7 @@ export async function completeLogin() {
       defaultCatSel.appendChild(opt);
     });
     defaultCatSel.onchange = syncLimitSliders;
+    syncLimitSliders();
     updateUserRagToggleState();
   }
 

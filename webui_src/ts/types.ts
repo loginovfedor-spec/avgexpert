@@ -48,9 +48,8 @@ export interface AppUser {
   balance_usd?: number;
   credit_limit_usd?: number;
   cost_usd_used?: number;
-  input_context_credits?: number;
-  output_generation_credits?: number;
-  n_ctx?: number;
+  input_context_limit?: number | null;
+  output_generation_limit?: number | null;
   allowed_categories?: string[];
   expiration_date?: string;
 }
@@ -94,7 +93,6 @@ export interface AppSettings {
   min_p: number;
   repeat_penalty: number;
   n_predict: number;
-  n_ctx: number;
   api_key: string;
 }
 

@@ -673,6 +673,7 @@ select.setup-input option {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  overflow: hidden;
 }
 
 .credits-modal-backdrop {
@@ -680,6 +681,29 @@ select.setup-input option {
   inset: 0;
   background: rgba(3, 7, 18, 0.68);
   backdrop-filter: blur(10px);
+}
+
+.payment-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(504px, 100%);
+  max-height: calc(100dvh - 48px);
+  max-height: calc(100vh - 48px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0.25rem 0.5rem 0.75rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.payment-modal-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.payment-modal-panel::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105 / 0.55);
+  border-radius: 999px;
 }
 
 .credits-modal-panel {
@@ -1775,6 +1799,14 @@ select.setup-input option {
   max-width: 420px
 }
 
+.max-w-\[504px\] {
+  max-width: 504px
+}
+
+.max-w-\[456px\] {
+  max-width: 456px
+}
+
 .flex-1 {
   flex: 1 1 0%
 }
@@ -1868,6 +1900,10 @@ select.setup-input option {
 
 .gap-y-1 {
   row-gap: 0.25rem
+}
+
+.gap-y-2 {
+  row-gap: 0.5rem
 }
 
 .-space-x-1 > :not([hidden]) ~ :not([hidden]) {
@@ -2032,6 +2068,10 @@ select.setup-input option {
 
 .p-6 {
   padding: 1.5rem
+}
+
+.p-7 {
+  padding: 1.75rem
 }
 
 .p-8 {
@@ -2403,6 +2443,113 @@ select.setup-input option {
 .modern-card:hover {
   box-shadow: 0 30px 60px -15px rgb(0 0 0 / 0.45),
               0 15px 15px -8px rgb(0 0 0 / 0.35);
+}
+
+.payment-form-wrap {
+  max-width: 504px;
+  width: 100%;
+}
+
+.payment-form {
+  border-color: rgb(51 65 85 / 0.55);
+  background: linear-gradient(165deg, rgb(15 23 42) 0%, rgb(10 17 31) 100%);
+}
+
+.payment-form__header {
+  padding: 1.15rem 1.5rem 1rem;
+  border-bottom: 1px solid rgb(51 65 85 / 0.45);
+  background: rgb(15 23 42 / 0.72);
+}
+
+.payment-form__header h1 {
+  letter-spacing: -0.02em;
+}
+
+.payment-form__header p {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
+}
+
+.payment-form__body {
+  padding: 1.25rem 1.5rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.payment-form__amount-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(148 163 184);
+}
+
+.payment-form__amount-row {
+  margin-top: 0.65rem;
+}
+
+.payment-form__slider {
+  margin-top: 0.85rem;
+  padding: 0 0.25rem;
+}
+
+.payment-form__presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.65rem;
+}
+
+.payment-form__preset-btn {
+  padding: 0.7rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 1rem;
+  border: 1px solid rgb(51 65 85);
+  background: rgb(30 41 59 / 0.65);
+  color: rgb(203 213 225);
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.payment-form__credits {
+  padding: 1rem 1.25rem;
+  border-radius: 1.5rem;
+  background: rgb(2 6 23 / 0.85);
+  border: 1px solid rgb(51 65 85 / 0.55);
+}
+
+.payment-form__credits-note {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(51 65 85 / 0.45);
+  font-size: 0.7rem;
+  color: rgb(100 116 139);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.payment-form__pay {
+  padding-top: 0.25rem;
+}
+
+.payment-form__pay-btn {
+  padding: 1rem 1.5rem;
+}
+
+.payment-form__trust {
+  margin-top: 1rem;
+  padding: 0 0.25rem 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.payment-form__custom-btn {
+  padding: 0.5rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
 }
 
 .payment-modal-close-btn {

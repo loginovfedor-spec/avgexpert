@@ -9,9 +9,17 @@ import { getPgPool } from './pool';
 const seedLogger = loggerModule.scoped('AppPgSeed');
 
 const VALID_TIERS = new Set(['consultant', 'expert', 'sage']);
+const TOKEN_LIMIT_STEP = 4096;
 
 function normalizeTier(value: string | undefined): string {
   return value && VALID_TIERS.has(value) ? value : 'consultant';
+}
+
+function normalizeSeedTokenLimit(value: unknown, fallback: number): number {
+  if (typeof value === 'number' && value >= TOKEN_LIMIT_STEP && value % TOKEN_LIMIT_STEP === 0) {
+    return value;
+  }
+  return fallback;
 }
 
 type CategorySeed = Record<string, unknown>;
@@ -45,8 +53,8 @@ async function upsertCategory(client: Pool | import('pg').PoolClient, category: 
       category.top_k ?? null,
       category.min_p ?? null,
       category.repeat_penalty ?? null,
-      category.input_context_default ?? 1000000,
-      category.input_context_max ?? 1000000,
+      category.input_context_default ?? DEFAULT_CATEGORY_PARAMS.input_context_default,
+      category.input_context_max ?? DEFAULT_CATEGORY_PARAMS.input_context_max,
       category.max_tokens ?? null,
       category.system_prompt ?? null,
       category.extra_params ?? null,
@@ -125,9 +133,9 @@ export async function seedCategoryCatalog(options: {
       top_k: expertRow.top_k ?? 40,
       min_p: expertRow.min_p ?? 0.05,
       repeat_penalty: expertRow.repeat_penalty ?? 1.1,
-      input_context_default: expertRow.input_context_default ?? 1000000,
-      input_context_max: expertRow.input_context_max ?? 1000000,
-      max_tokens: expertRow.max_tokens ?? 4096,
+      input_context_default: normalizeSeedTokenLimit(expertRow.input_context_default, DEFAULT_CATEGORY_PARAMS.input_context_default),
+      input_context_max: normalizeSeedTokenLimit(expertRow.input_context_max, DEFAULT_CATEGORY_PARAMS.input_context_max),
+      max_tokens: normalizeSeedTokenLimit(expertRow.max_tokens, 4096),
       system_prompt: expertRow.system_prompt ?? null,
       extra_params: expertRow.extra_params ?? null,
       routing_mode: expertRow.routing_mode ?? 'direct',
@@ -146,9 +154,9 @@ export async function seedCategoryCatalog(options: {
       top_k: sageRow.top_k ?? 40,
       min_p: sageRow.min_p ?? 0.05,
       repeat_penalty: sageRow.repeat_penalty ?? 1.1,
-      input_context_default: sageRow.input_context_default ?? 1000000,
-      input_context_max: sageRow.input_context_max ?? 1000000,
-      max_tokens: sageRow.max_tokens ?? 8192,
+      input_context_default: normalizeSeedTokenLimit(sageRow.input_context_default, DEFAULT_CATEGORY_PARAMS.input_context_default),
+      input_context_max: normalizeSeedTokenLimit(sageRow.input_context_max, DEFAULT_CATEGORY_PARAMS.input_context_max),
+      max_tokens: normalizeSeedTokenLimit(sageRow.max_tokens, 8192),
       system_prompt: sageRow.system_prompt ?? null,
       extra_params: sageRow.extra_params ?? null,
       routing_mode: sageRow.routing_mode ?? 'direct',
@@ -190,9 +198,9 @@ export async function seedCategoryCatalog(options: {
       top_k: consultantRow.top_k ?? 40,
       min_p: consultantRow.min_p ?? 0.05,
       repeat_penalty: consultantRow.repeat_penalty ?? 1.1,
-      input_context_default: consultantRow.input_context_default ?? 1000000,
-      input_context_max: consultantRow.input_context_max ?? 1000000,
-      max_tokens: consultantRow.max_tokens ?? 1024,
+      input_context_default: normalizeSeedTokenLimit(consultantRow.input_context_default, DEFAULT_CATEGORY_PARAMS.input_context_default),
+      input_context_max: normalizeSeedTokenLimit(consultantRow.input_context_max, DEFAULT_CATEGORY_PARAMS.input_context_max),
+      max_tokens: normalizeSeedTokenLimit(consultantRow.max_tokens, 4096),
       system_prompt: consultantRow.system_prompt
         ?? 'Ты — Консультант: отвечай по предоставленным материалам, на русском языке, точно и по существу. Если контекста недостаточно — явно скажи об ограничениях.',
       extra_params: consultantRow.extra_params ?? KB_SCOPE_EXTRA_PARAMS,
@@ -243,7 +251,7 @@ export async function seedCategoryCatalog(options: {
       repeat_penalty: consultantRow.repeat_penalty ?? 1.1,
       input_context_default: 16384,
       input_context_max: 16384,
-      max_tokens: consultantRow.max_tokens ?? 1024,
+      max_tokens: normalizeSeedTokenLimit(consultantRow.max_tokens, 4096),
       system_prompt: consultantRow.system_prompt
         ?? 'Ты — Консультант: отвечай по предоставленным материалам, на русском языке, точно и по существу. Если контекста недостаточно — явно скажи об ограничениях.',
       extra_params: KB_SCOPE_EXTRA_PARAMS,
@@ -352,9 +360,9 @@ export async function seedAppData(options: {
     await client.query(
       `
         INSERT INTO users (
-          username, password_hash, category, expiration_date, n_ctx, system_prompt,
+          username, password_hash, category, expiration_date, system_prompt,
           must_change_password, is_admin
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT (username) DO NOTHING
       `,
       [
@@ -362,7 +370,6 @@ export async function seedAppData(options: {
         bcrypt.hashSync(finalAdminPass, 10),
         'Администратор',
         '2099-12-31',
-        4096,
         DEFAULT_SYSTEM_PROMPT,
         true,
         true,
@@ -378,4 +385,3 @@ export async function seedAppData(options: {
     client.release();
   }
 }
-

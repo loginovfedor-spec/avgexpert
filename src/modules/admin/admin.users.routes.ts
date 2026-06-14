@@ -28,7 +28,6 @@ const adminUserSchema = z.object({
   email: z.string().trim().email('Некорректный формат email').max(254).optional().nullable().or(z.literal('')),
   category: z.string().max(64).optional().nullable().or(z.literal('')),
   expiration_date: z.string().optional().nullable().or(z.literal('')),
-  n_ctx: z.any().optional().nullable(),
   system_prompt: z.string().max(16000).optional().nullable().or(z.literal('')),
   allowed_categories: z.array(z.string()).optional().nullable(),
   is_admin: z.boolean().optional().nullable(),
@@ -90,7 +89,6 @@ router.post('/:username', asyncHandler(async (req: Request, res: Response) => {
   if (data.email !== undefined) user.email = data.email;
   if (data.category !== undefined) user.category = data.category || null;
   if (data.expiration_date !== undefined) user.expiration_date = data.expiration_date;
-  if (data.n_ctx !== undefined) user.n_ctx = data.n_ctx as number | null;
   if (data.system_prompt !== undefined) user.system_prompt = data.system_prompt;
   if (data.allowed_categories !== undefined) user.allowed_categories = data.allowed_categories || [];
   if (data.is_admin !== undefined) user.is_admin = !!data.is_admin;

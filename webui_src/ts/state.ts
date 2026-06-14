@@ -27,6 +27,5 @@ export const settings: AppSettings = {
   min_p: parseFloat(localStorage.getItem('gemma_min_p') || '0.05'),
   repeat_penalty: parseFloat(localStorage.getItem('gemma_repeat_penalty') || '1.1'),
   n_predict: parseInt(localStorage.getItem('gemma_n_predict') || '1024', 10),
-  n_ctx: parseInt(localStorage.getItem('gemma_n_ctx') || '4096', 10),
   api_key: localStorage.getItem('gemma_api_key') || '',
 };

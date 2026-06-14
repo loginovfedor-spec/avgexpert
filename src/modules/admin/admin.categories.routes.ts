@@ -60,6 +60,18 @@ function validateCategoryName(catName: string): string | null {
   return null;
 }
 
+function validateTokenLimitStep(fieldName: string, value: unknown): string | null {
+  if (value == null) return null;
+  const tokenLimit = value as number;
+  if (tokenLimit < limits.TOKEN_LIMIT_STEP) {
+    return `${fieldName} должен быть не меньше ${limits.TOKEN_LIMIT_STEP}`;
+  }
+  if (tokenLimit % limits.TOKEN_LIMIT_STEP !== 0) {
+    return `${fieldName} должен быть кратен ${limits.TOKEN_LIMIT_STEP}`;
+  }
+  return null;
+}
+
 router.get('/', asyncHandler(async (_req: Request, res: Response) => {
   const categories = await categoryRepository.listAll();
   const safeCats: Record<string, Record<string, unknown>> = {};
@@ -99,6 +111,12 @@ router.post('/:category_name', asyncHandler(async (req: Request, res: Response) 
 
   const providerCfg = providersConfig[(category.provider as string) || 'llamacpp'] || {};
   const caps = limits.getAdapterCaps(providerCfg);
+
+  for (const fieldName of ['input_context_default', 'input_context_max', 'max_tokens']) {
+    const error = validateTokenLimitStep(fieldName, category[fieldName]);
+    if (error) return res.status(400).json({ detail: error });
+  }
+
   if (category.input_context_default != null && category.input_context_max != null
     && (category.input_context_default as number) > (category.input_context_max as number)) {
     return res.status(400).json({ detail: 'input_context_default не может быть больше input_context_max' });

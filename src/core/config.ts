@@ -153,9 +153,9 @@ const DEFAULT_CATEGORY_PARAMS = {
   top_k: 40,
   min_p: 0.05,
   repeat_penalty: 1.1,
-  input_context_default: 1000000,
-  input_context_max: 1000000,
-  max_tokens: 1024,
+  input_context_default: 999424,
+  input_context_max: 999424,
+  max_tokens: 4096,
   system_prompt: '',
 };
 
