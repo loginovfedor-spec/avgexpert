@@ -32,4 +32,10 @@ compose_prod exec -T app npm run embedding:smoke
 echo "[post-deploy] Health..."
 curl -fsS http://127.0.0.1:8200/health | head -c 500
 echo
+
+if compose_prod ps --status running 2>/dev/null | grep -q avgexpert-nginx; then
+  echo "[post-deploy] Reload nginx (refresh upstream after app recreate)..."
+  compose_prod exec -T nginx nginx -s reload 2>/dev/null || true
+fi
+
 echo "[post-deploy] Done. Open WEB via nginx (:80) or gateway (:8200 localhost)."
