@@ -5,8 +5,8 @@
  *   DATABASE_URL=postgresql://... npm run kb:pg:smoke
  *   npm run kb:pg:smoke -- --host=83.166.253.250
  */
-import path = require('path');
-import dotenv = require('dotenv');
+import path from 'path';
+import dotenv from 'dotenv';
 import { getPgVectorExtensionVersion, runVectorMigrations } from '../src/modules/vector/pg/migrate';
 import { closePgPools, getPgPool } from '../src/modules/vector/pg/pool';
 
@@ -102,6 +102,34 @@ async function main(): Promise<void> {
     throw new Error('HNSW index kb_chunks_embedding_hnsw_idx не найден');
   }
   console.log('[smoke] HNSW index: OK');
+
+  const ftsIndex = await pool.query(`
+    SELECT indexname
+    FROM pg_indexes
+    WHERE tablename = 'kb_chunks'
+      AND indexname = 'kb_chunks_body_tsv_gin_idx'
+  `);
+  if (ftsIndex.rowCount === 0) {
+    throw new Error('GIN index kb_chunks_body_tsv_gin_idx не найден (D4 tsvector)');
+  }
+  console.log('[smoke] tsvector GIN index: OK');
+
+  const ftsCol = await pool.query(`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_name = 'kb_chunks' AND column_name = 'body_tsv'
+  `);
+  if (ftsCol.rowCount === 0) {
+    throw new Error('колонка kb_chunks.body_tsv не найдена');
+  }
+
+  const ftsQuery = await pool.query(`
+    SELECT COUNT(*)::int AS hits
+    FROM kb_chunks
+    WHERE body_tsv @@ plainto_tsquery('russian', 'налог')
+    LIMIT 1
+  `);
+  console.log(`[smoke] Cyrillic tsquery smoke (налог): ${ftsQuery.rows[0].hits} hits`);
   console.log('[smoke] PASS');
 }
 

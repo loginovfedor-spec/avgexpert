@@ -9,6 +9,9 @@ local-dev/data/
 .env
 deploy/prod/.env
 deploy/prod/.env.migrate
+deploy/prod/ssh-deploy.env
+deploy/prod/providers/*.env
+!deploy/prod/providers/*.env.example
 deploy/prod/backups/
 src/modules/providers/config/*.env
 !src/modules/providers/config/*.env.example
@@ -19,3 +22,7 @@ server.pid
 logs/
 *.log
 *.zip
+*.pid
+nul
+database.sqlite
+src/**/node_modules/

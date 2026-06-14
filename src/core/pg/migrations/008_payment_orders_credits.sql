@@ -1,0 +1,1 @@
+ALTER TABLE payment_orders ALTER COLUMN credits TYPE NUMERIC(10,2);

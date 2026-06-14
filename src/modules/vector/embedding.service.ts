@@ -54,8 +54,3 @@ export function createEmbeddingProviderFromEnv(
   return createEmbeddingProvider(loadEmbeddingConfig(env));
 }
 
-module.exports = {
-  loadEmbeddingConfig,
-  createEmbeddingProvider,
-  createEmbeddingProviderFromEnv,
-};

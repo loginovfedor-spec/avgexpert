@@ -1,4 +1,4 @@
-import logger = require('../logger');
+import logger from '../logger';
 import { isAppPgEnabled } from './database.port';
 import { runAppMigrations } from './migrate';
 import { seedAppData } from './seed';
@@ -34,19 +34,6 @@ export {
   resetDatabasePortForTests,
 } from './database.port';
 export { runAppMigrations } from './migrate';
-export { seedAppData } from './seed';
+export { seedAppData, seedCategoryCatalog } from './seed';
 export { getPgPool, closePgPools } from './pool';
 export { resolvePgConnectionString } from './connection';
-
-module.exports = {
-  initAppPg,
-  ensureAppPgReady,
-  getDatabasePort: require('./database.port').getDatabasePort,
-  isAppPgEnabled: require('./database.port').isAppPgEnabled,
-  resetDatabasePortForTests: require('./database.port').resetDatabasePortForTests,
-  runAppMigrations,
-  seedAppData,
-  getPgPool: require('./pool').getPgPool,
-  closePgPools: require('./pool').closePgPools,
-  resolvePgConnectionString: require('./connection').resolvePgConnectionString,
-};

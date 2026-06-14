@@ -2,17 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import providersConfig from '../../src/core/providers.config';
+import grokAdapter from '../../src/modules/providers/adapters/grok';
 
 test('grok provider config has no collection_ids (S10-3)', () => {
-  const providersConfig = require('../../src/core/providers.config');
   const grok = providersConfig.grok;
   assert.ok(grok);
   assert.equal(grok.extra_params?.collection_ids, undefined);
 });
 
 test('grok adapter has no native retrieval capability', () => {
-  const adapter = require('../../src/modules/providers/adapters/grok');
-  assert.equal(adapter.capabilities.retrieval, undefined);
+  assert.equal(grokAdapter.capabilities.retrieval, undefined);
 });
 
 test('stripNativeRag removes GROK_COLLECTION_IDS from merged settings', async () => {

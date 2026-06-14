@@ -1,5 +1,4 @@
-import path = require('path');
-
+import path from 'path';
 export const USER_KB_ALLOWED_EXTENSIONS = new Set(['.txt', '.md', '.markdown', '.pdf', '.docx']);
 
 export const USER_KB_ALLOWED_MIMES = new Set([
@@ -80,11 +79,3 @@ export function validateUserUpload(params: {
   return { sanitizedFilename, mime, size };
 }
 
-module.exports = {
-  USER_KB_ALLOWED_EXTENSIONS,
-  USER_KB_ALLOWED_MIMES,
-  USER_KB_REJECTED_EXTENSIONS,
-  sanitizeFilename,
-  inferMimeFromFilename,
-  validateUserUpload,
-};

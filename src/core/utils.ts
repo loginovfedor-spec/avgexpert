@@ -121,7 +121,7 @@ function sanitizePromptText(text: unknown): string {
   return text.replace(controlTokens, '').trim();
 }
 
-module.exports = {
+export {
   assertSafeIdentifier,
   validateUsername,
   USERNAME_MESSAGE,

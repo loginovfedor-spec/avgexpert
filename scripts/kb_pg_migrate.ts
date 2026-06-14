@@ -1,5 +1,5 @@
-import path = require('path');
-import dotenv = require('dotenv');
+import path from 'path';
+import dotenv from 'dotenv';
 import { runVectorMigrations } from '../src/modules/vector/pg/migrate';
 import { closePgPools } from '../src/modules/vector/pg/pool';
 

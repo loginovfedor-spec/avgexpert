@@ -21,6 +21,12 @@ type UsageLike = {
   prompt_tokens?: number;
   output_tokens?: number;
   completion_tokens?: number;
+  cached_input_tokens?: number;
+  cachedContentTokenCount?: number;
+  prompt_tokens_details?: {
+    cached_tokens?: number;
+  };
+  prompt_cache_hit_tokens?: number;
   completion_tokens_details?: {
     reasoning_tokens?: number;
   };
@@ -74,11 +80,23 @@ export class ProviderUtils {
       reasoningTokens = data.reasoning_tokens;
     }
 
+    let cachedInputTokens = 0;
+    if (typeof data.cached_input_tokens === 'number') {
+      cachedInputTokens = data.cached_input_tokens;
+    } else if (typeof data.cachedContentTokenCount === 'number') {
+      cachedInputTokens = data.cachedContentTokenCount;
+    } else if (typeof data.prompt_tokens_details?.cached_tokens === 'number') {
+      cachedInputTokens = data.prompt_tokens_details.cached_tokens;
+    } else if (typeof data.prompt_cache_hit_tokens === 'number') {
+      cachedInputTokens = data.prompt_cache_hit_tokens;
+    }
+
     return {
       prompt_tokens: promptTokens,
       completion_tokens: completionTokens,
       reasoning_tokens: reasoningTokens,
       total_tokens: data.total_tokens || (promptTokens + completionTokens),
+      ...(cachedInputTokens > 0 ? { cached_input_tokens: cachedInputTokens } : {}),
     };
   }
 

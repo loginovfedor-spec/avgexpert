@@ -28,6 +28,9 @@ flowchart LR
 
 В новом чате достаточно **«продолжай»** — см. [`docs/sprints/SPRINT_STATE.md`](../../docs/sprints/SPRINT_STATE.md). План в чат не копировать.
 
+**Первый раз на pilot:** [SSH_DEPLOY.md](SSH_DEPLOY.md) → [RAG_DB_MIGRATION.md](RAG_DB_MIGRATION.md) → этот документ.  
+**Dev на ноутбуке:** [DEV_REMOTE.md](../dev/DEV_REMOTE.md) + `deploy/dev/tunnel.sh`.
+
 ## Ежедневный цикл (рекомендуется)
 
 ### 1. На ноутбуке — перед выкатом
@@ -95,7 +98,7 @@ curl -s http://127.0.0.1:8200/ready
 | `deploy/prod/.env` | Только сервер | **Нет** |
 | `deploy/prod/providers/*.env` | Только сервер | **Нет** |
 | `deploy/prod/ssh-deploy.env` | Ноутбук | **Нет** |
-| `data/` (SQLite пользователей) | Volume Docker на сервере | **Нет** |
+| `pg-data` (PG: users, sessions, RAG) | Docker volume на сервере | **Нет** |
 
 Код и `webui_dist` (сборка в образе) — из git.
 
@@ -179,7 +182,7 @@ git checkout <предыдущий-commit>
 docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml up -d --build app
 ```
 
-Данные PG и SQLite в volumes **сохраняются**.
+Данные PG в volume `pg-data` **сохраняются**.
 
 ---
 

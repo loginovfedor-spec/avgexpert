@@ -1,9 +1,8 @@
 import { KbRepository } from './kb.repository';
+import { createVectorStoreFromEnv } from '../vector/registry';
 
 export async function purgeSessionKb(ownerUserId: string, sessionId: string): Promise<number> {
   if (!ownerUserId || !sessionId) return 0;
-
-  const { createVectorStoreFromEnv } = require('../vector/registry');
   const kbRepository = new KbRepository();
   const store = createVectorStoreFromEnv();
 
@@ -27,4 +26,3 @@ export async function purgeSessionKb(ownerUserId: string, sessionId: string): Pr
   return docs.length;
 }
 
-module.exports = { purgeSessionKb };

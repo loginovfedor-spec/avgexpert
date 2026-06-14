@@ -65,7 +65,7 @@ alwaysApply: true
 
 **Не смешивать «формат файла» и «режим RAG».** Источник: `RAG_MIGRATION_PLAN.md` §3.5.1.
 
-1. **Форматы UI:** `.txt`, `.md`, `.pdf`, `.docx` — парсинг PDF/DOCX **в браузере** (`webui_src/js/file-parse.js`), на API только UTF-8 текст.
+1. **Форматы UI:** `.txt`, `.md`, `.pdf`, `.docx` — парсинг PDF/DOCX **в браузере** (`webui_src/ts/file-parse.ts`), на API только UTF-8 текст.
 2. **Чат («+» / drop):** ветвление по **эффективному RAG** = `rag_allowed` категории **и** `rag_enabled` пользователя:
    - оба true → session RAG (`uploadSessionAttachment` → L4);
    - иначе → inline в сообщение (`buildUserContent`, все форматы одинаково).
@@ -78,7 +78,7 @@ alwaysApply: true
 
 `global_kb_enabled`, `user_kb_enabled`, `session_kb_enabled`, `rag_mode`, `rag_answerability_policy`, `endpoint_url`, `api_key`
 
-Фильтрация: `stripNativeRag` (`rag.orchestrator.ts`) + `chat_completion.mapper.js` при сборке `mergedSettings`.  
+Фильтрация: `stripNativeRag` (`rag.orchestrator.ts`) + `chat_completion.mapper.ts` при сборке `mergedSettings`.  
 Новые внутренние флаги категории добавлять в тот же список, иначе провайдер вернёт `400 Unknown parameter`.
 
 ## SQLite `missions`

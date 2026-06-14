@@ -1,5 +1,12 @@
 import type { Pool } from 'pg';
+import crypto from 'node:crypto';
+import bcrypt from 'bcrypt';
+import { DEFAULT_CATEGORY_PARAMS, DEFAULT_SYSTEM_PROMPT } from '../config';
+import loggerModule from '../logger';
+import { discoverProviders } from '../../modules/providers/configLoader';
 import { getPgPool } from './pool';
+
+const seedLogger = loggerModule.scoped('AppPgSeed');
 
 const VALID_TIERS = new Set(['consultant', 'expert', 'sage']);
 
@@ -56,22 +63,16 @@ async function upsertCategory(client: Pool | import('pg').PoolClient, category: 
   );
 }
 
-export async function seedAppData(options: {
+const KB_SCOPE_EXTRA_PARAMS = JSON.stringify({
+  global_kb_enabled: true,
+  user_kb_enabled: true,
+  session_kb_enabled: true,
+});
+
+export async function seedCategoryCatalog(options: {
   connectionString?: string;
 } = {}): Promise<void> {
   const pool = getPgPool(options.connectionString);
-  const existing = await pool.query(
-    'SELECT 1 FROM users WHERE username = $1 LIMIT 1',
-    ['admin']
-  );
-  if ((existing.rowCount ?? 0) > 0) return;
-
-  const logger = require('../logger').scoped('AppPgSeed');
-  logger.info('Admin user missing. Seeding initial app data');
-
-  const { DEFAULT_CATEGORY_PARAMS, DEFAULT_SYSTEM_PROMPT } = require('../config');
-  const crypto = require('crypto');
-  const bcrypt = require('bcrypt');
 
   const client = await pool.connect();
   try {
@@ -178,6 +179,58 @@ export async function seedAppData(options: {
 
     const consultantBase = await client.query('SELECT * FROM categories WHERE name = $1', ['Консультант']);
     const consultantRow = consultantBase.rows[0] || {};
+    const yandexFolderId =
+      discoverProviders().yandex?.yandex_folder_id
+      || consultantRow.yandex_folder_id
+      || null;
+
+    const consultantDefaults: CategorySeed = {
+      temperature: consultantRow.temperature ?? 0.5,
+      top_p: consultantRow.top_p ?? 0.9,
+      top_k: consultantRow.top_k ?? 40,
+      min_p: consultantRow.min_p ?? 0.05,
+      repeat_penalty: consultantRow.repeat_penalty ?? 1.1,
+      input_context_default: consultantRow.input_context_default ?? 1000000,
+      input_context_max: consultantRow.input_context_max ?? 1000000,
+      max_tokens: consultantRow.max_tokens ?? 1024,
+      system_prompt: consultantRow.system_prompt
+        ?? 'Ты — Консультант: отвечай по предоставленным материалам, на русском языке, точно и по существу. Если контекста недостаточно — явно скажи об ограничениях.',
+      extra_params: consultantRow.extra_params ?? KB_SCOPE_EXTRA_PARAMS,
+      routing_mode: consultantRow.routing_mode ?? 'direct',
+      fallback_provider: consultantRow.fallback_provider ?? null,
+      debug_mode: consultantRow.debug_mode ?? false,
+      complexity: consultantRow.complexity ?? 1.0,
+      suggested_questions: consultantRow.suggested_questions ?? '',
+      rag_allowed: true,
+      retrieval_tier: 'consultant',
+    };
+
+    const consultantVariants = [
+      {
+        name: 'Консультант (Yandex)',
+        provider: 'yandex',
+        model_name: 'aliceai-llm-flash/latest',
+        yandex_folder_id: yandexFolderId,
+        sort_index: 11,
+      },
+      {
+        name: 'Консультант (OpenAI)',
+        provider: 'openai_gpt4_1',
+        model_name: 'gpt-4.1-mini',
+        sort_index: 12,
+      },
+      {
+        name: 'Консультант (Grok)',
+        provider: 'grok',
+        model_name: 'grok-4-1-fast-non-reasoning',
+        sort_index: 14,
+      },
+    ];
+
+    for (const variant of consultantVariants) {
+      await upsertCategory(client, { ...consultantDefaults, ...variant });
+    }
+
     await upsertCategory(client, {
       name: 'Консультант (Local)',
       provider: 'llamacpp',
@@ -193,11 +246,7 @@ export async function seedAppData(options: {
       max_tokens: consultantRow.max_tokens ?? 1024,
       system_prompt: consultantRow.system_prompt
         ?? 'Ты — Консультант: отвечай по предоставленным материалам, на русском языке, точно и по существу. Если контекста недостаточно — явно скажи об ограничениях.',
-      extra_params: JSON.stringify({
-        global_kb_enabled: true,
-        user_kb_enabled: true,
-        session_kb_enabled: true,
-      }),
+      extra_params: KB_SCOPE_EXTRA_PARAMS,
       routing_mode: consultantRow.routing_mode ?? 'direct',
       fallback_provider: consultantRow.fallback_provider ?? null,
       yandex_folder_id: null,
@@ -208,15 +257,95 @@ export async function seedAppData(options: {
       retrieval_tier: 'consultant',
     });
 
-    const adminPass = process.env.AVGEXPERT_ADMIN_PASSWORD;
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+async function syncAdminFromEnv(
+  pool: Pool,
+  adminPass: string | undefined
+): Promise<void> {
+  if (!adminPass) return;
+
+  const existing = await pool.query<{
+    password_hash: string | null;
+    is_blocked: boolean;
+    is_admin: boolean;
+  }>(
+    'SELECT password_hash, is_blocked, is_admin FROM users WHERE username = $1 LIMIT 1',
+    ['admin']
+  );
+  const row = existing.rows[0];
+  if (!row) return;
+
+  const passwordMatches = !!row.password_hash
+    && (row.password_hash.startsWith('$2a$') || row.password_hash.startsWith('$2b$'))
+    && bcrypt.compareSync(adminPass, row.password_hash);
+  const needsPasswordSync = !passwordMatches;
+  const needsUnblock = row.is_blocked || !row.is_admin;
+
+  if (!needsPasswordSync && !needsUnblock) return;
+
+  const passwordHash = needsPasswordSync
+    ? bcrypt.hashSync(adminPass, 10)
+    : row.password_hash;
+
+  await pool.query(
+    `
+      UPDATE users
+      SET password_hash = $1,
+          must_change_password = FALSE,
+          is_blocked = FALSE,
+          is_admin = TRUE,
+          category = COALESCE(category, 'Администратор'),
+          expiration_date = COALESCE(expiration_date, '2099-12-31')
+      WHERE username = 'admin'
+    `,
+    [passwordHash]
+  );
+
+  seedLogger.info('Synced admin user from AVGEXPERT_ADMIN_PASSWORD', {
+    passwordUpdated: needsPasswordSync,
+    unblocked: needsUnblock,
+  });
+}
+
+export async function seedAppData(options: {
+  connectionString?: string;
+} = {}): Promise<void> {
+  await seedCategoryCatalog(options);
+
+  const pool = getPgPool(options.connectionString);
+  const existing = await pool.query(
+    'SELECT 1 FROM users WHERE username = $1 LIMIT 1',
+    ['admin']
+  );
+  const adminPass = process.env.AVGEXPERT_ADMIN_PASSWORD;
+
+  if ((existing.rowCount ?? 0) > 0) {
+    await syncAdminFromEnv(pool, adminPass);
+    return;
+  }
+
+  seedLogger.info('Admin user missing. Seeding initial app data');
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
     const finalAdminPass = adminPass || crypto.randomBytes(16).toString('hex');
 
     if (!adminPass) {
       const isProduction = process.env.NODE_ENV === 'production';
       if (!isProduction) {
-        logger.warn('Generated development admin password', { username: 'admin', password: finalAdminPass });
+        seedLogger.warn('Generated development admin password', { username: 'admin', password: finalAdminPass });
       } else {
-        logger.warn('AVGEXPERT_ADMIN_PASSWORD missing in production seed. Password auto-generated but not logged');
+        seedLogger.warn('AVGEXPERT_ADMIN_PASSWORD missing in production seed. Password auto-generated but not logged');
       }
     }
 
@@ -241,7 +370,7 @@ export async function seedAppData(options: {
     );
 
     await client.query('COMMIT');
-    logger.info('App PG seed completed');
+    seedLogger.info('App PG seed completed');
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
@@ -249,3 +378,4 @@ export async function seedAppData(options: {
     client.release();
   }
 }
+

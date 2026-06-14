@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVG Expert • Пополнение баланса</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --accent: #6366f1;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .font-display {
+            font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif;
+            font-weight: 600;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+        }
+
+        .modern-card {
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4),
+                        0 10px 10px -6px rgb(0 0 0 / 0.3);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .modern-card:hover {
+            box-shadow: 0 30px 60px -15px rgb(0 0 0 / 0.45),
+                        0 15px 15px -8px rgb(0 0 0 / 0.35);
+        }
+
+        .amount-display {
+            font-variant-numeric: tabular-nums;
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .preset-btn {
+            transition: all 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preset-btn.active {
+            background-color: #6366f1;
+            color: white;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .preset-btn:hover:not(.active) {
+            background-color: #334155;
+            transform: translateY(-1px);
+        }
+
+        .slider {
+            accent-color: #6366f1;
+            height: 3px; /* thinner track */
+        }
+
+        .slider::-webkit-slider-thumb {
+            width: 18px;
+            height: 18px;
+            box-shadow: 0 2px 4px rgb(0 0 0 / 0.2),
+                        0 0 0 4px rgba(99, 102, 241, 0.2);
+            transition: all 0.1s ease;
+            cursor: pointer;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            box-shadow: 0 4px 8px rgb(0 0 0 / 0.25),
+                        0 0 0 6px rgba(99, 102, 241, 0.3);
+            transform: scale(1.1);
+        }
+
+        .pay-button {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pay-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgb(99 102 241 / 0.3),
+                        0 10px 10px -5px rgb(99 102 241 / 0.2);
+        }
+
+        .pay-button:active {
+            transform: translateY(0px) scale(0.985);
+        }
+
+        .pay-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -100%;
+            width: 50%;
+            height: 200%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.25),
+                transparent
+            );
+            transition: 0.6s;
+        }
+
+        .pay-button:hover::after {
+            left: 250%;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.025em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .credit-value {
+            font-variant-numeric: tabular-nums;
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .form-container {
+            animation: fadeInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .metric {
+            transition: all 0.2s ease;
+        }
+
+        .modern-shadow {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3),
+                        0 4px 6px -4px rgb(0 0 0 / 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200">
+    <!-- Background decoration -->
+    <div class="fixed inset-0 bg-[radial-gradient(#1e2937_0.8px,transparent_1px)] bg-[length:4px_4px] pointer-events-none"></div>
+    
+    <div class="min-h-screen flex items-center justify-center p-4 relative">
+        <!-- Main Card -->
+        <div class="w-full max-w-[420px] form-container">
+            <!-- Modal Card -->
+            <div class="modern-card bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+                
+                <!-- Header -->
+                <div class="px-5 pt-4 pb-3 border-b border-slate-800 bg-slate-900/80">
+                    <div class="flex items-center justify-between">
+                        <h1 class="font-display text-2xl font-semibold tracking-tight">Пополнение баланса</h1>
+                        
+                        <!-- Close button -->
+                        <button onclick="closeModal()" 
+                                class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-colors -mr-1">
+                            <i class="fa-solid fa-times text-lg"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-400 -mt-0.5">Мгновенное зачисление кредитов</p>
+                </div>
+
+                <!-- Content -->
+                <div class="p-4 space-y-4">
+                    
+                    <!-- Amount Section -->
+                    <div>
+                        <div class="flex items-baseline justify-between mb-1">
+                            <div>
+                                <div class="text-[10px] text-slate-400 tracking-wider">Сумма пополнения</div>
+                                <div class="flex items-baseline gap-x-1 mt-0.5">
+                                    <div id="amount-display" 
+                                         class="amount-display font-display text-5xl font-semibold tracking-tighter text-emerald-400 tabular-nums">
+                                        1 000
+                                    </div>
+                                    <div class="text-2xl font-medium text-emerald-400/90">₽</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Quick edit hint + bonus under it -->
+                            <div class="flex flex-col items-end gap-y-1">
+                                <div onclick="showCustomAmountInput()" 
+                                     class="cursor-pointer flex items-center gap-x-1.5 px-3 py-1.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-400 hover:text-slate-300 transition-colors">
+                                    <i class="fa-solid fa-pen text-[10px]"></i>
+                                    <span>Ввести</span>
+                                </div>
+                                
+                                <!-- Bonus indicator точно под кнопкой Ввести -->
+                                <div id="bonus-row" class="hidden w-full">
+                                    <div class="ml-auto inline-flex items-center gap-x-1.5 px-3 py-1 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                        <i class="fa-solid fa-gift text-sm"></i>
+                                        <span class="text-xs font-semibold">+<span id="bonus-percent">0</span>% бонус</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slider -->
+                        <div class="px-1 pt-0.5 pb-0">
+                            <input type="range" 
+                                   id="amount-slider"
+                                   min="100" 
+                                   max="20000" 
+                                   step="50"
+                                   value="1000"
+                                   oninput="updateFromSlider()"
+                                   class="slider w-full accent-indigo-500 cursor-pointer">
+                            
+                            <div class="flex justify-between text-[10px] text-slate-500 px-0.5 mt-0">
+                                <div>100 ₽</div>
+                                <div>20 000 ₽</div>
+                            </div>
+                        </div>
+
+                        <!-- Preset buttons -->
+                        <div class="grid grid-cols-4 gap-2 mt-2">
+                            <button onclick="setPreset(500)" 
+                                    class="preset-btn px-3 py-2 text-sm font-medium rounded-2xl border border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300 active:scale-[0.985] text-center">
+                                500 ₽
+                            </button>
+                            <button onclick="setPreset(2000)" 
+                                    class="preset-btn px-3 py-2 text-sm font-medium rounded-2xl border border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300 active:scale-[0.985] text-center">
+                                2 000 ₽
+                            </button>
+                            <button onclick="setPreset(5000)" 
+                                    class="preset-btn px-3 py-2 text-sm font-medium rounded-2xl border border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300 active:scale-[0.985] text-center">
+                                5 000 ₽
+                            </button>
+                            <button onclick="setPreset('max')" 
+                                    class="preset-btn px-3 py-2 text-sm font-medium rounded-2xl border border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300 active:scale-[0.985] text-center">
+                                Максимум
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Credits received -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-3xl p-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="section-label text-slate-400">По курсу ЦБ вы получите</div>
+                                <div class="flex items-baseline gap-x-2 mt-2">
+                                    <div id="credits-amount" 
+                                         class="credit-value font-display text-4xl font-semibold tracking-tighter text-white">
+                                        13.91
+                                    </div>
+                                    <div class="text-xl text-slate-300 font-medium">кредитов</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Credit icon -->
+                            <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400/10 to-teal-400/10 border border-emerald-400/20 flex items-center justify-center">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-400/10 flex items-center justify-center">
+                                    <i class="fa-solid fa-gem text-emerald-400 text-3xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-1.5 pt-1.5 border-t border-slate-800 text-[10px] text-slate-500 flex items-center gap-x-2">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span>1 кредит = 1 $ (по курсу ЦБ на день оплаты)</span>
+                        </div>
+                    </div>
+
+                    <!-- Pay Button -->
+                    <div>
+                        <button onclick="processPayment()"
+                                id="pay-button"
+                                class="pay-button w-full py-3.5 px-6 rounded-3xl text-white font-semibold text-base tracking-tight flex items-center justify-center gap-x-2 shadow-xl active:scale-[0.985]">
+                            <span id="pay-text">Оплатить 1 000 ₽</span>
+                            <i class="fa-solid fa-arrow-right-long text-xl"></i>
+                        </button>
+                        
+                        <div class="flex items-center justify-center gap-x-2 mt-1">
+                            <div class="text-xs text-center">
+                                <span class="text-emerald-400">•</span> 
+                                <span class="text-slate-400 text-xs">Безопасная оплата через</span> 
+                                <span class="font-semibold text-white">Robokassa</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment methods -->
+                    <div class="pt-1">
+                        <div class="flex items-center justify-center gap-x-4">
+                            <div class="flex items-center -space-x-1">
+                                <!-- Payment icons -->
+                                <div class="w-8 h-5 bg-white rounded flex items-center justify-center shadow-sm border border-slate-200">
+                                    <span class="text-[9px] font-bold text-blue-600 tracking-tighter">VISA</span>
+                                </div>
+                                <div class="w-8 h-5 bg-white rounded flex items-center justify-center shadow-sm border border-slate-200">
+                                    <span class="text-[9px] font-bold text-red-600 tracking-tighter">MC</span>
+                                </div>
+                                <div class="w-8 h-5 bg-white rounded flex items-center justify-center shadow-sm border border-slate-200">
+                                    <span class="text-[9px] font-bold text-emerald-600 tracking-tighter">МИР</span>
+                                </div>
+                                <div class="w-8 h-5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded flex items-center justify-center shadow-sm">
+                                    <span class="text-[9px] font-bold text-white tracking-tighter">SBP</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trust footer -->
+            <div class="text-center mt-5 px-1">
+                <div class="inline-flex items-center gap-x-2 text-xs text-slate-500">
+                    <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+                    <span>Защищено SSL • Robokassa • 256-bit шифрование</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom amount modal -->
+    <div id="custom-modal" onclick="if (event.target.id === 'custom-modal') hideCustomModal()" 
+         class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="w-full max-w-[380px] bg-slate-900 border border-slate-700 rounded-3xl p-6">
+            
+            <div class="flex justify-between items-center mb-5">
+                <div class="font-semibold text-xl">Введите сумму</div>
+                <button onclick="hideCustomModal()" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="relative">
+                <input type="text" id="custom-amount-input" 
+                       class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-2xl py-4 px-5 text-4xl font-semibold tracking-tighter outline-none"
+                       placeholder="5000" inputmode="numeric">
+                <div class="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-slate-400 font-medium">₽</div>
+            </div>
+            
+            <div class="text-xs text-slate-400 mt-2 px-1">От 100 до 20 000 ₽</div>
+            
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button onclick="hideCustomModal()" 
+                        class="py-3.5 rounded-2xl border border-slate-700 text-sm font-medium hover:bg-slate-800 transition-colors">
+                    Отмена
+                </button>
+                <button onclick="applyCustomAmount()" 
+                        class="pay-button py-3.5 rounded-2xl text-white text-sm font-semibold">
+                    Применить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 text-sm px-5 py-3 rounded-3xl flex items-center gap-x-3 shadow-2xl z-[60]">
+        <i class="fa-solid fa-check-circle text-emerald-400"></i>
+        <span id="toast-text" class="text-slate-200"></span>
+    </div>
+
+    <script>
+        // Tailwind script
+        function initTailwind() {
+            document.documentElement.style.setProperty('--accent', '#6366f1');
+        }
+        
+        // State
+        let currentAmount = 1000;
+        const MIN_AMOUNT = 100;
+        const MAX_AMOUNT = 20000;
+        const CREDIT_RATE = 0.01391; // credits per RUB (based on original 1000 → 13.91)
+        
+        // Format number with Russian locale
+        function formatAmount(amount) {
+            return Math.round(amount).toLocaleString('ru-RU');
+        }
+        
+        // Update all UI from currentAmount
+        function updateUI(animate = true) {
+            // Amount display
+            const display = document.getElementById('amount-display');
+            display.textContent = formatAmount(currentAmount);
+            
+            if (animate) {
+                display.style.transform = 'scale(1.04)';
+                setTimeout(() => {
+                    display.style.transform = 'scale(1)';
+                }, 120);
+            }
+            
+            // Slider
+            const slider = document.getElementById('amount-slider');
+            slider.value = currentAmount;
+            
+            // Credits
+            updateCredits();
+            
+            // Pay button text
+            updatePayButtonText();
+            
+            // Update active preset
+            updateActivePreset();
+        }
+        
+        function updateCredits() {
+            const creditsEl = document.getElementById('credits-amount');
+            const bonusRow = document.getElementById('bonus-row');
+            const bonusPercentEl = document.getElementById('bonus-percent');
+            
+            // Calculate progressive bonus: 0% at low amounts → 20% at 20 000 ₽
+            const bonusPercent = Math.min(Math.floor((currentAmount / MAX_AMOUNT) * 20), 20);
+            const multiplier = 1 + (bonusPercent / 100);
+            
+            const baseCredits = currentAmount * CREDIT_RATE;
+            const finalCredits = (baseCredits * multiplier).toFixed(2);
+            
+            // Update main credits number (with bonus)
+            creditsEl.style.transition = 'none';
+            creditsEl.textContent = finalCredits;
+            void creditsEl.offsetWidth;
+            creditsEl.style.transition = 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)';
+            
+            // Show/hide bonus indicator
+            if (bonusPercent > 0) {
+                bonusRow.classList.remove('hidden');
+                bonusRow.classList.add('flex');
+                bonusPercentEl.textContent = bonusPercent;
+            } else {
+                bonusRow.classList.remove('flex');
+                bonusRow.classList.add('hidden');
+            }
+        }
+        
+        function updatePayButtonText() {
+            const payText = document.getElementById('pay-text');
+            payText.textContent = `Оплатить ${formatAmount(currentAmount)} ₽`;
+        }
+        
+        function updateActivePreset() {
+            // Remove all active
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-indigo-500');
+                btn.classList.add('border-slate-700');
+            });
+            
+            // Find matching preset
+            let matched = false;
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                const val = btn.getAttribute('onclick');
+                if (!val) return;
+                
+                if (val.includes('500') && currentAmount === 500) {
+                    btn.classList.add('active', 'border-indigo-500');
+                    btn.classList.remove('border-slate-700');
+                    matched = true;
+                } else if (val.includes('2000') && currentAmount === 2000) {
+                    btn.classList.add('active', 'border-indigo-500');
+                    btn.classList.remove('border-slate-700');
+                    matched = true;
+                } else if (val.includes('5000') && currentAmount === 5000) {
+                    btn.classList.add('active', 'border-indigo-500');
+                    btn.classList.remove('border-slate-700');
+                    matched = true;
+                } else if (val.includes('max') && currentAmount === MAX_AMOUNT) {
+                    btn.classList.add('active', 'border-indigo-500');
+                    btn.classList.remove('border-slate-700');
+                    matched = true;
+                }
+            });
+            
+            // If no exact match, no active preset (user used slider or custom)
+        }
+        
+        // Set from slider
+        function updateFromSlider() {
+            const slider = document.getElementById('amount-slider');
+            currentAmount = parseInt(slider.value);
+            updateUI(false);
+        }
+        
+        // Set preset
+        function setPreset(value) {
+            if (value === 'max') {
+                currentAmount = MAX_AMOUNT;
+            } else {
+                currentAmount = value;
+            }
+            
+            // Update UI
+            updateUI(true);
+            
+            // Visual feedback on button
+            const buttons = document.querySelectorAll('.preset-btn');
+            buttons.forEach(btn => {
+                btn.style.transform = 'scale(0.96)';
+                setTimeout(() => {
+                    btn.style.transform = '';
+                }, 100);
+            });
+        }
+        
+        // Show custom amount modal
+        function showCustomAmountInput() {
+            const modal = document.getElementById('custom-modal');
+            const input = document.getElementById('custom-amount-input');
+            
+            input.value = currentAmount;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Focus after animation
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 50);
+            
+            // Enter key support
+            input.onkeydown = function(e) {
+                if (e.key === 'Enter') {
+                    applyCustomAmount();
+                }
+                if (e.key === 'Escape') {
+                    hideCustomModal();
+                }
+            };
+        }
+        
+        function hideCustomModal() {
+            const modal = document.getElementById('custom-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+        
+        function applyCustomAmount() {
+            const input = document.getElementById('custom-amount-input');
+            let value = parseInt(input.value.replace(/\s/g, ''));
+            
+            if (!value || isNaN(value)) value = MIN_AMOUNT;
+            if (value < MIN_AMOUNT) value = MIN_AMOUNT;
+            if (value > MAX_AMOUNT) value = MAX_AMOUNT;
+            
+            currentAmount = value;
+            updateUI(true);
+            hideCustomModal();
+        }
+        
+        // Process payment (demo)
+        function processPayment() {
+            const btn = document.getElementById('pay-button');
+            const originalHTML = btn.innerHTML;
+            
+            // Loading state
+            btn.disabled = true;
+            btn.innerHTML = `
+                <span class="flex items-center gap-x-3">
+                    <i class="fa-solid fa-spinner fa-spin"></i> 
+                    <span>Обработка платежа...</span>
+                </span>
+            `;
+            btn.style.background = 'linear-gradient(135deg, #475569 0%, #334155 100%)';
+            
+            setTimeout(() => {
+                // Success state
+                btn.innerHTML = `
+                    <span class="flex items-center gap-x-3">
+                        <i class="fa-solid fa-check-circle text-emerald-300"></i> 
+                        <span>Платёж инициирован!</span>
+                    </span>
+                `;
+                btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                
+                // Show toast
+                showToast(`Платёж на ${formatAmount(currentAmount)} ₽ успешно отправлен в Robokassa`);
+                
+                // Reset after delay or redirect simulation
+                setTimeout(() => {
+                    // In real app: window.location.href = '/robokassa-redirect?amount=' + currentAmount
+                    btn.innerHTML = originalHTML;
+                    btn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+                    btn.disabled = false;
+                    
+                    // Optional: show success screen or close modal
+                    showSuccessScreen();
+                }, 2200);
+            }, 1450);
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const text = document.getElementById('toast-text');
+            
+            text.textContent = message;
+            toast.style.display = 'flex';
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.3s ease';
+                toast.style.opacity = '0';
+                
+                setTimeout(() => {
+                    toast.style.opacity = '1';
+                    toast.style.transition = '';
+                    toast.style.display = 'none';
+                    toast.classList.add('hidden');
+                }, 200);
+            }, 3800);
+        }
+        
+        function showSuccessScreen() {
+            const card = document.querySelector('.modern-card');
+            
+            card.innerHTML = `
+                <div class="p-8 text-center">
+                    <div class="mx-auto w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-check-circle text-emerald-400 text-6xl"></i>
+                    </div>
+                    
+                    <h2 class="font-display text-3xl font-semibold tracking-tight">Пополнение успешно!</h2>
+                    <p class="text-slate-400 mt-2">Кредиты зачислены на ваш баланс</p>
+                    
+                    <div class="my-8 p-5 bg-slate-950 border border-slate-800 rounded-3xl">
+                        <div class="text-sm text-slate-400">Получено кредитов</div>
+                        <div class="font-display text-5xl font-semibold tracking-tighter text-emerald-400 mt-1">
+                            ${(currentAmount * CREDIT_RATE).toFixed(2)}
+                        </div>
+                    </div>
+                    
+                    <div class="text-xs text-slate-500 mb-6">
+                        Транзакция обработана через Robokassa<br>
+                        Статус: <span class="text-emerald-400 font-medium">Завершено</span>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="location.reload()" 
+                                class="flex-1 py-3.5 border border-slate-700 hover:bg-slate-800 rounded-2xl text-sm font-medium transition-colors">
+                            Закрыть
+                        </button>
+                        <button onclick="location.reload()" 
+                                class="flex-1 py-3.5 bg-white text-slate-950 font-semibold rounded-2xl text-sm">
+                            Вернуться в кабинет
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function closeModal() {
+            // In real usage this would close the modal
+            // For demo we show a hint
+            const container = document.querySelector('.form-container');
+            container.style.transition = 'all 0.2s ease';
+            container.style.opacity = '0.3';
+            container.style.transform = 'scale(0.96)';
+            
+            setTimeout(() => {
+                alert('В реальном приложении здесь будет закрытие модального окна (window.closeModal или emit события)');
+                container.style.opacity = '1';
+                container.style.transform = 'scale(1)';
+            }, 220);
+        }
+        
+        // Keyboard support
+        function initKeyboard() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    const slider = document.getElementById('amount-slider');
+                    slider.focus();
+                }
+                
+                // +/- quick adjust
+                if (document.activeElement.tagName === 'BODY') {
+                    if (e.key === '+' || e.key === '=') {
+                        e.preventDefault();
+                        currentAmount = Math.min(currentAmount + 500, MAX_AMOUNT);
+                        updateUI(true);
+                    }
+                    if (e.key === '-') {
+                        e.preventDefault();
+                        currentAmount = Math.max(currentAmount - 500, MIN_AMOUNT);
+                        updateUI(true);
+                    }
+                }
+            });
+            
+            // Allow typing numbers directly when focused on body (demo)
+            let typingBuffer = '';
+            document.addEventListener('keypress', function(e) {
+                if (document.activeElement.tagName === 'BODY' && /[0-9]/.test(e.key)) {
+                    typingBuffer += e.key;
+                    
+                    // Debounce
+                    clearTimeout(window.typingTimeout);
+                    window.typingTimeout = setTimeout(() => {
+                        if (typingBuffer.length > 0) {
+                            let num = parseInt(typingBuffer);
+                            if (num >= MIN_AMOUNT && num <= MAX_AMOUNT) {
+                                currentAmount = num;
+                                updateUI(true);
+                            }
+                        }
+                        typingBuffer = '';
+                    }, 650);
+                }
+            });
+        }
+        
+        // Initialize everything
+        function initializeForm() {
+            initTailwind();
+            
+            // Set initial values
+            const slider = document.getElementById('amount-slider');
+            slider.value = currentAmount;
+            
+            // Initial UI update
+            updateUI(false);
+            
+            // Make sure initial preset is highlighted
+            setTimeout(() => {
+                updateActivePreset();
+            }, 50);
+            
+            // Bonus: random small animation on load for the credit value
+            setTimeout(() => {
+                const credits = document.getElementById('credits-amount');
+                credits.style.transform = 'translateY(-2px)';
+                setTimeout(() => {
+                    credits.style.transform = 'translateY(0)';
+                }, 180);
+            }, 800);
+            
+            // Keyboard shortcuts
+            initKeyboard();
+            
+            // Easter egg: click logo to reset to 1000
+            const logo = document.querySelector('.fa-gem');
+            if (logo) {
+                logo.parentElement.style.cursor = 'pointer';
+                logo.parentElement.onclick = () => {
+                    currentAmount = 1000;
+                    updateUI(true);
+                };
+            }
+            
+            // Demo tip in console
+            console.log('%c[AVG Expert] Форма оплаты готова. Горячие клавиши: +/- для изменения суммы, / — фокус на слайдер', 'color:#64748b');
+        }
+        
+        // Boot
+        window.onload = initializeForm;
+    </script>
+</body>
+</html>

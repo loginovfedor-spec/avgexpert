@@ -28,7 +28,3 @@ export class DocumentContextResolver {
 
 export const documentContextResolver = new DocumentContextResolver();
 
-module.exports = {
-  DocumentContextResolver,
-  documentContextResolver,
-};

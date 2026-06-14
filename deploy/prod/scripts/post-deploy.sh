@@ -15,6 +15,9 @@ cd "$ROOT"
 echo "[post-deploy] PG migrations..."
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T app npm run kb:pg:migrate
 
+echo "[post-deploy] App schema smoke..."
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T app npm run app:pg:smoke
+
 echo "[post-deploy] PG smoke..."
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T app npm run kb:pg:smoke
 

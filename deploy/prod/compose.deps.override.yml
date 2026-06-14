@@ -1,0 +1,16 @@
+# Windows / CPU dev: не блокировать app на healthy reranker (warmup может занять 30+ мин)
+services:
+  app:
+    environment:
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tei-bge-m3:
+        condition: service_healthy
+      tei-bge-reranker:
+        condition: service_started
+      llama-cpp:
+        condition: service_started
+      envoy:
+        condition: service_started

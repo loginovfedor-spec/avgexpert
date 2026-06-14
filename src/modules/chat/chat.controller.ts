@@ -1,23 +1,17 @@
 import { Request, Response } from 'express';
-// @ts-ignore
-import categoryRepository = require('../admin/category.repository');
-// @ts-ignore
-import chatService = require('./chat.service');
-// @ts-ignore
-import fastChatService = require('./fast_chat.service');
-// @ts-ignore
-import missionBinding = require('./mission_binding.service');
-// @ts-ignore
-import userRepository = require('../auth/user.repository');
-// @ts-ignore
-import { writeChatCompletionStream } from './stream_response.service';
-// @ts-ignore
-import { recordTokenUsage } from './token_usage.service';
+import categoryRepository from '../admin/category.repository';
+import chatService from './chat.service';
+import fastChatService from './fast_chat.service';
+import missionBinding from './mission_binding.service';
+import { writeChatCompletionStream, writeErrorResponse } from './stream_response.service';
+import { recordUsageAndCost } from './token_usage.service';
+import { assertUserCanSpendFunds, buildRecordUsageParams } from './billing.helpers';
+import traceBus from '../observability/trace.bus';
 import { StreamEvent } from '../../types/chat.types';
-// @ts-ignore
-import logger = require('../../core/logger');
-// @ts-ignore
-const { isRagEffective } = require('../rag/rag.policy');
+import logger from '../../core/logger';
+import { isRagEffective } from '../rag/rag.policy';
+import providersConfig from '../../core/providers.config';
+import { getDatabasePort } from '../../core/pg';
 
 const chatControllerLogger = logger.scoped('ChatController');
 
@@ -25,8 +19,6 @@ type ChatUser = {
   username: string;
   category?: string;
   allowed_categories?: string[];
-  tokens_allocated?: number;
-  is_blocked?: boolean | number;
   [key: string]: unknown;
 };
 
@@ -47,58 +39,15 @@ type ChatRequest = Request & {
 
 type CategorySettings = Record<string, unknown> & {
   model_name?: string;
+  provider?: string;
   rag_allowed?: boolean | number;
   rag_enabled?: boolean | number;
   sandbox_enabled?: boolean | number;
-  complexity?: number;
 };
-
-type TokenBalance = {
-  balance: number;
-};
-
-type ErrorLike = Error & {
-  status?: number;
-  code?: string;
-  details?: unknown;
-};
-
-function toErrorLike(err: unknown): ErrorLike {
-  return err instanceof Error ? err as ErrorLike : new Error(String(err)) as ErrorLike;
-}
 
 class ChatController {
   async handleCompletion(req: ChatRequest, res: Response) {
     const { user, body } = req;
-
-    if (user.is_blocked) {
-      return res.status(403).json({
-        error: {
-          code: 'user_blocked',
-          message: 'Доступ к моделям заблокирован. Обратитесь к администратору.',
-        }
-      });
-    }
-
-    const tokensAllocated = user.tokens_allocated || 0;
-    if (tokensAllocated === 0) {
-      return res.status(403).json({
-        error: {
-          code: 'no_token_quota',
-          message: 'Токены не выделены. Обратитесь к администратору.',
-        }
-      });
-    }
-
-    const balance = await userRepository.getTokenBalance(user.username) as TokenBalance | null;
-    if (balance && balance.balance <= 0) {
-      return res.status(403).json({
-        error: {
-          code: 'tokens_exhausted',
-          message: 'Лимит токенов исчерпан. Обратитесь к администратору.',
-        }
-      });
-    }
 
     let categoryName = body.category || user.category;
     const allowed = user.allowed_categories || [];
@@ -116,58 +65,75 @@ class ChatController {
 
     if (isFastPath) {
       try {
+        // Свежая проверка баланса перед вызовом модели (аналогично heavy path в chat.service.ts)
+        if (!user.is_admin) {
+          const db = getDatabasePort();
+          const fresh = await db.get<{ balance_usd: number | string; credit_limit_usd?: number | string; is_blocked: boolean }>(
+            'SELECT balance_usd, credit_limit_usd, is_blocked FROM users WHERE username = @username',
+            { username: user.username }
+          );
+          if (fresh) {
+            assertUserCanSpendFunds(fresh);
+          }
+        }
+
         const stream = await fastChatService.handleFastCompletion({ user, body, catSettings });
-        return this._streamToResponse(stream, res, catSettings, body.stream, user);
+        return this._streamToResponse(stream, res, catSettings, body.stream, user, body);
       } catch (err) {
-        return this._handleError(err, res);
+        const message = err instanceof Error ? err.message : String(err);
+        chatControllerLogger.error('Chat completion failed', { message });
+        traceBus.emitTrace('ChatController', 'model.failed', {
+          providerId: String(catSettings.provider || 'unknown'),
+          error: message,
+        });
+        return writeErrorResponse(err, res);
       }
     }
 
     return chatService.handleCompletion({ user, body, catSettings, res, missionId });
   }
 
-  async _streamToResponse(stream: AsyncIterable<StreamEvent>, res: Response, catSettings: CategorySettings, isStreaming: boolean | undefined, user: ChatUser) {
-    let modelName = catSettings?.model_name || 'default';
-
+  async _streamToResponse(stream: AsyncIterable<StreamEvent>, res: Response, catSettings: CategorySettings, isStreaming: boolean | undefined, user: ChatUser, body: ChatBody) {
     const ac = new AbortController();
     const reqCloseHandler = () => ac.abort();
     res.req.on('close', reqCloseHandler);
 
+    const startTimestamp = Date.now();
+
     try {
-      const result = await writeChatCompletionStream({ stream, res, modelName, isStreaming });
-      await recordTokenUsage({
-        user,
-        usage: result.usage,
-        complexity: catSettings?.complexity ?? 1.0,
-        source: 'fast path'
+      const result = await writeChatCompletionStream({ stream, res, modelName: catSettings?.model_name || 'default', isStreaming });
+      const providerCfg = providersConfig[result.providerId] || {};
+
+      await recordUsageAndCost(
+        buildRecordUsageParams({
+          user,
+          result,
+          providerCfg,
+          catSettings,
+          body,
+          source: 'fast path',
+        })
+      );
+
+      traceBus.emitTrace('ChatController', 'model.completed', {
+        providerId: result.providerId,
+        modelName: catSettings?.model_name || 'default',
+        latencyMs: Date.now() - startTimestamp,
+        costUsd: result.usage?.cost_usd,
       });
     } catch (err: unknown) {
-      this._handleError(err, res);
+      const message = err instanceof Error ? err.message : String(err);
+      chatControllerLogger.error('Chat completion failed', { message });
+      traceBus.emitTrace('ChatController', 'model.failed', {
+        providerId: String(catSettings.provider || 'unknown'),
+        error: message,
+      });
+      writeErrorResponse(err, res);
     } finally {
       res.req.off('close', reqCloseHandler);
-    }
-  }
-
-  _handleError(err: unknown, res: Response, providerId: string = 'unknown') {
-    const error = toErrorLike(err);
-    chatControllerLogger.error('Chat completion failed', { providerId, message: error.message, code: error.code });
-    const status = error.status || 502;
-    const errorPayload = {
-      error: {
-        code: error.code || 'provider_error',
-        message: error.message,
-        details: error.details || null
-      }
-    };
-
-    if (res.headersSent) {
-      res.write(`data: ${JSON.stringify(errorPayload)}\n\n`);
-      res.write('data: [DONE]\n\n');
-      res.end();
-    } else {
-      res.status(status).json(errorPayload);
     }
   }
 }
 
 export = new ChatController();
+

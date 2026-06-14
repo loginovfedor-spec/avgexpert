@@ -1,6 +1,6 @@
-import fs = require('fs');
-import path = require('path');
-import dotenv = require('dotenv');
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
 import { v5 as uuidv5 } from 'uuid';
 import { closePgPools } from '../src/modules/vector/pg/pool';
 import { runVectorMigrations } from '../src/modules/vector/pg/migrate';

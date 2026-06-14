@@ -1,0 +1,11 @@
+declare module 'highlight.js/styles/github-dark.min.css';
+declare module '@fontsource/inter/latin-300.css';
+declare module '@fontsource/inter/latin-400.css';
+declare module '@fontsource/inter/latin-500.css';
+declare module '@fontsource/inter/latin-600.css';
+declare module '@fontsource/inter/latin-700.css';
+declare module '@fontsource/inter/cyrillic-300.css';
+declare module '@fontsource/inter/cyrillic-400.css';
+declare module '@fontsource/inter/cyrillic-500.css';
+declare module '@fontsource/inter/cyrillic-600.css';
+declare module '@fontsource/inter/cyrillic-700.css';

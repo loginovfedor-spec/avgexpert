@@ -126,13 +126,3 @@ export function applyMetadataScoring(
     .sort((a, b) => b.score - a.score);
 }
 
-module.exports = {
-  applyMetadataScoring,
-  computeMetadataBoost,
-  candidateTopK,
-  tokenize,
-  normalizeTags,
-  tagMatchesQuery,
-  DOC_TYPE_BOOST,
-  MAX_METADATA_BOOST,
-};

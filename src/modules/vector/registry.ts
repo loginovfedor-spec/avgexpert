@@ -71,10 +71,3 @@ export function createTieredRetrieverFromEnv(
   );
 }
 
-module.exports = {
-  createVectorStore,
-  loadVectorStoreConfig,
-  createVectorStoreFromEnv,
-  createVectorStackFromEnv,
-  createTieredRetrieverFromEnv,
-};

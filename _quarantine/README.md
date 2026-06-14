@@ -9,4 +9,8 @@
 | `legacy-config/env.ts` | Урезанный дубликат `src/core/config.ts` |
 | `scratch-legacy/` | SQLite-era scratch-скрипты после миграции на PG (см. README внутри) |
 
-Исключено из `tsc` (`tsconfig.json` → `exclude`).
+Typecheck:
+- `legacy-providers/`, `legacy-config/` — `tsconfig.quarantine.json` (CI + `npm run typecheck`)
+- `scratch-legacy/` — не компилируется (SQLite-era, см. README внутри)
+
+Основной `tsconfig.json` не включает `_quarantine` в emit (`exclude`).

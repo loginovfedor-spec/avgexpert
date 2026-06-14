@@ -15,4 +15,3 @@ export async function withKbUploadLock<T>(key: string, fn: () => Promise<T>): Pr
   }
 }
 
-module.exports = { withKbUploadLock };

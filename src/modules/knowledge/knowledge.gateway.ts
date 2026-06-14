@@ -1,17 +1,13 @@
-import knowledgeRouter = require('./knowledge.router');
+import knowledgeRouter from './knowledge.router';
 import { RetrievalResult } from './knowledge.types';
 import { IRetrievalChunk } from '../../types/knowledge.types';
 import { RetrievalMode } from '../../types/knowledge.types';
-import knowledgeCache = require('./knowledge.cache');
+import knowledgeCache from './knowledge.cache';
 import { formatRetrievalContext } from '../rag/format-context';
-// @ts-ignore
 import { KNOWLEDGE_GATEWAY_ENABLED } from '../../core/config';
 import { PgTsvectorRetriever } from '../vector/retrievers/pg_tsvector.retriever';
-// @ts-ignore
-import traceBus = require('../observability/trace.bus');
-// @ts-ignore
-import logger = require('../../core/logger');
-
+import traceBus from '../observability/trace.bus';
+import logger from '../../core/logger';
 const knowledgeLogger = logger.scoped('KnowledgeGateway');
 
 type Retriever = {
@@ -26,7 +22,7 @@ type KnowledgeGatewaySettings = {
 };
 
 type RetrieveOptions = {
-  settings?: KnowledgeGatewaySettings;
+  settings?: KnowledgeGatewaySettings & { sessionId?: string };
 };
 
 class KnowledgeGateway {

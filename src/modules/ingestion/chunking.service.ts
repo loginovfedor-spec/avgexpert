@@ -188,7 +188,3 @@ export function createChunkingService(): ChunkingService {
   return new ChunkingService();
 }
 
-module.exports = {
-  ChunkingService,
-  createChunkingService,
-};

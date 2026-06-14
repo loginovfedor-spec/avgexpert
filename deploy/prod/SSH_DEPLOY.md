@@ -2,6 +2,29 @@
 
 Инструкция для выката **AvgExpert** на **Tesla L4 vGPU-8-16-L4-8Q** с вашего ПК через SSH.
 
+## Единый сценарий pilot (D5)
+
+```mermaid
+flowchart TD
+    A[prod:ssh-prepare] --> B[reboot опционально]
+    B --> C[prod:ssh-install]
+    C --> D[.env + providers на сервере]
+    D --> E[migrate-rag-db.sh]
+    E --> F[post-deploy.sh]
+    F --> G[HTTPS nginx]
+    G --> H[Ежедневно: prod:ssh-update]
+```
+
+| Этап | Команда (ноутбук) | Документ |
+|------|-------------------|----------|
+| 1. Подготовка ОС | `npm run prod:ssh-prepare` | [SERVER_PREP.md](SERVER_PREP.md) |
+| 2. Первый стек Docker | `npm run prod:ssh-install` | [README.md](README.md) |
+| 3. Перенос RAG KB | `npm run prod:migrate-rag` (на сервере) | [RAG_DB_MIGRATION.md](RAG_DB_MIGRATION.md) |
+| 4. Dev на ноутбуке | `deploy/dev/tunnel.sh` + `npm start` | [DEV_REMOTE.md](../dev/DEV_REMOTE.md) |
+| 5. Выкат кода | `npm run prod:ssh-update` | [DEV_TO_PILOT.md](DEV_TO_PILOT.md) |
+
+---
+
 ## Что нужно заранее
 
 ### На вашем ПК (Windows)
@@ -46,20 +69,28 @@ nvidia-smi
 ## Способ 1 — автоматический скрипт с ПК
 
 ```bash
-# Из корня репозитория (Git Bash / WSL / Linux)
-cd avgexpert
+# Из корня avgexpert/ (Git Bash / WSL / Linux)
 cp deploy/prod/ssh-deploy.env.example deploy/prod/ssh-deploy.env
-# Отредактируйте SERVER, путь, git URL
+# SERVER, REMOTE_ROOT, GIT_REPO
 
-bash deploy/prod/scripts/ssh-deploy.sh
+npm run prod:ssh-prepare   # prepare-server.sh (locale, swap, UFW)
+# reboot на сервере при необходимости
+
+npm run prod:ssh-install   # git pull + install.sh (Docker, compose up)
+
+npm run prod:ssh-update    # только rebuild app (ежедневный выкат)
+npm run prod:ssh-status    # ps + check-gpu
+npm run prod:ssh-logs      # compose logs -f
 ```
+
+Эквивалент: `bash deploy/prod/scripts/ssh-deploy.sh [prepare|install|update|status|logs]`.
 
 Скрипт:
 
 1. Проверяет SSH-доступ
-2. Копирует проект на сервер (`rsync` или `git clone`)
-3. Запускает `install.sh` на сервере
-4. Подсказывает следующие шаги (`.env`, post-deploy)
+2. Копирует проект на сервер (`git pull` или `rsync`)
+3. **prepare** — `prepare-server.sh`; **install** — `install.sh`; **update** — rebuild `app` + `post-deploy.sh`
+4. Подсказывает следующие шаги (`.env`, migrate RAG, HTTPS)
 
 ---
 
@@ -191,7 +222,7 @@ bash deploy/prod/scripts/post-deploy.sh
 С локального ПК (если настроен `ssh-deploy.env`):
 
 ```bash
-bash deploy/prod/scripts/ssh-deploy.sh update
+npm run prod:ssh-update
 ```
 
 ---

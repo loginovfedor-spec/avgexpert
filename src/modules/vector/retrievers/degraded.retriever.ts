@@ -3,10 +3,12 @@ import type { IRetrievalChunk } from '../../../types/knowledge.types';
 import { TieredRetriever, TieredRetrieveResult } from './tiered.retriever';
 import { getVectorHealthSection, VectorHealthSection } from '../vector.health';
 import { getTopK } from '../../rag/tier.policy';
+import { FTS_FALLBACK_ENABLED } from '../../../core/config';
 
 function isFtsFallbackEnabled(): boolean {
-  // @ts-ignore runtime read — supports tests and env changes without reload
-  const { FTS_FALLBACK_ENABLED } = require('../../../core/config');
+  if (process.env.FTS_FALLBACK_ENABLED !== undefined) {
+    return process.env.FTS_FALLBACK_ENABLED === 'true';
+  }
   return Boolean(FTS_FALLBACK_ENABLED);
 }
 
@@ -108,4 +110,3 @@ export class DegradedRetriever implements Retriever {
   }
 }
 
-module.exports = { DegradedRetriever };

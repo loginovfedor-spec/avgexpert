@@ -8,7 +8,7 @@ echo.
 
 cd /d "%~dp0"
 
-echo [INFO] Starting API Gateway on port 8080...
+echo [INFO] Starting API Gateway (default port 8200, see AVGEXPERT_PORT in .env)...
 echo.
 echo ========================================
 echo   System is LIVE. Press Ctrl+C to stop.

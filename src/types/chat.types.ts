@@ -8,11 +8,27 @@ export interface ChatMessage {
   tool_call_id?: string;
 }
 
+export interface NormalizedRates {
+  inputRate: number;        // USD за токен (поделено на 1_000_000)
+  cachedRate: number;       // USD за токен (поделено на 1_000_000)
+  outputRate: number;      // USD за токен (поделено на 1_000_000)
+  costMode: string;
+  currency: string;
+  exchangeRate: number;
+  rateUsdPerHour?: number;
+  minBillableSeconds?: number;
+}
+
 export interface ModelUsage {
   prompt_tokens: number;
   completion_tokens: number;
   reasoning_tokens?: number;
+  cached_input_tokens?: number;
+  cost_usd?: number;
   total_tokens: number;
+  compute_seconds?: number;
+  _rates?: NormalizedRates;
+  _costMode?: string;
 }
 
 export interface StreamEvent {

@@ -2,7 +2,12 @@ import { StreamEvent, ModelUsage } from '../../types/chat.types';
 
 const ProviderEvents = {
   delta: (text: string): StreamEvent => ({ type: 'delta', text }),
-  
+
+  reasoningDelta: (text: string): StreamEvent => ({
+    type: 'delta',
+    text: `<think>${text}</think>`,
+  }),
+
   toolCall: (toolCall: unknown): StreamEvent => ({ type: 'tool_call', toolCall }),
   
   done: (finishReason: string = 'stop', usage: ModelUsage | null = null): StreamEvent => ({ 

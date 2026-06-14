@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="layout.css">
     <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="forms.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="responsive.css">
     <!-- CDN fallback for direct-serve (non-Vite) dev mode only.
          In production the Vite build strips these and uses self-hosted bundles instead. -->
@@ -83,48 +84,9 @@
         </div>
     </div>
 
-    <div id="credits-modal" class="credits-modal hidden" role="dialog" aria-label="Оплата кредитов" aria-modal="true">
+    <div id="credits-modal" class="credits-modal hidden" role="dialog" aria-label="Оплата" aria-modal="true">
         <div class="credits-modal-backdrop" id="credits-modal-backdrop"></div>
-        <div class="credits-modal-panel">
-            <div class="credits-modal-header">
-                <div>
-                    <span class="credits-modal-kicker">AVG Expert</span>
-                    <h2>Оплата кредитов</h2>
-                </div>
-                <button class="credits-modal-close" id="credits-modal-close" type="button" aria-label="Закрыть оплату кредитов">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                </button>
-            </div>
-            <div class="pricing-grid mt-sm">
-                <button class="pricing-card" data-amount="200">
-                    <div class="pricing-img-wrapper">
-                        <img class="pricing-illustration" src="assets/credits/credits-speed.png" alt="Скорость обработки запросов" loading="lazy" decoding="async">
-                    </div>
-                    <div class="pricing-info">
-                        <span class="pricing-credits">1 000 кредитов</span>
-                        <span class="pricing-price">200 ₽</span>
-                    </div>
-                </button>
-                <button class="pricing-card" data-amount="2000">
-                    <div class="pricing-img-wrapper">
-                        <img class="pricing-illustration" src="assets/credits/credits-professional.png" alt="Профессиональная работа с AI-кредитами" loading="lazy" decoding="async">
-                    </div>
-                    <div class="pricing-info">
-                        <span class="pricing-credits">12 000 кредитов <span class="pricing-badge">+20%</span></span>
-                        <span class="pricing-price">2 000 ₽</span>
-                    </div>
-                </button>
-                <button class="pricing-card" data-amount="20000">
-                    <div class="pricing-img-wrapper">
-                        <img class="pricing-illustration" src="assets/credits/credits-system.png" alt="Системный подход к использованию кредитов" loading="lazy" decoding="async">
-                    </div>
-                    <div class="pricing-info">
-                        <span class="pricing-credits">150 000 кредитов <span class="pricing-badge">+50%</span></span>
-                        <span class="pricing-price">20 000 ₽</span>
-                    </div>
-                </button>
-            </div>
-        </div>
+        <div id="payment-container" class="relative z-10 w-full max-w-[420px] mx-auto min-h-screen flex items-center justify-center p-4"></div>
     </div>
 
     <div id="about-modal" class="credits-modal hidden" role="dialog" aria-label="О нас" aria-modal="true">
@@ -660,27 +622,21 @@
                             <span class="toggle-slider"></span>
                         </label>
 
-                        <h4 class="section-subtitle mt-sm">🪙 Кредиты</h4>
+                        <h4 class="section-subtitle mt-sm">🪙 Баланс и биллинг</h4>
                         <div class="credits-block">
                             <div class="grid-2col mb-sm">
                                 <div>
-                                    <label class="field-label">Выделено кредитов</label>
-                                    <input type="number" id="admin-tokens-allocated" class="setup-input" placeholder="0" min="0" step="1" aria-label="Выделено кредитов" style="text-align:right">
+                                    <label class="field-label">Баланс, кредиты</label>
+                                    <input type="text" inputmode="decimal" id="admin-balance-usd" class="setup-input" placeholder="0" aria-label="Баланс в кредитах" style="text-align:right">
                                 </div>
                                 <div>
-                                    <label class="field-label">Остаток кредитов</label>
-                                    <input type="number" id="admin-tokens-balance" class="setup-input input--readonly" readonly tabindex="-1" aria-label="Остаток кредитов">
+                                    <label class="field-label">Лимит овердрафта, кредиты</label>
+                                    <input type="text" inputmode="decimal" id="admin-credit-limit-usd" class="setup-input" placeholder="0" aria-label="Лимит овердрафта в кредитах" style="text-align:right">
                                 </div>
                             </div>
-                            <div class="grid-2col">
-                                <div>
-                                    <label class="field-label">Использовано входных кредитов</label>
-                                    <input type="number" id="admin-tokens-input-used" class="setup-input input--readonly" readonly tabindex="-1" aria-label="Использовано входных кредитов">
-                                </div>
-                                <div>
-                                    <label class="field-label">Использовано выходных кредитов</label>
-                                    <input type="number" id="admin-tokens-output-used" class="setup-input input--readonly" readonly tabindex="-1" aria-label="Использовано выходных кредитов">
-                                </div>
+                            <div>
+                                <label class="field-label">Суммарный расход, кредиты</label>
+                                <input type="text" id="admin-cost-usd-used" class="setup-input input--readonly" readonly tabindex="-1" aria-label="Суммарный расход в кредитах">
                             </div>
                         </div>
 
@@ -847,6 +803,6 @@
         </section>
     </div>
 
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="ts/main.ts"></script>
 </body>
 </html>

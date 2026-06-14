@@ -67,4 +67,3 @@ export class SelfHostedRerankerProvider implements RerankerProvider {
   }
 }
 
-module.exports = { SelfHostedRerankerProvider };

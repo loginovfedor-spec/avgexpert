@@ -9,6 +9,12 @@ services:
     gpus: !reset null
     mem_limit: 4g
     cpus: "4"
+    volumes:
+      - ../../local-dev/data/tei:/data
     environment:
       HF_HUB_ENABLE_HF_TRANSFER: "0"
       OMP_NUM_THREADS: "4"
+
+  tei-bge-reranker:
+    volumes:
+      - ../../local-dev/data/tei-reranker:/data

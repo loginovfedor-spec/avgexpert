@@ -1,8 +1,10 @@
-import BaseProvider = require('../base.provider');
+import BaseProvider from '../base.provider';
+import ProviderEvents from '../providerEvents';
+import { ProviderError } from '../providerErrors';
 import { ProviderUtils } from './provider_utils';
 import { ChatMessage, StreamEvent } from '../../../types/chat.types';
-import logger = require('../../../core/logger');
-
+import logger from '../../../core/logger';
+import costCalculator from '../../cost/cost_calculator.service';
 const deepseekLogger = logger.scoped('DeepSeekAdapter');
 
 type DeepSeekConfig = Record<string, unknown> & {
@@ -58,8 +60,13 @@ class DeepSeekProvider extends BaseProvider {
     super({
       id: config.id || 'deepseek',
       name: config.name || 'DeepSeek',
-      models: config.models || ['deepseek-chat', 'deepseek-reasoner'],
-      defaultModel: config.defaultModel || 'deepseek-chat',
+      models: config.models || [
+        'deepseek-v4-pro',
+        'deepseek-v4-flash',
+        'deepseek-reasoner',
+        'deepseek-chat',
+      ],
+      defaultModel: config.defaultModel || 'deepseek-v4-flash',
       capabilities: Object.assign(
         { stream: true, tools: true, retrieval: true },
         config.capabilities
@@ -69,7 +76,6 @@ class DeepSeekProvider extends BaseProvider {
   }
 
   async *handleChat(messages: ChatMessage[], config: DeepSeekConfig, options: DeepSeekOptions = {}): AsyncIterable<StreamEvent> {
-    const ProviderEvents = require('../providerEvents');
     
     const params: Record<string, unknown> = {
       model: config.model_name || config.defaultModel || this.defaultModel,
@@ -146,7 +152,14 @@ class DeepSeekProvider extends BaseProvider {
                }
             }
          }
-         yield ProviderEvents.done('stop', ProviderUtils.normalizeUsage(finalUsage)); 
+          yield ProviderEvents.done(
+            'stop',
+            costCalculator.enrichUsage(ProviderUtils.normalizeUsage(finalUsage), {
+              providerId: this.id,
+              modelName: String(params.model),
+              config
+            })
+          ); 
       } else {
          const data = await response.json() as DeepSeekResponse;
          const choice = data.choices[0];
@@ -164,10 +177,16 @@ class DeepSeekProvider extends BaseProvider {
          if (choice.message?.tool_calls) {
             yield ProviderEvents.toolCall(choice.message.tool_calls);
          }
-         yield ProviderEvents.done(choice.finish_reason || 'stop', ProviderUtils.normalizeUsage(data.usage));
+          yield ProviderEvents.done(
+            choice.finish_reason || 'stop',
+            costCalculator.enrichUsage(ProviderUtils.normalizeUsage(data.usage), {
+              providerId: this.id,
+              modelName: String(params.model),
+              config
+            })
+          );
       }
     } catch (err: unknown) {
-      const { ProviderError } = require('../providerErrors');
       const source = err instanceof Error ? err as ProviderErrorSource : new Error(String(err)) as ProviderErrorSource;
       throw new ProviderError(source.message, source.status || 502);
     }

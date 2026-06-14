@@ -37,8 +37,3 @@ export function createSemanticGraphServiceFromEnv(
   }
 }
 
-module.exports = {
-  parseBoolean,
-  resolveSemanticGraphEnabled,
-  createSemanticGraphServiceFromEnv,
-};

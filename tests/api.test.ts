@@ -174,7 +174,7 @@ test('API Integration Tests', async (t) => {
       n_ctx: 8192,
       system_prompt: 'Template user_a prompt',
       is_admin: false,
-      tokens_allocated: 321000,
+      balance_usd: 321.0,
       is_blocked: false,
       input_context_credits: 777,
       output_generation_credits: 88,
@@ -197,7 +197,7 @@ test('API Integration Tests', async (t) => {
     assert.strictEqual(user?.expiration_date, '2099-10-10');
     assert.strictEqual(user?.n_ctx, 8192);
     assert.strictEqual(user?.system_prompt, 'Template user_a prompt');
-    assert.strictEqual(user?.tokens_allocated, 321000);
+    assert.strictEqual(user?.balance_usd, 321.0);
     assert.strictEqual(user?.input_context_credits, 777);
     assert.strictEqual(user?.output_generation_credits, 88);
   });

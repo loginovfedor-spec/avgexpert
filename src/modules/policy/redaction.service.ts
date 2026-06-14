@@ -46,5 +46,3 @@ export class RedactionService {
   }
 }
 
-// For CommonJS compatibility since it's required from JS files
-module.exports = { RedactionService };

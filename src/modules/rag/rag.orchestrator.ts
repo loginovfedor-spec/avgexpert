@@ -2,6 +2,7 @@ import type { RetrievalContext } from '../vector/ports/retriever';
 import { RetrievalResult } from '../knowledge/knowledge.types';
 import { TieredRetriever } from '../vector/retrievers/tiered.retriever';
 import { DegradedRetriever } from '../vector/retrievers/degraded.retriever';
+import { PgTsvectorRetriever } from '../vector/retrievers/pg_tsvector.retriever';
 import { createTieredRetrieverFromEnv } from '../vector/registry';
 import { loadEmbeddingConfig } from '../vector/embedding.service';
 import {
@@ -10,10 +11,9 @@ import {
 } from './scoped.cache';
 import { formatRetrievalContext } from './format-context';
 import { documentContextResolver } from './document-context.resolver';
-// @ts-ignore
-import traceBus = require('../observability/trace.bus');
-// @ts-ignore
+import traceBus from '../observability/trace.bus';
 import { RAG_V2_ENABLED } from '../../core/config';
+import { isRagEffective } from './rag.policy';
 
 const NATIVE_RAG_KEYS = [
   'collection_ids',
@@ -136,15 +136,12 @@ export class RagOrchestrator {
     } else {
       const tiered = createTieredRetrieverFromEnv();
       this.namespace = loadEmbeddingConfig().namespace;
-      const { PgTsvectorRetriever } = require('../vector/retrievers/pg_tsvector.retriever');
       this.retriever = new DegradedRetriever(tiered, new PgTsvectorRetriever());
     }
     this.cache = deps.cache || scopedRetrievalCache;
   }
 
   shouldUseRagV2(catSettings: CategorySettings, user?: RagUser): boolean {
-    // @ts-ignore
-    const { isRagEffective } = require('./rag.policy');
     return Boolean(RAG_V2_ENABLED && isRagEffective(catSettings, user));
   }
 
@@ -297,9 +294,4 @@ export class RagOrchestrator {
 
 const ragOrchestrator = new RagOrchestrator();
 
-module.exports = {
-  RagOrchestrator,
-  ragOrchestrator,
-  stripNativeRag,
-  buildRetrievalContext,
-};
+export { ragOrchestrator, stripNativeRag, buildRetrievalContext };

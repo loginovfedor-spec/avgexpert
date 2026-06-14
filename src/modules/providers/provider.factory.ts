@@ -1,5 +1,15 @@
-const providersConfig = require('../../core/providers.config');
-import logger = require('../../core/logger');
+import providersConfig from '../../core/providers.config';
+import logger from '../../core/logger';
+import llamacpp from './adapters/llamacpp';
+import openaiGpt41 from './adapters/openai_gpt4_1';
+import openaiGpt55 from './adapters/openai_gpt5_5';
+import deepseek from './adapters/deepseek';
+import google from './adapters/google';
+import qwen from './adapters/qwen';
+import grok from './adapters/grok';
+import yandex from './adapters/yandex';
+import yandexFileSearch from './adapters/yandex_file_search';
+import { discoverProviders } from './configLoader';
 
 type ProviderAdapter = {
   id: string;
@@ -24,30 +34,29 @@ const adapters: Record<string, ProviderAdapter> = {};
 const providerFactoryLogger = logger.scoped('ProviderFactory');
 
 const builtins = [
-  require('./adapters/llamacpp'),
-  require('./adapters/openai_gpt4_1'),
-  require('./adapters/openai_gpt5_5'),
-  require('./adapters/deepseek'),
-  require('./adapters/google'),
-  require('./adapters/qwen'),
-  require('./adapters/grok'),
-  require('./adapters/yandex'),
-  require('./adapters/yandex_file_search'),
+  llamacpp,
+  openaiGpt41,
+  openaiGpt55,
+  deepseek,
+  google,
+  qwen,
+  grok,
+  yandex,
+  yandexFileSearch,
 ];
 
 for (const p of builtins) {
-  adapters[p.id] = p;
+  adapters[p.id] = p as unknown as ProviderAdapter;
 }
 
 if (process.env.NODE_ENV === 'test') {
-  try {
-    const { DeterministicProvider } = require('../../../tests/mocks/deterministic_provider');
+  void import('../../../tests/mocks/deterministic_provider.js').then(({ DeterministicProvider }) => {
     const mock = new DeterministicProvider();
-    mock.id = 'deterministic'; 
-    adapters['deterministic'] = mock;
-  } catch (err: unknown) {
+    mock.id = 'deterministic';
+    adapters['deterministic'] = mock as unknown as ProviderAdapter;
+  }).catch((err: unknown) => {
     providerFactoryLogger.warn('Could not load DeterministicProvider for tests', { message: err instanceof Error ? err.message : String(err) });
-  }
+  });
 }
 
 function getProvider(configProviderId: string): ProviderAdapter | null {
@@ -57,15 +66,14 @@ function getProvider(configProviderId: string): ProviderAdapter | null {
 }
 
 function listProviders(): ListedProvider[] {
-  const { discoverProviders } = require('./configLoader');
   const discovered = discoverProviders() as Record<string, {
     name?: string;
     adapter?: string;
     models?: Record<string, unknown>;
   }>;
-  
+
   const excluded = ['test'];
-  
+
   return Object.entries(discovered)
     .filter(([id]) => !excluded.includes(id))
     .map(([id, cfg]) => ({

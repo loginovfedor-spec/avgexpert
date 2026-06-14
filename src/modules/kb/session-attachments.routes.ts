@@ -1,17 +1,17 @@
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
-// @ts-ignore
 import { asyncHandler, AppError } from '../../core/errors';
-// @ts-ignore
 import { authenticate } from '../auth/auth.middleware';
-// @ts-ignore
 import { KB_USER_MAX_FILE_BYTES } from '../../core/config';
 import { KbRepository } from './kb.repository';
 import { getUserKbMaxDocs } from './kb.limits';
 import { assertSafeSourceUri } from '../ingestion/path-utils';
 import { validateUserUpload } from './upload.validation';
 import { enqueueIndexJob } from './indexing-queue';
+import sessionRepository from '../chat/session.repository';
+import { runVectorMigrations } from '../vector/pg/migrate';
+import { createVectorStoreFromEnv } from '../vector/registry';
 
 type AuthUser = {
   username: string;
@@ -48,7 +48,6 @@ function toPublicDoc(doc: {
 }
 
 async function assertSessionOwned(username: string, sessionId: string): Promise<void> {
-  const sessionRepository = require('../chat/session.repository');
   const session = await sessionRepository.findById(username, sessionId);
   if (!session) {
     throw new AppError('Сессия не найдена', 404, 'not_found');
@@ -100,7 +99,6 @@ router.post(
       return res.status(400).json({ detail: (err as Error).message });
     }
 
-    const { runVectorMigrations } = require('../vector/pg/migrate');
     await runVectorMigrations();
 
     const kbRepository = new KbRepository();
@@ -150,7 +148,7 @@ router.post(
       sourceUri,
     });
 
-    res.status(202).json({
+    return res.status(202).json({
       id: docId,
       status: 'pending',
       filename: validated.sanitizedFilename,
@@ -210,7 +208,6 @@ router.delete(
       throw new AppError('Вложение не найдено', 404, 'not_found');
     }
 
-    const { createVectorStoreFromEnv } = require('../vector/registry');
     const store = createVectorStoreFromEnv();
     await store.delete({
       docId: doc.id,
@@ -224,4 +221,4 @@ router.delete(
   })
 );
 
-module.exports = router;
+export = router;

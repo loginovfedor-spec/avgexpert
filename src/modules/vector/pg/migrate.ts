@@ -1,5 +1,5 @@
-import fs = require('fs');
-import path = require('path');
+import fs from 'fs';
+import path from 'path';
 import { getPgPool } from './pool';
 
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');

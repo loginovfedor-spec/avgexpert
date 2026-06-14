@@ -1,7 +1,6 @@
 import { getDatabasePort, ensureAppPgReady } from '../../core/pg';
-import sessionRepository = require('../chat/session.repository');
-import logger = require('../../core/logger');
-
+import sessionRepository from '../chat/session.repository';
+import logger from '../../core/logger';
 const missionLogger = logger.scoped('MissionRepository');
 
 type MissionRow = {
@@ -56,4 +55,3 @@ export class MissionRepository {
   }
 }
 
-module.exports = MissionRepository;

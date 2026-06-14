@@ -1,10 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import traceBus from '../../src/modules/observability/trace.bus';
+import ragMetrics from '../../src/modules/observability/rag-metrics.service';
 
 test('rag-metrics.service tracks retrieval latency and semantic quality', async () => {
-  const traceBus = require('../../src/modules/observability/trace.bus');
-  delete require.cache[require.resolve('../../src/modules/observability/rag-metrics.service')];
-  const ragMetrics = require('../../src/modules/observability/rag-metrics.service');
 
   traceBus.emitTrace('RagOrchestrator', 'retrieval.completed', {
     latencyMs: 120,

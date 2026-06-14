@@ -1,7 +1,6 @@
-import path = require('path');
+import path from 'path';
 import { spawnSync } from 'node:child_process';
-import dotenv = require('dotenv');
-
+import dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const COMPOSE_DIR = path.join(__dirname, '..', 'local-dev');

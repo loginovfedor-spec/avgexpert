@@ -233,4 +233,3 @@ export class PgVectorStore implements VectorStore {
   }
 }
 
-module.exports = { PgVectorStore };

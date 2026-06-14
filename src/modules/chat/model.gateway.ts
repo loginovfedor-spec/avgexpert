@@ -1,10 +1,9 @@
-import providerFactory = require('../providers/provider.factory');
-import fallbackPolicy = require('./fallbackPolicy');
-// @ts-ignore
-import traceBus = require('../observability/trace.bus');
+import providerFactory from '../providers/provider.factory';
+import fallbackPolicy from './fallbackPolicy';
+import traceBus from '../observability/trace.bus';
 import { ChatMessage, StreamEvent } from '../../types/chat.types';
-// @ts-ignore
-import logger = require('../../core/logger');
+import logger from '../../core/logger';
+import ProviderEvents from '../providers/providerEvents';
 
 const activeRequests = new Map<string, number>();
 const MAX_CONCURRENT_PER_PROVIDER = 50;
@@ -175,7 +174,6 @@ class ModelGateway {
   }
 
   async *_createEmulatedAsyncIterable(text: string, usage: StreamEvent['usage'] | null): AsyncIterable<StreamEvent> {
-    const ProviderEvents = require('../providers/providerEvents');
     const chunkSize = 160;
     let i = 0;
     while (i < text.length) {

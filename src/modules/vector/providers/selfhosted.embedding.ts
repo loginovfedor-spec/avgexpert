@@ -130,4 +130,3 @@ export class SelfHostedEmbeddingProvider implements EmbeddingProvider {
   }
 }
 
-module.exports = { SelfHostedEmbeddingProvider };

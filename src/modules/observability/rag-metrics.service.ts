@@ -1,6 +1,4 @@
-// @ts-ignore
-import traceBus = require('./trace.bus');
-
+import traceBus from './trace.bus';
 type Percentiles = {
   p50: number;
   p95: number;
@@ -114,4 +112,4 @@ class RagMetricsService {
 
 const ragMetricsService = new RagMetricsService();
 
-module.exports = ragMetricsService;
+export = ragMetricsService;

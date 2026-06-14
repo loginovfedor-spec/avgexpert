@@ -1,10 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-// @ts-ignore
 import { SECRET, TOKEN_EXPIRY } from '../../core/config';
-// @ts-ignore
-import userRepository = require('./user.repository');
-// @ts-ignore
+import userRepository from './user.repository';
 import { AppError, AuthError } from '../../core/errors';
 
 type AuthenticatedUser = {
@@ -83,4 +80,3 @@ export function requireAdmin(req: AuthenticatedRequest, res: Response, next: Nex
   next();
 }
 
-module.exports = { authenticate, requireAdmin, signToken, isExpired };

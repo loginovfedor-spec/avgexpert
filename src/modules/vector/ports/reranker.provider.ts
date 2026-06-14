@@ -4,4 +4,3 @@ export interface RerankerProvider {
   rerank(query: string, texts: string[]): Promise<number[]>;
 }
 
-module.exports = {};

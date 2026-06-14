@@ -68,8 +68,3 @@ export async function defaultSummarizeHook(
   return null;
 }
 
-module.exports = {
-  truncateConversationMessages,
-  defaultSummarizeHook,
-  estimateConversationTokens: estimateTokens,
-};

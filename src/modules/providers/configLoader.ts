@@ -1,8 +1,7 @@
-import fs = require('fs');
-import path = require('path');
-import dotenv = require('dotenv');
-import logger = require('../../core/logger');
-
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
+import logger from '../../core/logger';
 const configLoaderLogger = logger.scoped('ConfigLoader');
 
 type ProviderModelConfig = {
@@ -48,7 +47,7 @@ export function discoverProviders(): Record<string, DiscoveredProvider> {
       const providerName = parsed.PROVIDER_NAME || parsed.PROVIDER_DISPLAY_NAME || providerId.split(/[_-]/).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
       const adapterType = parsed.ADAPTER_TYPE || parsed.AI_PROVIDER || providerId.split('_')[0];
 
-      const defaultModel = parsed.DEFAULT_MODEL || parsed.OPENAI_DEFAULT_MODEL || parsed.YANDEX_DEFAULT_MODEL || parsed.LLAMACPP_DEFAULT_MODEL || parsed.YANDEX_CLOUD_MODEL || 'default';
+      const defaultModel = parsed.DEFAULT_MODEL || parsed.OPENAI_DEFAULT_MODEL || parsed.YANDEX_DEFAULT_MODEL || parsed.LLAMACPP_DEFAULT_MODEL || parsed.YANDEX_CLOUD_MODEL || parsed.GEMINI_DEFAULT_MODEL || parsed.DEEPSEEK_DEFAULT_MODEL || parsed.QWEN_DEFAULT_MODEL || parsed.GROK_DEFAULT_MODEL || 'default';
       const models: Record<string, ProviderModelConfig> = {};
       models[defaultModel] = { name: defaultModel, extra_params: {} };
 
@@ -86,7 +85,9 @@ export function discoverProviders(): Record<string, DiscoveredProvider> {
       if (parsed.IMAGE_UPLOAD_ENABLED === 'true') {
         extra_params.vision_enabled = true;
       }
-      if (parsed.MAX_OUTPUT_TOKENS) {
+      if (parsed.MAX_OUTPUT_GENERATION_TOKENS) {
+        extra_params.max_tokens = parseInt(parsed.MAX_OUTPUT_GENERATION_TOKENS, 10);
+      } else if (parsed.MAX_OUTPUT_TOKENS) {
         extra_params.max_tokens = parseInt(parsed.MAX_OUTPUT_TOKENS, 10);
       }
       if (parsed.STORE) {
@@ -100,6 +101,18 @@ export function discoverProviders(): Record<string, DiscoveredProvider> {
       }
       if (parsed.TOP_P !== undefined) {
         extra_params.top_p = parseFloat(parsed.TOP_P);
+      }
+      if (parsed.TOP_K !== undefined) {
+        extra_params.top_k = parseInt(parsed.TOP_K, 10);
+      }
+      if (parsed.MIN_P !== undefined) {
+        extra_params.min_p = parseFloat(parsed.MIN_P);
+      }
+      if (parsed.REPEAT_PENALTY !== undefined) {
+        extra_params.repeat_penalty = parseFloat(parsed.REPEAT_PENALTY);
+      }
+      if (parsed.N_PREDICT !== undefined) {
+        extra_params.n_predict = parseInt(parsed.N_PREDICT, 10);
       }
       if (parsed.PROMPT_CACHE_KEY !== undefined) {
         extra_params.prompt_cache_key = parsed.PROMPT_CACHE_KEY;
@@ -140,7 +153,12 @@ export function getAdapterConfig(providerId: string): Record<string, unknown> {
     if (fs.existsSync(envPath)) {
       try {
         fileConfig = dotenv.parse(fs.readFileSync(envPath));
-      } catch (_err) {}
+      } catch (err) {
+        configLoaderLogger.warn('Failed to parse provider env file', {
+          providerId,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
   }
 
@@ -154,4 +172,3 @@ export function getAdapterConfig(providerId: string): Record<string, unknown> {
   return result;
 }
 
-module.exports = { discoverProviders, getAdapterConfig };

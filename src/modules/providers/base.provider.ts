@@ -1,5 +1,6 @@
 import { AdapterInterface, ProviderConfig, ProviderCapabilities, RequestOptions } from '../../types/provider.types';
 import { ChatMessage, StreamEvent, ModelUsage } from '../../types/chat.types';
+import { pushDebugLog } from '../admin/debug-log.store';
 
 type ChatCompletionDelta = {
   content?: string;
@@ -90,15 +91,12 @@ class BaseProvider implements AdapterInterface {
   _pushDebugLog(config: DebugConfig | null | undefined, level: string, message: string) {
     if (!config || !config.debug_mode) return;
     try {
-      const adminRouter = require('../admin/admin.routes');
-      if (adminRouter && typeof adminRouter.pushDebugLog === 'function') {
-        adminRouter.pushDebugLog({
-          level,
-          provider: this.id,
-          message,
-          ts: Date.now()
-        });
-      }
+      pushDebugLog({
+        level,
+        provider: this.id,
+        message,
+        ts: Date.now(),
+      });
     } catch (_e) {
       // Fail silently
     }

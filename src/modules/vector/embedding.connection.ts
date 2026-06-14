@@ -1,7 +1,6 @@
-import fs = require('fs');
-import path = require('path');
-import dotenv = require('dotenv');
-
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
 const CONFIG_DIR = path.join(__dirname, 'config');
 
 export type ResolvedEmbeddingSettings = {
@@ -62,6 +61,3 @@ export function resolveEmbeddingSettings(
   };
 }
 
-module.exports = {
-  resolveEmbeddingSettings,
-};

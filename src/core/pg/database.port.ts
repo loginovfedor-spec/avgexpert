@@ -88,8 +88,3 @@ export function resetDatabasePortForTests(): void {
   pgPort = null;
 }
 
-module.exports = {
-  getDatabasePort,
-  isAppPgEnabled,
-  resetDatabasePortForTests,
-};

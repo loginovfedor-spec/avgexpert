@@ -1,5 +1,5 @@
-import path = require('path');
-import dotenv = require('dotenv');
+import path from 'path';
+import dotenv from 'dotenv';
 import { loadEmbeddingConfig, createEmbeddingProviderFromEnv } from '../src/modules/vector/embedding.service';
 import { resolveEmbeddingSettings } from '../src/modules/vector/embedding.connection';
 

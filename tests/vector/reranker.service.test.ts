@@ -1,20 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { loadRerankerConfig, createRerankerProvider } from '../../src/modules/vector/reranker.service';
 
-test('loadRerankerConfig: defaults from bge_reranker_v2_m3.env', () => {
-  const { loadRerankerConfig } = require('../../src/modules/vector/reranker.service');
+test('loadRerankerConfig: defaults from gte_multilingual_reranker_base.docker.env', () => {
   const config = loadRerankerConfig({
-    VECTOR_RERANKER_CONFIG: 'bge_reranker_v2_m3',
+    VECTOR_RERANKER_CONFIG: 'gte_multilingual_reranker_base.docker',
   });
 
-  assert.equal(config.model, 'bge-reranker-v2-m3');
-  assert.equal(config.enabled, false);
+  assert.equal(config.model, 'gte-multilingual-reranker-base');
+  assert.equal(config.enabled, true);
   assert.equal(config.mock, false);
   assert.ok(config.apiUrl?.includes('/rerank'));
 });
 
 test('createRerankerProvider: returns null when disabled', () => {
-  const { createRerankerProvider } = require('../../src/modules/vector/reranker.service');
   const provider = createRerankerProvider({
     model: 'bge-reranker-v2-m3',
     enabled: false,
@@ -25,7 +24,6 @@ test('createRerankerProvider: returns null when disabled', () => {
 });
 
 test('createRerankerProvider: mock mode without api url', () => {
-  const { createRerankerProvider } = require('../../src/modules/vector/reranker.service');
   const provider = createRerankerProvider({
     model: 'bge-reranker-v2-m3',
     enabled: true,

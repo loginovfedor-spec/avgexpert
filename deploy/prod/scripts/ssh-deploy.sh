@@ -8,7 +8,8 @@ APP_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 CONFIG_FILE="$APP_ROOT/deploy/prod/ssh-deploy.env"
 
 usage() {
-  echo "Usage: bash deploy/prod/scripts/ssh-deploy.sh [prepare|install|update|status|logs]"
+  echo "Usage: bash deploy/prod/scripts/ssh-deploy.sh [prepare|install|update|status|logs|acceptance]"
+  echo "  acceptance: D6 pilot-acceptance.sh on remote (optional: pass --migrate-rag etc.)"
   echo "  Configure: cp deploy/prod/ssh-deploy.env.example deploy/prod/ssh-deploy.env"
   exit 1
 }
@@ -101,6 +102,11 @@ case "$ACTION" in
     ;;
   logs)
     ssh_cmd "cd '$REMOTE_APP' && docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml logs -f --tail=100"
+    ;;
+  acceptance)
+    shift || true
+    EXTRA_ARGS=("$@")
+    ssh_cmd "cd '$REMOTE_APP' && bash deploy/prod/scripts/pilot-acceptance.sh ${EXTRA_ARGS[*]:-}"
     ;;
   *)
     usage

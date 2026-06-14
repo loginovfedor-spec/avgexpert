@@ -48,12 +48,21 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 | `npm run prod:migrate-rag` | Перенос RAG с удалённого PG 18 → локальный |
 | `npm run prod:migrate-rag:dry` | Dry-run проверки источника |
 | `npm run prod:pg-backup` | `pg_dump -Fc` локального PG 18 |
+| `npm run prod:ssh-prepare` | SSH: `prepare-server.sh` на pilot |
+| `npm run prod:ssh-install` | SSH: первый `install.sh` + compose up |
+| `npm run prod:ssh-update` | SSH: rebuild `app` + post-deploy |
+| `npm run prod:ssh-status` | SSH: `ps` + `check-gpu` |
+| `npm run prod:ssh-logs` | SSH: `compose logs -f` |
+| `npm run prod:acceptance` | D6 приёмка на сервере (`pilot-acceptance.sh`) |
+| `npm run prod:ssh-acceptance` | D6 приёмка по SSH |
+| `npm run prod:seed-pilot-users` | Admin + pilot test users (D6-3) |
 
-**Разработка на ноутбуке** (app локально, PG/TEI/Llama на pilot): [`deploy/dev/DEV_REMOTE.md`](../dev/DEV_REMOTE.md).
+**Разработка на ноутбуке** (app локально, PG/TEI/Llama на pilot): [`deploy/dev/DEV_REMOTE.md`](../dev/DEV_REMOTE.md) + `deploy/dev/tunnel.sh`.
 
 ## Развёртывание по SSH с вашего ПК
 
-Полный чеклист: **[SSH_DEPLOY.md](SSH_DEPLOY.md)**
+Полный чеклист: **[SSH_DEPLOY.md](SSH_DEPLOY.md)**  
+Приёмка D6: **[PILOT_ACCEPTANCE.md](PILOT_ACCEPTANCE.md)**
 
 ```bash
 # На ПК (Git Bash / WSL)
@@ -102,17 +111,11 @@ docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml logs -f te
 ## HTTPS (Let's Encrypt)
 
 ```bash
-# Временно остановите nginx если мешает standalone certbot
-docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml stop nginx
+LETSENCRYPT_EMAIL=admin@avgexpert.ru bash deploy/prod/scripts/enable-https.sh
 
-apt install -y certbot
-certbot certonly --standalone -d ai.example.com
-
-# SSL nginx config
-cp deploy/prod/nginx/conf.d/ssl.conf.example deploy/prod/nginx/conf.d/ssl.conf
-sed -i 's/YOUR_DOMAIN/ai.example.com/g' deploy/prod/nginx/conf.d/ssl.conf
-
-docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml up -d nginx
+# Продление сертификата
+docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml run --rm --entrypoint certbot certbot renew
+docker compose --env-file deploy/prod/.env -f deploy/prod/compose.yml exec nginx nginx -s reload
 ```
 
 ## Проверки

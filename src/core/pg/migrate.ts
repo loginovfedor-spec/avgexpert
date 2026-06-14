@@ -1,5 +1,5 @@
-import fs = require('fs');
-import path = require('path');
+import fs from 'fs';
+import path from 'path';
 import { getPgPool } from './pool';
 
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
@@ -8,6 +8,11 @@ const MIGRATIONS: Array<{ id: string; file: string }> = [
   { id: '001_app_core', file: '001_app_core.sql' },
   { id: '002_app_chat', file: '002_app_chat.sql' },
   { id: '003_app_approvals', file: '003_app_approvals.sql' },
+  { id: '004_app_cost', file: '004_app_cost.sql' },
+  { id: '005_billing_system', file: '005_billing_system.sql' },
+  { id: '006_sprint4_init', file: '006_sprint4_init.sql' },
+  { id: '007_request_id_text', file: '007_request_id_text.sql' },
+  { id: '008_payment_orders_credits', file: '008_payment_orders_credits.sql' },
 ];
 
 const APP_MIGRATION_LOCK_KEY = 83457292;

@@ -144,8 +144,3 @@ export class EntityExtractionService {
 
 export const entityExtractionService = new EntityExtractionService();
 
-module.exports = {
-  EntityExtractionService,
-  entityExtractionService,
-  GLOSSARY_TERMS,
-};

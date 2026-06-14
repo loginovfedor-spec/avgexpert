@@ -1,8 +1,7 @@
 import type { IRetrievalChunk } from '../../../types/knowledge.types';
 import { getPgPool } from '../pg/pool';
 import { loadEmbeddingConfig } from '../embedding.service';
-import logger = require('../../../core/logger');
-
+import logger from '../../../core/logger';
 const log = logger.scoped('PgTsvectorRetriever');
 
 type PgTsvectorConfig = {
@@ -70,4 +69,3 @@ export class PgTsvectorRetriever {
   }
 }
 
-module.exports = { PgTsvectorRetriever };

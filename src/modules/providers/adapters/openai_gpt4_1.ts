@@ -1,7 +1,10 @@
-import OpenAI = require('openai');
-import BaseProvider = require('../base.provider');
+import OpenAI from 'openai';
+import BaseProvider from '../base.provider';
+import ProviderEvents from '../providerEvents';
+import { ProviderError } from '../providerErrors';
 import { ProviderUtils } from './provider_utils';
 import { ChatMessage, StreamEvent } from '../../../types/chat.types';
+import costCalculator from '../../cost/cost_calculator.service';
 
 type OpenAIAdapterConfig = Record<string, unknown> & {
   id?: string;
@@ -108,7 +111,6 @@ class OpenAIGPT41Provider extends BaseProvider {
   }
 
   async *handleChat(messages: ChatMessage[], config: OpenAIAdapterConfig, options: OpenAIAdapterOptions = {}): AsyncIterable<StreamEvent> {
-    const ProviderEvents = require('../providerEvents');
     const client = new OpenAIConstructor({
       apiKey: config.api_key,
       baseURL: config.endpoint_url || this.defaultBaseUrl,
@@ -178,7 +180,7 @@ class OpenAIGPT41Provider extends BaseProvider {
 
         for await (const event of stream) {
           if (event.type === 'response.output_text.delta') {
-            yield ProviderEvents.delta(event.delta);
+            yield ProviderEvents.delta(event.delta ?? '');
           } else if (event.type === 'response.tool_call.created' || event.type === 'response.tool_call.delta' || event.type === 'response.tool_call.output') {
             if (event.tool_call) {
               yield ProviderEvents.toolCall([event.tool_call]);
@@ -192,7 +194,14 @@ class OpenAIGPT41Provider extends BaseProvider {
             }
           }
         }
-        yield ProviderEvents.done(lastFinishReason, ProviderUtils.normalizeUsage(finalUsage));
+        yield ProviderEvents.done(
+          lastFinishReason,
+          costCalculator.enrichUsage(ProviderUtils.normalizeUsage(finalUsage), {
+            providerId: this.id,
+            modelName: targetModel,
+            config
+          })
+        );
       } else {
         const response = await client.responses.create(params) as ResponseData;
         let text = '';
@@ -218,10 +227,16 @@ class OpenAIGPT41Provider extends BaseProvider {
         }
 
         const usage = response.usage || null;
-        yield ProviderEvents.done(response.finish_reason || 'stop', ProviderUtils.normalizeUsage(usage));
+        yield ProviderEvents.done(
+          response.finish_reason || 'stop',
+          costCalculator.enrichUsage(ProviderUtils.normalizeUsage(usage), {
+            providerId: this.id,
+            modelName: targetModel,
+            config
+          })
+        );
       }
     } catch (err: unknown) {
-      const { ProviderError } = require('../providerErrors');
       const source = err instanceof Error ? err as ProviderErrorSource : new Error(String(err)) as ProviderErrorSource;
       throw new ProviderError(source.message, source.status || 502);
     }

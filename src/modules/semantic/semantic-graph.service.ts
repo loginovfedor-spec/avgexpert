@@ -66,4 +66,3 @@ export class SemanticGraphService {
   }
 }
 
-module.exports = { SemanticGraphService, EXPANSION_SCORE_DECAY };

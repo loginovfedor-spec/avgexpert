@@ -1,4 +1,4 @@
-import crypto = require('crypto');
+import crypto from 'crypto';
 import type { RetrievalTier, VectorScope } from '../vector/types';
 import { RetrievalResult } from '../knowledge/knowledge.types';
 
@@ -81,9 +81,3 @@ export class ScopedRetrievalCache {
 
 export const scopedRetrievalCache = new ScopedRetrievalCache();
 
-module.exports = {
-  ScopedRetrievalCache,
-  scopedRetrievalCache,
-  buildScopedCacheKey,
-  normalizeQuery,
-};

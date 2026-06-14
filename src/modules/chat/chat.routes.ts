@@ -1,19 +1,17 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-// @ts-ignore
 import { authenticate } from '../auth/auth.middleware';
-// @ts-ignore
 import { asyncHandler } from '../../core/errors';
-import chatController = require('./chat.controller');
-// @ts-ignore
-import logger = require('../../core/logger');
-// @ts-ignore
-import limits = require('./limit.service');
+import chatController from './chat.controller';
+import logger from '../../core/logger';
+import * as limits from './limit.service';
+import sessionAttachmentsRoutes from '../kb/session-attachments.routes';
+import { estimateRequestCost } from '../billing/request_estimate.service';
 
 const router = Router();
 const chatRoutesLogger = logger.scoped('ChatRoutes');
 
-router.use('/sessions/:sessionId/attachments', require('../kb/session-attachments.routes'));
+router.use('/sessions/:sessionId/attachments', sessionAttachmentsRoutes);
 
 type AuthenticatedChatRequest = Request & {
   user: {
@@ -57,6 +55,28 @@ const chatCompletionSchema = z.object({
   return lastMsg.role !== 'system';
 }, { message: "The last message cannot be a system message" });
 
+const estimateSchema = z.object({
+  messages: z.array(messageSchema).min(1).max(200),
+  category: z.string().max(64).optional().nullable(),
+  n_predict: z.number().int().positive().optional().nullable(),
+});
+
+router.post('/estimate', authenticate, asyncHandler(async (req: Request, res: Response) => {
+  const parseResult = estimateSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ error: 'Неверный формат запроса', details: parseResult.error.issues });
+  }
+
+  const estimate = await estimateRequestCost({
+    user: (req as AuthenticatedChatRequest).user,
+    messages: parseResult.data.messages,
+    category: parseResult.data.category,
+    n_predict: parseResult.data.n_predict,
+  });
+
+  return res.json(estimate);
+}));
+
 router.post('/completions', authenticate, asyncHandler(async (req: Request, res: Response) => {
   const parseResult = chatCompletionSchema.safeParse(req.body);
   if (!parseResult.success) {
@@ -64,7 +84,7 @@ router.post('/completions', authenticate, asyncHandler(async (req: Request, res:
     return res.status(400).json({ error: 'Неверный формат запроса', details: parseResult.error.issues });
   }
 
-  await chatController.handleCompletion(req as AuthenticatedChatRequest, res);
+  return await chatController.handleCompletion(req as AuthenticatedChatRequest, res);
 }));
 
 export = router;

@@ -2,8 +2,8 @@
  * S9-3 live load probe: concurrent consultant retrieval against real embedder + PG.
  * Usage: tsx scripts/rag_retrieval_load.ts [--concurrency=16] [--rounds=5]
  */
-import dotenv = require('dotenv');
-import path = require('path');
+import dotenv from 'dotenv';
+import path from 'path';
 import { closePgPools } from '../src/modules/vector/pg/pool';
 import { createTieredRetrieverFromEnv } from '../src/modules/vector/registry';
 import { loadEmbeddingConfig } from '../src/modules/vector/embedding.service';

@@ -12,48 +12,75 @@ jobs:
     defaults:
       run:
         working-directory: avgexpert
-    
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_USER: avg
+          POSTGRES_PASSWORD: avg
+          POSTGRES_DB: avgexpert
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U avg -d avgexpert"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Use Node.js 20.x
       uses: actions/setup-node@v3
       with:
         node-version: 20.x
         cache: 'npm'
         cache-dependency-path: avgexpert/package-lock.json
-        
+
     - name: Install dependencies
       run: npm ci
 
     - name: Typecheck
-      run: npm run typecheck
-      
+      run: |
+        npx tsc --noEmit
+        npx tsc --noEmit -p webui_src/tsconfig.json
+        npx tsc --noEmit -p tsconfig.tests-scripts.json
+        npx tsc --noEmit -p tsconfig.quarantine.json
+
     - name: Run ESLint
-      run: npx eslint src/**/*.ts
+      run: npx eslint src/ server.ts --quiet --max-warnings=0
 
     - name: Run PR Test Matrix
       run: npm run test:pr
       env:
         NODE_ENV: test
+        DATABASE_URL: postgresql://avg:avg@localhost:5432/avgexpert
+        EMBEDDING_MOCK: 'true'
 
     - name: Run Security Tests
       run: npm run test:security
       env:
         NODE_ENV: test
+        DATABASE_URL: postgresql://avg:avg@localhost:5432/avgexpert
+        EMBEDDING_MOCK: 'true'
 
     - name: Run Policy Tests
       run: npm run test:policy
       env:
         NODE_ENV: test
+        DATABASE_URL: postgresql://avg:avg@localhost:5432/avgexpert
 
     - name: Run Knowledge Tests
       run: npm run test:knowledge
       env:
         NODE_ENV: test
+        DATABASE_URL: postgresql://avg:avg@localhost:5432/avgexpert
+        EMBEDDING_MOCK: 'true'
 
     - name: Run Integration Tests
       run: npm run test:integration
       env:
         NODE_ENV: test
-        APP_PG_ENABLED: 'false'
+        DATABASE_URL: postgresql://avg:avg@localhost:5432/avgexpert
+        EMBEDDING_MOCK: 'true'

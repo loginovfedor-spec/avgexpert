@@ -187,7 +187,7 @@ export class SemanticGraphRepository {
     }
     if (ctx.scopes.includes('session') && ctx.sessionId) {
       parts.push(
-        `(scope = 'session' AND owner_user_id = $${index++} AND session_id = $${index++})`
+        `(scope = 'session' AND owner_user_id = $${index} AND session_id = $${index + 1})`
       );
       values.push(ctx.userId, ctx.sessionId);
     }
@@ -303,4 +303,3 @@ export class SemanticGraphRepository {
   }
 }
 
-module.exports = { SemanticGraphRepository };

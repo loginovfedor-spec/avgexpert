@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RetrievalResult } from '../../src/modules/knowledge/knowledge.types';
+import knowledgeGateway from '../../src/modules/knowledge/knowledge.gateway';
 
 test('formatRetrievalContext matches legacy KnowledgeGateway shape', async () => {
   const { formatRetrievalContext } = await import('../../src/modules/rag/format-context');
-  const knowledgeGateway = require('../../src/modules/knowledge/knowledge.gateway');
 
   const result = new RetrievalResult({
     query: 'test',

@@ -10,7 +10,7 @@
     "restart": "npm run stop && npm run start",
     "dev:web": "vite",
     "build:web": "vite build",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p webui_src/tsconfig.json && tsc --noEmit -p tsconfig.tests-scripts.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p webui_src/tsconfig.json && tsc --noEmit -p tsconfig.tests-scripts.json && tsc --noEmit -p tsconfig.quarantine.json",
     "test:ci": "npm run typecheck && npm run test:pr && npm run test:security && npm run test:policy && npm run test:knowledge",
     "test": "tsx --test --test-concurrency=1 tests/**/*.test.ts",
     "test:unit": "tsx --test tests/provider_events.test.ts tests/errors.test.ts tests/deterministic_provider.test.ts",
@@ -76,7 +76,7 @@
     "prod:seed-pilot-users": "tsx scripts/seed_pilot_users.ts",
     "test:d6": "tsx --test tests/deploy/pilot.seed.test.ts",
     "test:pg:ensure": "tsx scripts/ensure_pg.ts",
-    "test:pr": "npm run test:pg:ensure && tsx --test tests/provider_events.test.ts tests/errors.test.ts tests/deterministic_provider.test.ts tests/contract_canonical_event.test.ts tests/fast_path_guardrail.test.ts tests/security_assertions.test.ts tests/health.test.ts",
+    "test:pr": "npm run test:pg:ensure && tsx --test tests/provider_events.test.ts tests/errors.test.ts tests/deterministic_provider.test.ts tests/contract_canonical_event.test.ts tests/fast_path_guardrail.test.ts tests/security_assertions.test.ts tests/health.test.ts tests/cost/cost_calculation.test.ts tests/observability/metrics_completion.test.ts tests/providers/google_usage.test.ts tests/cost/cost_integration.test.ts",
     "test:nightly": "tsx --test --test-concurrency=1 tests/**/*.test.ts",
     "test:release": "tsx --test --test-concurrency=1 tests/**/*.test.ts"
   },
@@ -101,6 +101,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@fontsource/inter": "^5.2.8",
+    "@fortawesome/fontawesome-free": "^6.5.1",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/dompurify": "^3.0.5",

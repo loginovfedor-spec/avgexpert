@@ -1,0 +1,1 @@
+import { getDatabasePort } from '../src/core/pg/index.js'; getDatabasePort().run('ALTER TABLE payment_orders ALTER COLUMN credits TYPE NUMERIC(10,2);').then(() => console.log('Migrated')).catch(console.error).finally(() => process.exit(0));

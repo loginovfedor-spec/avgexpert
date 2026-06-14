@@ -70,6 +70,3 @@ export async function getVectorHealthSection(): Promise<VectorHealthSection> {
   return { store, embedder, namespace, dimensions };
 }
 
-module.exports = {
-  getVectorHealthSection,
-};

@@ -1,4 +1,4 @@
-import crypto = require('crypto');
+import crypto from 'crypto';
 import type { EmbeddingProvider } from '../ports/embedding.provider';
 
 function seededVector(text: string, dimensions: number): number[] {

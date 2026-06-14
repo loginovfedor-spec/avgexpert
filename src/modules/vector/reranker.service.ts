@@ -34,7 +34,7 @@ export function createRerankerProvider(config: RerankerConfig): RerankerProvider
 
   if (!config.apiUrl) {
     throw new Error(
-      'Self-hosted reranker (§11.2 S7b): задайте RERANK_API_URL в .env или vector/config/bge_reranker_v2_m3.env, либо RERANK_MOCK=true'
+      'Self-hosted reranker (§11.2 S7b): задайте RERANK_API_URL в .env или vector/config/{VECTOR_RERANKER_CONFIG}.env, либо RERANK_MOCK=true'
     );
   }
 
@@ -50,10 +50,3 @@ export function createRerankerProviderFromEnv(
 ): RerankerProvider | null {
   return createRerankerProvider(loadRerankerConfig(env));
 }
-
-module.exports = {
-  loadRerankerConfig,
-  shouldRerankTier,
-  createRerankerProvider,
-  createRerankerProviderFromEnv,
-};

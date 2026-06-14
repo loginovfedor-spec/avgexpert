@@ -19,4 +19,3 @@ export function formatRetrievalContext(result: IRetrievalResult | null | undefin
   return output;
 }
 
-module.exports = { formatRetrievalContext };

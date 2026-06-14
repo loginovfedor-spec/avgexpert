@@ -38,4 +38,3 @@ export class MockRerankerProvider implements RerankerProvider {
   }
 }
 
-module.exports = { MockRerankerProvider };

@@ -1,6 +1,6 @@
-import fs = require('fs');
-import path = require('path');
-import dotenv = require('dotenv');
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
 import { getAdapterConfig } from '../../providers/configLoader';
 
 const CONFIG_DIR = path.join(__dirname, '../../providers/config');
@@ -45,4 +45,3 @@ export function resolvePgConnectionString(
   return readConnectionFromAnyProviderConfig();
 }
 
-module.exports = { resolvePgConnectionString };

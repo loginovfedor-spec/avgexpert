@@ -2,6 +2,13 @@
 
 Перенос **VectorKB** (PostgreSQL + pgvector) с удалённого хоста (например `83.166.253.250`) на **локальный postgres** в Docker на новом prod-сервере.
 
+**Контекст pilot (единый сценарий):**
+
+1. [SSH_DEPLOY.md](SSH_DEPLOY.md) — `prod:ssh-install` поднимает PG 18 + стек
+2. **Этот документ** — перенос `kb_*` с удалённого PG
+3. [DEV_TO_PILOT.md](DEV_TO_PILOT.md) — ежедневный `prod:ssh-update`
+4. [DEV_REMOTE.md](../dev/DEV_REMOTE.md) — разработка на ноутбуке через SSH-туннели
+
 ## Апгрейд PG 16 → 18 в том же volume
 
 **Важно (Sprint D0):** образ PG 18 монтирует `pg-data` в `/var/lib/postgresql` (данные в `18/docker/`), а PG 16 писал в `/var/lib/postgresql/data`.  
@@ -35,12 +42,14 @@ npm run kb:pg:smoke
 | `kb_semantic_edges` | Связи графа |
 | `vector_migrations` | Отметки применённых миграций |
 
-## Что НЕ в PostgreSQL
+## Что НЕ переносится этим скриптом
 
 | Данные | Где хранятся |
 |--------|--------------|
-| Пользователи, сессии чата, настройки | **SQLite** `data/` на Gateway |
+| Пользователи, сессии, платежи, категории | Тот же PG 18 (`app_migrations`, таблицы из D2–D3) — **seed при первом старте app**, не из удалённого RAG |
 | Старый индекс Yandex 256d | `avg_vector_chunks` — **не переносить** (несовместимые векторы) |
+
+`migrate-rag-db.sh` копирует только **KB** (`kb_documents`, `kb_chunks`, semantic graph). App-данные создаются заново на pilot (ADR-3).
 
 Если на удалённом сервере заполнен только `avg_vector_chunks`, а `kb_chunks` пуст — нужен **re-index**, не dump:
 

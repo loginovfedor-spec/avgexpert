@@ -19,6 +19,3 @@ export async function applyCrossEncoderRerank(
     .sort((a, b) => b.score - a.score);
 }
 
-module.exports = {
-  applyCrossEncoderRerank,
-};

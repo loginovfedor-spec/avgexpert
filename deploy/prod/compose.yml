@@ -70,7 +70,7 @@ services:
       start_period: 600s
 
   tei-bge-reranker:
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.7
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9
     container_name: avgexpert-tei-rerank
     restart: unless-stopped
     ports:
@@ -85,7 +85,7 @@ services:
       OMP_NUM_THREADS: "2"
     command:
       - --model-id
-      - BAAI/bge-reranker-v2-m3
+      - Alibaba-NLP/gte-multilingual-reranker-base
       - --port
       - "80"
       - --max-batch-tokens
@@ -159,7 +159,7 @@ services:
       AVGEXPERT_PORT: "8200"
       DATABASE_URL: postgresql://${POSTGRES_USER:-avg}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-avgexpert}
       VECTOR_EMBEDDING_CONFIG: bge_m3.docker
-      VECTOR_RERANKER_CONFIG: bge_reranker_v2_m3.docker
+      VECTOR_RERANKER_CONFIG: gte_multilingual_reranker_base.docker
       EMBEDDING_MOCK: "false"
       RERANK_MOCK: "false"
       LLAMACPP_URL: http://llama-cpp:8080/v1
@@ -192,6 +192,14 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - certbot-www:/var/www/certbot:ro
       - certbot-certs:/etc/letsencrypt:ro
+
+  certbot:
+    image: certbot/certbot:v2.11.0
+    container_name: avgexpert-certbot
+    profiles: ["certbot"]
+    volumes:
+      - certbot-www:/var/www/certbot
+      - certbot-certs:/etc/letsencrypt
 
 volumes:
   pg-data:

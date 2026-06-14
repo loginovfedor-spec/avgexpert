@@ -1,124 +1,76 @@
 # AvgExpert Gateway — Локальный сервер ИИ
 
-Добро пожаловать в обновленную сборку локального сервера ИИ. Теперь это не просто движок нейросети, а полноценная многопользовательская система с авторизацией, ролевой моделью и централизованным управлением через админ-панель.
+Многопользовательский API Gateway с авторизацией, RAG v2 (PostgreSQL + pgvector), USD-биллингом и админ-панелью.
 
 ---
 
-## ✨ Ключевые особенности (v2.0)
+## Ключевые особенности
 
-*   **Semantic Protocol (v2.3):** Смысловой слой для извлечения утверждений (claims), контроля границ адекватности (Domain Boundaries) и предотвращения галлюцинаций.
-*   **Durable Runtime (Temporal):** Устойчивое исполнение длительных процессов (AgentRuns) с возможностью перезапуска, ожидания одобрения и компенсации ошибок.
-*   **Model Gateway:** Унифицированный шлюз для доступа к LLM (OpenAI, Anthropic, Yandex, DeepSeek и др.) с поддержкой fallback и контроля стоимости.
-*   **Sandbox Manager:** Изолированное выполнение кода и инструментов в защищенных песочницах (E2B).
-
----
-
-## 🚀 Быстрый старт
-
-1.  **Настройка окружения:** Скопируйте файл `.env.example` в `.env` и обязательно укажите `AVGEXPERT_SECRET` (минимум 32 случайных символа) и `AVGEXPERT_ADMIN_PASSWORD` (ваш новый пароль администратора).
-2.  **Установка зависимостей:** Выполните файл `install_deps.cmd`.
-3.  **Запуск:** Запустите `start_windows.cmd` (он автоматически поднимет llama.cpp и шлюз Node.js).
-4.  **Вход в систему:** Откройте [http://127.0.0.1:8200](http://127.0.0.1:8200).
-    *   **Логин:** `admin`
-    *   **Пароль:** Тот, что вы указали в `.env` (или случайно сгенерированный, который вывелся в консоли Node.js при первом запуске).
-5.  **Переменные окружения (.env):**
-    *   `AVGEXPERT_PORT`: Порт сервера (по умолчанию 8200).
-    *   `AVGEXPERT_SECRET`: Ключ для подписи JWT (минимум 32 символа).
-    *   `AVGEXPERT_ADMIN_PASSWORD`: Пароль администратора (Обязателен в PROD).
-    *   `AVGEXPERT_ENV`: Режим работы (`development`, `production`).
-    *   `TEMPORAL_ADDRESS`: Адрес сервера Temporal (например, `localhost:7233`).
-    *   `E2B_API_KEY`: Ключ для работы с песочницами E2B.
-    *   `OPENAI_API_KEY`: Ключ OpenAI (для OpenAI Responses Adapter).
-    *   `LLAMACPP_URL`: URL локального сервера llama.cpp.
-
-## 🛡️ Safety Checklist (v2.3)
-- [ ] **Fail-Closed Sandbox:** В продакшене `LocalAdapter` отключен, используется только удаленная изоляция.
-- [ ] **Secure Boot:** Сервер не запустится в продакшене без установленного `AVGEXPERT_ADMIN_PASSWORD`.
-- [ ] **SSRF Protection:** Включен Guard для предотвращения атак на внутреннюю сеть.
-- [ ] **Secret Redaction:** API ключи и токены автоматически маскируются в логах.
-- [ ] **Policy Guard:** Все чувствительные маршруты защищены Policy Engine.
+* **Model Gateway:** унифицированный доступ к LLM (OpenAI, Gemini, DeepSeek, Qwen, Grok, Yandex, Llama.cpp) с fallback и учётом стоимости в USD.
+* **RAG v2:** pgvector + TEI embedder; SQLite FTS — только degraded fallback.
+* **USD Billing:** `balance_usd`, `credit_limit_usd`, Robokassa-пополнение в ₽ с конвертацией по курсу ЦБ РФ.
 
 ---
 
-## 🛡 Безопасность и архитектура
+## Быстрый старт
 
-### Архитектурная схема
+1. **PostgreSQL 18** — обязателен. Задайте `DATABASE_URL` в `.env` (см. `.env.example`). Без PG `npm start` завершится с ошибкой подключения.
+2. **Окружение:** скопируйте `.env.example` → `.env`; укажите `AVGEXPERT_SECRET` (≥32 символа) и `AVGEXPERT_ADMIN_PASSWORD`.
+3. **Зависимости:** `install_deps.cmd` или `npm install` из корня репозитория (`npm run setup`).
+4. **Запуск:** `start_windows.cmd` или `npm start` — только Node.js Gateway (Llama.cpp — отдельный Docker/сервис при необходимости).
+5. **Вход:** [http://127.0.0.1:8200](http://127.0.0.1:8200) — логин `admin`, пароль из `.env`.
 
-```mermaid
-graph TD
-    Client[Web UI / API Client] -->|HTTP/REST| Gateway(Node.js API Gateway :8200)
-    Gateway -->|Auth & Rate Limit| Auth[JWT Auth Middleware]
-    Gateway -->|Data & Config| DB[(SQLite Database)]
-    Auth -->|Proxy Request| Llama[llama.cpp Server :8081]
-    Auth -->|External| OpenAI[OpenAI / DeepSeek / Gemini API]
-```
+Основные переменные:
+* `AVGEXPERT_PORT` — порт Gateway (default **8200**)
+* `DATABASE_URL` — PostgreSQL для app-таблиц и RAG
+* `APP_PG_ENABLED=true` — обязателен для prod/dev (false только для отладки)
+* `RAG_V2_ENABLED` — включение vector RAG (staging/production)
 
-Система состоит из двух уровней:
-1.  **Backend (Порт 8081):** Движок `llama-server.exe`, который занимается вычислениями. Он закрыт для прямого доступа извне.
-2.  **Gateway (Порт 8200):** Сервер на Node.js, который проверяет токены, инжектирует системные промпты и параметры генерации, а затем проксирует запрос к бэкенду.
+---
 
-Это позволяет безопасно выставлять сервер в интернет (например, через IIS или ngrok) — доступ получит только авторизованный пользователь.
-
-## 🐳 Docker prod и dev-remote
+## Docker prod и dev-remote
 
 | Сценарий | Документация |
 |----------|--------------|
-| **Prod** (PG 18, TEI, Llama на GPU-сервере) | [`deploy/prod/README.md`](deploy/prod/README.md) — `npm run prod:up` |
+| **Prod** (PG 18, TEI, Llama на GPU) | [`deploy/prod/README.md`](deploy/prod/README.md) |
 | **Ноутбук** + сервисы на pilot (SSH-туннели) | [`deploy/dev/DEV_REMOTE.md`](deploy/dev/DEV_REMOTE.md) |
 
-## 📚 RAG и документы
+---
 
-- Архитектура и политика загрузки (чат / «Мои документы» / админ-флаги): [`docs/architecture/RAG_MIGRATION_PLAN.md`](docs/architecture/RAG_MIGRATION_PLAN.md) §3.5, §3.5.1, §3.7.
-- Безопасность user KB: [`docs/ops/USER_KB_SECURITY.md`](docs/ops/USER_KB_SECURITY.md).
-- Справка пользователя: [`webui_src/assets/Help.md`](webui_src/assets/Help.md).
+## Архитектура (упрощённо)
 
-**Правило UI (гибрид RAG):** эффективный RAG = `rag_allowed` категории **и** `rag_enabled` пользователя. При активном RAG все форматы (txt/md/pdf/docx) → session RAG; иначе → inline в сообщение. «Мои документы» — всегда user KB, те же форматы.
+```mermaid
+graph TD
+    Client[Web UI] -->|HTTP| Gateway[Node.js Gateway :8200]
+    Gateway --> Auth[JWT + Rate Limit]
+    Gateway --> PG[(PostgreSQL 18 — users, RAG, billing)]
+    Gateway --> LLM[External LLM APIs / Llama.cpp]
+```
 
-## 🧬 Testing
+Gateway проверяет JWT, биллинг (`balance_usd + credit_limit_usd`), инжектирует промпты и проксирует к провайдерам.
 
-The application includes an integration test suite built with Node.js native `node:test` and `supertest`.
+---
 
-To run the tests:
+## RAG и документы
+
+- [`docs/architecture/RAG_MIGRATION_PLAN.md`](docs/architecture/RAG_MIGRATION_PLAN.md)
+- [`docs/ops/USER_KB_SECURITY.md`](docs/ops/USER_KB_SECURITY.md)
+
+---
+
+## Тестирование
+
 ```cmd
 npm test
 ```
-The test runner isolates its environment by automatically targeting an in-memory or alternative SQLite database (`data_test`), ensuring that production data is not modified during testing.
 
-## 🔐 Security Configurations
-
-- [x] Строгие требования к `AVGEXPERT_SECRET` (только через `.env`).
-- [x] Никаких дефолтных `admin/admin` (пароль генерируется или задается в `.env`).
-- [x] Хеширование паролей с помощью `bcrypt`.
-- [x] Ограничение количества запросов (`express-rate-limit`) для защиты от DDoS и брутфорса.
-- [x] Защита заголовков (`helmet`) и базовая конфигурация `cors`.
-- [x] Защита от SSRF: Блокировка приватных IP и localhost для внешних провайдеров.
-- [x] Строгая валидация входящих данных через Zod Schema.
-- [x] Полностью синхронный и безопасный движок `better-sqlite3` для работы с БД (никаких гонок I/O).
+Интеграционные тесты с PG требуют `DATABASE_URL` в окружении.
 
 ---
 
-## ⚙️ Управление через Админ-панель
+## Развёртывание
 
-В левом меню выберите **Админ-панель**. Там вы сможете:
-*   **Управление пользователями:** Создавать новых сотрудников, менять им пароли, задавать персональные системные инструкции и лимиты контекста.
-*   **Справочник категорий:** Настраивать глобальные параметры генерации (Temperature, Top-P и др.) для целых групп пользователей. Также здесь можно привязать категорию к внешнему API, выбрав подходящего Provider.
+Prod: [`deploy/prod/README.md`](deploy/prod/README.md).  
+Windows/IIS: `IIS_DEPLOYMENT_GUIDE.md`.
 
----
-
-## 🚀 Развертывание на сервере
-
-Для развертывания на серверах Windows (IIS) или Linux, обратитесь к файлу `IIS_DEPLOYMENT_GUIDE.md`.
-
-Основные шаги для ручного запуска:
-1.  Скопируйте вашу GGUF модель в папку `models_cache`.
-2.  Создайте `.env` файл на основе `.env.example`.
-3.  Запустите `llama-server.exe` отдельно (порт 8081).
-4.  Запустите шлюз: `npm start` (порт 8200).
-
-Данные (база SQLite) хранятся в папке `data/`.
-
----
-
-## ⚠️ Техническая поддержка
-
-Если у вас возникли вопросы по работе системы или производительности, обратитесь к файлу `IIS_DEPLOYMENT_GUIDE.md` (для серверной установки) или проверьте логи в окне консоли Node.js.
+Данные приложения и RAG хранятся в **PostgreSQL**, не в локальных SQLite-файлах.

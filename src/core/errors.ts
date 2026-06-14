@@ -1,9 +1,12 @@
 /**
  * Centralized Error Handling
  */
-const crypto = require('crypto');
-const logger = require('./logger').scoped('Errors');
+import crypto from 'node:crypto';
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
+import loggerModule from './logger';
+import { RedactionService } from '../modules/policy/redaction.service';
+
+const logger = loggerModule.scoped('Errors');
 
 type ErrorRequest = Request & {
   runId?: string;
@@ -47,9 +50,11 @@ class NotFoundError extends AppError {
 /**
  * Wrap an async Express handler so thrown errors are forwarded to `next()`.
  */
-function asyncHandler(fn: RequestHandler): RequestHandler {
+function asyncHandler<Req extends Request = Request>(
+  fn: (req: Req, res: Response, next: NextFunction) => unknown
+): RequestHandler {
   return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    Promise.resolve(fn(req as Req, res, next)).catch(next);
   };
 }
 
@@ -68,7 +73,6 @@ function errorHandler(err: AppError, req: ErrorRequest, res: Response, _next: Ne
   const code = err.code || 'server_error';
   const message = err.message || 'Внутренняя ошибка сервера';
 
-  const { RedactionService } = require('../modules/policy/redaction.service');
   const isAuthHealthProbe = status === 401 && req.path === '/api/providers/health';
   if (status === 500) {
     logger.error('Request failed', { method: req.method, path: req.path, error: RedactionService.redact(err) });
@@ -90,11 +94,11 @@ function errorHandler(err: AppError, req: ErrorRequest, res: Response, _next: Ne
   });
 }
 
-module.exports = { 
-  AppError, 
-  AuthError, 
-  ValidationError, 
-  NotFoundError, 
-  asyncHandler, 
-  errorHandler 
+export {
+  AppError,
+  AuthError,
+  ValidationError,
+  NotFoundError,
+  asyncHandler,
+  errorHandler,
 };

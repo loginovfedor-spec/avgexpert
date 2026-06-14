@@ -20,12 +20,16 @@ fi
 THREADS="${LLAMA_THREADS:-8}"
 CTX_SIZE="${LLAMA_CTX_SIZE:-16384}"
 BATCH="${LLAMA_BATCH:-512}"
+PARALLEL="${LLAMA_PARALLEL:-1}"
+CACHE_RAM="${LLAMA_CACHE_RAM:-512}"
 
-echo "[llama-cpp] Starting server (ctx=${CTX_SIZE}, threads=${THREADS})"
+echo "[llama-cpp] Starting server (ctx=${CTX_SIZE}, threads=${THREADS}, parallel=${PARALLEL}, cache_ram=${CACHE_RAM}MiB)"
 exec /app/llama-server \
   -m "$MODEL_PATH" \
   -c "$CTX_SIZE" \
   -t "$THREADS" \
   -b "$BATCH" \
+  -np "$PARALLEL" \
+  --cache-ram "$CACHE_RAM" \
   --host 0.0.0.0 \
   --port 8080

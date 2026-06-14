@@ -1,8 +1,8 @@
 import type { VectorScope } from '../vector/types';
 import { KbRepository } from './kb.repository';
+import { createIngestionPipeline } from '../ingestion/pipeline';
 
 const MAX_RETRIES = 3;
-const STALE_JOB_MS = 30 * 60 * 1000;
 
 export type IndexJobPayload = {
   docId: string;
@@ -30,14 +30,13 @@ async function processNext(): Promise<void> {
 
   processing = true;
   try {
-    const { createIngestionPipeline } = require('../ingestion/pipeline');
     const pipeline = createIngestionPipeline();
     const result = await pipeline.indexExistingDocument(job);
 
     if (result.status === 'failed' && job.attempt < MAX_RETRIES) {
       queue.push({ ...job, attempt: job.attempt + 1 });
     }
-  } catch (err) {
+  } catch (_err) {
     const kbRepository = new KbRepository();
     await kbRepository.updateStatus(job.docId, 'failed');
     if (job.attempt < MAX_RETRIES) {
@@ -72,9 +71,3 @@ export function startIndexingQueue(): void {
   void recoverStaleIndexJobs();
 }
 
-module.exports = {
-  enqueueIndexJob,
-  recoverStaleIndexJobs,
-  startIndexingQueue,
-  MAX_RETRIES,
-};

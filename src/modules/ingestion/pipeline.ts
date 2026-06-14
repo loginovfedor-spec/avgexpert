@@ -1,6 +1,6 @@
-import crypto = require('crypto');
-import fs = require('fs');
-import path = require('path');
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { v5 as uuidv5 } from 'uuid';
 import type { EmbeddingProvider } from '../vector/ports/embedding.provider';
 import type { VectorStore } from '../vector/ports/vector.store';
@@ -287,7 +287,3 @@ export function createIngestionPipeline(deps?: IngestionPipelineDeps): Ingestion
   return new IngestionPipeline(deps);
 }
 
-module.exports = {
-  IngestionPipeline,
-  createIngestionPipeline,
-};

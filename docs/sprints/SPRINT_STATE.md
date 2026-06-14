@@ -34,7 +34,7 @@
 
 | Поле | Значение |
 |------|----------|
-| **current_sprint** | `D3` |
+| **current_sprint** | `D6` |
 | **program** | [`PG18_DOCKER_UNIFIED_PLAN.md`](../plans/PG18_DOCKER_UNIFIED_PLAN.md) v1.2 |
 | **handoff** | `.cursor/rules/pg18-sprint-handoff.mdc` (`alwaysApply`) |
 | **RAG v2 (S0…S10)** | завершена 2026-06-10 |
@@ -54,10 +54,9 @@
 
 ---
 
-## Цель текущего спринта (D3)
+## Цель текущего спринта (D6)
 
-Chat, sessions, KB routes — перенос на PostgreSQL.  
-**Не:** tsvector FTS (D4), удаление SQLite (D4).
+Приёмка pilot (L4 vGPU, RAG smoke, sign-off §7).
 
 ---
 
@@ -65,15 +64,16 @@ Chat, sessions, KB routes — перенос на PostgreSQL.
 
 | ID | Задача | Критерий (DoD) | Статус |
 |----|--------|----------------|--------|
-| D3-1 | `session.repository`, messages → PG | История чата сохраняется | in_progress |
-| D3-2 | `chat.service` без SQLite | SSE/stream работает | in_progress |
-| D3-3 | Payments / audit / mission repos → PG (если включены) | Соответствующие тесты PASS | in_progress |
-| D3-4 | `llm_response_cache` → PG | Кэш LLM работает | in_progress |
-| D3-5 | Интеграционные тесты на PG (`test:integration`) | CI-матрица обновлена | in_progress |
+| D6-1 | Развёртывание на L4 vGPU-8-16-L4-8Q | WEB по HTTPS | pending |
+| D6-2 | Перенос RAG (D1) на prod-сервере | Smoke RAG | pending |
+| D6-3 | Новый admin + тестовые пользователи | Авторизация, роли | in_progress |
+| D6-4 | `GET /health` + admin dashboard RAG metrics | vector ok, latency p95 | in_progress |
+| D6-5 | Отказоустойчивость: рестарт `app` / `postgres` | Данные в volume сохранены | in_progress |
+| D6-6 | Sign-off опытной эксплуатации | Чеклист §7 подписан | in_progress |
 
 ### Блокеры
 
-_нет_
+Выполнение D6-1/D6-2 на реальном L4: нужен `deploy/prod/ssh-deploy.env` + доступ SSH к pilot. Автоматизация готова: `deploy/prod/PILOT_ACCEPTANCE.md`, `pilot-acceptance.sh`, `prod:seed-pilot-users`, `npm run test:d6` PASS.
 
 ---
 
@@ -95,6 +95,8 @@ _нет_
 
 | Спринт | Дата | Коммиты | Bugbot |
 |--------|------|---------|--------|
+| D4 | 2026-06-11 | — | self-review (no Bugbot — docs/CI heavy) |
+| D3 | 2026-06-11 | — | (закрыт в D4-чате) |
 | D2 | 2026-06-11 | — | 0 critical, 3 high (2 fixed, 1 D3) |
 | D1 | 2026-06-11 | — | 0 critical, 1 high (fixed) |
 | D0 | 2026-06-11 | — | 0 critical, 1 high (documented) |
@@ -145,6 +147,50 @@ _нет_
 
 
 ## RETRO (последний сверху)
+
+### RETRO D5 — 2026-06-11
+
+**Выполнение:** D5-1…D5-6 done
+
+**Артефакты:** `deploy/dev/tunnel.sh`, `deploy/dev/tunnel.cmd`, обновлены `DEV_REMOTE.md`, `SSH_DEPLOY.md`, `DEV_TO_PILOT.md`, `RAG_DB_MIGRATION.md`, `deploy/prod/README.md`; `prod:ssh-logs`; `post-deploy.sh` + `app:pg:smoke`
+
+**Соответствие плану:** нет расхождений с §6 D5; compose/install/ssh-deploy из D0–D1 доведены до единого сценария pilot
+
+**Качество:** `tsc --noEmit` PASS; D5 — docs/deploy scripts (self-review, без Bugbot)
+
+**Метрики:** plan_accuracy ~99%; tech debt: фактический HTTPS/sign-off на реальном L4 — D6
+
+**Bugbot-review:** skipped (self-review) — diff только deploy/docs + `package.json` post-deploy hook
+
+**Уроки:** единая таблица «prepare → install → migrate → update» снижает дублирование; tunnel.sh читает `ssh-deploy.env`; после D4 убрать упоминания SQLite из deploy-доков
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
+
+### RETRO D4 — 2026-06-11
+
+**Выполнение:** D4-1…D4-7 done
+
+**Артефакты:** `003_kb_fts.sql`, `pg_tsvector.retriever.ts`, `003_app_approvals.sql`, `tests/vector/pg_tsvector.retriever.test.ts`, `tests/helpers/pg_harness.js`, CI postgres service, упрощён `Dockerfile.app`
+
+**Соответствие плану:** нет расхождений с §6 D4; ADR-2 реализован (`russian` tsvector на `kb_chunks`)
+
+**Качество:** `tsc --noEmit` PASS; `npm install` без `better-sqlite3`; `test:d4` + обновлённые integration/security тесты на PG
+
+**Метрики:** plan_accuracy ~98%; tech debt: scratch-скрипты ещё ссылаются на SQLite (вне CI)
+
+**Bugbot-review:** skipped (self-review) — diff в основном retriever + удаление sqlite; auth/payments не затронуты
+
+**Уроки:** generated `body_tsv` колонка проще триггеров; CI требует `pgvector/pgvector:pg18` service; `DATABASE_URL` обязателен для всех integration-тестов
+
+**OPT предложены:** нет
+
+**Вопросы пользователю:** нет
+
+---
 
 ### RETRO D2 — 2026-06-11
 

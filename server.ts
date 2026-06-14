@@ -6,29 +6,30 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 import { ipKeyGenerator, rateLimit } from 'express-rate-limit';
-// @ts-ignore
-import { PORT, WEBUI_DIR, allowedOrigins, isDev } from './src/core/config';
-// @ts-ignore
+import { PORT, WEBUI_DIR, allowedOrigins, isDev, isTest } from './src/core/config';
 import { errorHandler, AppError } from './src/core/errors';
-// @ts-ignore
-import logger = require('./src/core/logger');
+import logger from './src/core/logger';
+import { initAppPg, isAppPgEnabled, ensureAppPgReady } from './src/core/pg';
+import { getPgPool } from './src/core/pg/pool';
+import { authenticate } from './src/modules/auth/auth.middleware';
+import authRoutes from './src/modules/auth/auth.routes';
+import usersRoutes from './src/modules/auth/users.routes';
+import kbRoutes from './src/modules/kb/kb.routes';
+import adminRoutes from './src/modules/admin/admin.routes';
+import sessionsRoutes from './src/modules/chat/sessions.routes';
+import chatRoutes from './src/modules/chat/chat.routes';
+import providersRoutes from './src/modules/providers/providers.routes';
+import paymentRoutes from './src/modules/payments/payment.routes';
+import { getVectorHealthSection } from './src/modules/vector/vector.health';
+import { startIndexingQueue } from './src/modules/kb/indexing-queue';
+import exchangeRateService from './src/modules/cost/exchange_rate.service';
+import * as readline from 'readline';
 
-// Eager-load observability listeners (S10-4) before first RAG request
-require('./src/modules/observability/metrics.service');
-require('./src/modules/observability/rag-metrics.service');
+import './src/modules/observability/metrics.service';
+import './src/modules/observability/rag-metrics.service';
 
 const app = express();
 const serverLogger = logger.scoped('Server');
-
-const { initAppPg, isAppPgEnabled } = require('./src/core/pg');
-if (isAppPgEnabled()) {
-  initAppPg().catch((err: unknown) => {
-    serverLogger.error('App PG init failed', err);
-    if (process.env.NODE_ENV !== 'test') {
-      process.exit(1);
-    }
-  });
-}
 
 type RateLimitHandlerOptions = {
   statusCode: number;
@@ -48,14 +49,14 @@ function isPrivateHostname(hostname: string): boolean {
 
 function isAllowedCorsOrigin(origin: string): boolean {
   if (allowedOrigins.includes(origin)) return true;
-  if (!isDev) return false;
+  if (!isDev && !isTest) return false;
 
   try {
     const parsedOrigin = new URL(origin);
     return parsedOrigin.protocol === 'http:'
       && parsedOrigin.port === String(PORT)
       && isPrivateHostname(parsedOrigin.hostname);
-  } catch (_) {
+  } catch {
     return false;
   }
 }
@@ -142,35 +143,30 @@ const chatLimiter = process.env.NODE_ENV === 'test' ? (req: Request, res: Respon
   message: 'Превышен лимит запросов'
 });
 
-const { authenticate } = require('./src/modules/auth/auth.middleware');
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/user', kbRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/sessions', authenticate, sessionsRoutes);
+app.use('/api/chat', chatLimiter, authenticate, chatRoutes);
+app.use('/api/providers', providersRoutes);
+app.use('/api/payments', paymentRoutes);
 
-app.use('/api/auth', authLimiter, require('./src/modules/auth/auth.routes'));
-app.use('/api/users', require('./src/modules/auth/users.routes'));
-app.use('/api/user', require('./src/modules/kb/kb.routes'));
-app.use('/api/admin', require('./src/modules/admin/admin.routes'));
-app.use('/api/sessions', authenticate, require('./src/modules/chat/sessions.routes'));
-app.use('/api/chat', chatLimiter, authenticate, require('./src/modules/chat/chat.routes'));
-app.use('/api/providers', require('./src/modules/providers/providers.routes'));
-app.use('/api/payments', require('./src/modules/payments/payment.routes'));
-
-app.get('/health', async (req: Request, res: Response) => {
-  const { getVectorHealthSection } = require('./src/modules/vector/vector.health');
+app.get('/health', async (_req: Request, res: Response) => {
   const vector = await getVectorHealthSection();
   res.status(200).json({ status: 'ok', vector });
 });
-app.get('/ready', async (req: Request, res: Response) => {
+app.get('/ready', async (_req: Request, res: Response) => {
   try {
-    const { ensureAppPgReady } = require('./src/core/pg');
-    const { getPgPool } = require('./src/core/pg/pool');
     await ensureAppPgReady();
     await getPgPool().query('SELECT 1');
     res.status(200).json({ status: 'ready' });
-  } catch (err) {
+  } catch {
     res.status(503).json({ status: 'error', message: 'DB not ready' });
   }
 });
 
-app.use('/api', (req: Request, res: Response) => {
+app.use('/api', (_req: Request, res: Response) => {
   res.status(404).json({ error: { code: 'not_found', message: 'API route not found' } });
 });
 
@@ -186,7 +182,7 @@ app.use(express.static(WEBUI_DIR, {
   }
 }));
 
-app.get('*', (req: Request, res: Response) => {
+app.get('*', (_req: Request, res: Response) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile('index.html', { root: WEBUI_DIR });
 });
@@ -200,11 +196,16 @@ function writePidFile() {
 }
 
 function removePidFile() {
-  try { fs.unlinkSync(PID_FILE); } catch (_) {}
+  try {
+    fs.unlinkSync(PID_FILE);
+  } catch {
+    // pid file may already be gone during shutdown
+  }
 }
 
 function gracefulShutdown(serverInstance: Server | null, signal: string) {
   serverLogger.info('Received shutdown signal', { signal });
+  exchangeRateService.stopScheduler();
   
   if (serverInstance && serverInstance.closeAllConnections) {
     serverInstance.closeAllConnections();
@@ -229,30 +230,50 @@ function gracefulShutdown(serverInstance: Server | null, signal: string) {
 }
 
 let server: Server | null = null;
-if (require.main === module) {
-  writePidFile();
 
-  const { startIndexingQueue } = require('./src/modules/kb/indexing-queue');
+async function startServer(): Promise<void> {
+  if (isAppPgEnabled()) {
+    await initAppPg();
+  }
+
+  writePidFile();
   startIndexingQueue();
+
+  exchangeRateService.getRate('USD')
+    .then((rate) => {
+      serverLogger.info('Exchange rate service initialized', { rate });
+      exchangeRateService.startScheduler();
+    })
+    .catch((err) => {
+      serverLogger.error('Failed to initialize exchange rate service, but continuing start', err);
+      exchangeRateService.startScheduler();
+    });
 
   server = app.listen(PORT, '0.0.0.0', () => {
     serverLogger.info('Starting AvgExpert Gateway', { host: '0.0.0.0', port: PORT });
   });
 
-  server.keepAliveTimeout = 120 * 1000; 
-  server.headersTimeout = 125 * 1000;   
+  server.keepAliveTimeout = 120 * 1000;
+  server.headersTimeout = 125 * 1000;
 
   process.on('SIGINT', () => gracefulShutdown(server, 'SIGINT'));
   process.on('SIGTERM', () => gracefulShutdown(server, 'SIGTERM'));
 
   if (process.platform === 'win32') {
-    require('readline').createInterface({
+    readline.createInterface({
       input: process.stdin,
       output: process.stdout
     }).on('SIGINT', () => {
       process.emit('SIGINT');
     });
   }
+}
+
+if (require.main === module) {
+  startServer().catch((err: unknown) => {
+    serverLogger.error('App startup failed', err);
+    process.exit(1);
+  });
 }
 
 export = { app, server };

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import http = require('http');
+import http from 'http';
 import { SelfHostedEmbeddingProvider } from '../../src/modules/vector/providers/selfhosted.embedding';
 
 test('SelfHostedEmbeddingProvider: custom HTTP batch + query', async () => {

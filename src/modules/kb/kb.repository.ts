@@ -234,4 +234,3 @@ export class KbRepository {
   }
 }
 
-module.exports = { KbRepository };

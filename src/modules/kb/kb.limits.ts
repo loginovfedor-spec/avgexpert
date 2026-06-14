@@ -1,4 +1,4 @@
-const DEFAULT_MAX_DOCS_BY_CATEGORY: Record<string, number> = {
+export const DEFAULT_MAX_DOCS_BY_CATEGORY: Record<string, number> = {
   'Консультант': 3,
   'Эксперт': 5,
   'Мудрец': 10,
@@ -14,4 +14,3 @@ export function getUserKbMaxDocs(category: string | undefined, envMax?: number):
   return 3;
 }
 
-module.exports = { getUserKbMaxDocs, DEFAULT_MAX_DOCS_BY_CATEGORY };

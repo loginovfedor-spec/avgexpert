@@ -45,7 +45,7 @@ test('MetricsService: throttles percentile sorting during trace bursts', () => {
 
   try {
     for (let i = 1; i <= 25; i++) {
-      traceBus.emitTrace('test', 'request.completed', { latencyMs: i });
+      traceBus.emitTrace('ChatService', 'model.completed', { latencyMs: i });
     }
 
     assert.strictEqual(sortCalls, 0, 'trace burst should not sort samples immediately');
@@ -58,4 +58,25 @@ test('MetricsService: throttles percentile sorting during trace bursts', () => {
   } finally {
     Array.prototype.sort = originalSort;
   }
+});
+
+test('MetricsService: counts model.completed only from ChatService or ChatController', () => {
+  resetMetrics();
+  traceBus.clear();
+
+  traceBus.emitTrace('ModelGateway', 'model.completed', { latencyMs: 100, costUsd: 0.99 });
+  traceBus.emitTrace('ChatService', 'model.completed', { latencyMs: 200, costUsd: 0.5 });
+
+  const snapshot = metricsService.getMetrics();
+  assert.strictEqual(snapshot.totalRequests, 1, 'ModelGateway must not increment totalRequests');
+  assert.strictEqual(snapshot.costUsd, 0.5, 'costUsd only from ChatService/ChatController');
+
+  resetMetrics();
+  traceBus.emitTrace('ChatController', 'model.completed', { latencyMs: 50, costUsd: 0.25 });
+  traceBus.emitTrace('ModelGateway', 'model.completed', { latencyMs: 50, costUsd: 0.99 });
+  traceBus.emitTrace('ChatService', 'model.completed', { latencyMs: 50, costUsd: 0.25 });
+
+  const mixed = metricsService.getMetrics();
+  assert.strictEqual(mixed.totalRequests, 2);
+  assert.strictEqual(mixed.costUsd, 0.5);
 });

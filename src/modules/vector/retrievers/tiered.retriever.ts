@@ -123,4 +123,3 @@ export class TieredRetriever implements Retriever {
   }
 }
 
-module.exports = { TieredRetriever };

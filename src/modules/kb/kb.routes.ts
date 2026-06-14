@@ -1,17 +1,17 @@
 import { Router, type Request, type Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { z } from 'zod';
-// @ts-ignore
 import { asyncHandler, AppError } from '../../core/errors';
-// @ts-ignore
 import { authenticate } from '../auth/auth.middleware';
-// @ts-ignore
 import { KB_USER_MAX_DOCS, KB_USER_MAX_FILE_BYTES } from '../../core/config';
 import { KbRepository } from './kb.repository';
 import { getUserKbMaxDocs } from './kb.limits';
 import { assertSafeSourceUri } from '../ingestion/path-utils';
 import { validateUserUpload } from './upload.validation';
 import { withKbUploadLock } from './upload-lock';
+import { createIngestionPipeline } from '../ingestion/pipeline';
+import { runVectorMigrations } from '../vector/pg/migrate';
+import { createVectorStoreFromEnv } from '../vector/registry';
 
 type AuthUser = {
   username: string;
@@ -109,9 +109,6 @@ router.post(
     const kbRepository = new KbRepository();
     const maxDocs = getUserKbMaxDocs(req.user?.category, KB_USER_MAX_DOCS);
 
-    const { createIngestionPipeline } = require('../ingestion/pipeline');
-    const { runVectorMigrations } = require('../vector/pg/migrate');
-
     await runVectorMigrations();
     const pipeline = createIngestionPipeline();
     const result = await withKbUploadLock(`user:${userId}`, async () => {
@@ -150,7 +147,7 @@ router.post(
       });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       id: ingestResult.docId,
       status: ingestResult.status,
       chunkCount: ingestResult.chunkCount,
@@ -203,7 +200,6 @@ router.delete(
       throw new AppError('Документ не найден', 404, 'not_found');
     }
 
-    const { createVectorStoreFromEnv } = require('../vector/registry');
     const store = createVectorStoreFromEnv();
     await store.delete({ docId: doc.id, ownerUserId: userId, scope: 'user' });
     await kbRepository.deleteDocument(doc.id);
@@ -212,4 +208,4 @@ router.delete(
   })
 );
 
-module.exports = router;
+export = router;

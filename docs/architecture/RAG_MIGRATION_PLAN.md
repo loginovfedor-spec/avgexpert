@@ -236,7 +236,7 @@ sequenceDiagram
 
 ### 3.5.1 Политика загрузки документов (UI, v1.4)
 
-**Источник правды в коде:** `webui_src/js/file-parse.js`, `webui_src/js/chat.js` (`handleFiles`), `webui_src/js/user-documents.js`, `src/modules/kb/upload.validation.ts`.
+**Источник правды в коде:** `webui_src/ts/file-parse.ts`, `webui_src/ts/chat.ts` (`handleFiles`), `webui_src/ts/user-documents.ts`, `src/modules/kb/upload.validation.ts`.
 
 Поддерживаемые форматы везде в UI: **`.txt`, `.md`, `.pdf`, `.docx`**.  
 PDF и DOCX **парсятся в браузере** (pdf.js / mammoth); на API уходит **извлечённый UTF-8 текст**, не бинарник.

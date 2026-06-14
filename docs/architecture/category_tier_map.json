@@ -1,6 +1,6 @@
 {
-  "version": "1.1",
-  "updated": "2026-06-09",
+  "version": "1.5",
+  "updated": "2026-06-13",
   "description": "Карта категорий → retrieval_tier + provider. Роли: Консультант (книги и материалы → подготовка для Эксперта), Эксперт (аналитика по материалам Консультанта), Мудрец (новое на основе аналитики Эксперта). Scope-ограничения по tier не применяются — пользователь свободно переключает категорию.",
   "tiers": {
     "consultant": {
@@ -43,8 +43,29 @@
     {
       "ui_category": "Консультант",
       "retrieval_tier": "consultant",
-      "provider": "grok",
-      "model_name": "grok-4-1-fast-non-reasoning",
+      "provider": "grok_non_reasoning",
+      "model_name": "grok-4.20-non-reasoning",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Консультант",
+      "retrieval_tier": "consultant",
+      "provider": "qwen_flash",
+      "model_name": "qwen3.6-flash",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Консультант",
+      "retrieval_tier": "consultant",
+      "provider": "google_flash_lite",
+      "model_name": "gemini-3.1-flash-lite",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Консультант",
+      "retrieval_tier": "consultant",
+      "provider": "deepseek_flash",
+      "model_name": "deepseek-v4-flash",
       "rag_allowed": true
     },
     {
@@ -64,8 +85,29 @@
     {
       "ui_category": "Эксперт",
       "retrieval_tier": "expert",
-      "provider": "grok",
-      "model_name": "grok-4-1-fast-reasoning",
+      "provider": "grok_reasoning",
+      "model_name": "grok-4.20-reasoning",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Эксперт",
+      "retrieval_tier": "expert",
+      "provider": "qwen",
+      "model_name": "qwen3.7-plus",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Эксперт",
+      "retrieval_tier": "expert",
+      "provider": "google",
+      "model_name": "gemini-3.5-flash",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Эксперт",
+      "retrieval_tier": "expert",
+      "provider": "deepseek",
+      "model_name": "deepseek-reasoner",
       "rag_allowed": true
     },
     {
@@ -80,6 +122,27 @@
       "retrieval_tier": "sage",
       "provider": "grok",
       "model_name": "grok-4.3",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Мудрец",
+      "retrieval_tier": "sage",
+      "provider": "qwen_max",
+      "model_name": "qwen3.7-max",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Мудрец",
+      "retrieval_tier": "sage",
+      "provider": "google_pro",
+      "model_name": "gemini-3.1-pro",
+      "rag_allowed": true
+    },
+    {
+      "ui_category": "Мудрец",
+      "retrieval_tier": "sage",
+      "provider": "deepseek_pro",
+      "model_name": "deepseek-v4-pro",
       "rag_allowed": true
     }
   ]

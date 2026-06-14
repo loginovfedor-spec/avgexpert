@@ -15,6 +15,6 @@
     "isolatedModules": true,
     "moduleDetection": "force"
   },
-  "include": ["tests/**/*", "scripts/**/*"],
+  "include": ["tests/**/*", "scripts/**/*", "webui_src/ts/globals.d.ts"],
   "exclude": ["node_modules", "dist", "_quarantine", "webui_dist"]
 }

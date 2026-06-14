@@ -1,6 +1,5 @@
-import fs = require('fs');
-import path = require('path');
-
+import fs from 'fs';
+import path from 'path';
 const SUPPORTED_EXTENSIONS = new Set(['.md', '.txt', '.markdown']);
 
 export function loadChunkingDefaults(env: NodeJS.ProcessEnv = process.env): {
@@ -62,8 +61,3 @@ export function assertSafeSourceUri(sourceUri: string | undefined): void {
   }
 }
 
-module.exports = {
-  loadChunkingDefaults,
-  resolveIngestFilePath,
-  assertSafeSourceUri,
-};

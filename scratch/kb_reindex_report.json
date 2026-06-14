@@ -1,0 +1,74 @@
+{
+  "generatedAt": "2026-06-09T19:18:40.043Z",
+  "namespace": "bge-m3-v1",
+  "totalBooks": 5,
+  "totalChunks": 5213,
+  "books": [
+    {
+      "file": "tom-1.md",
+      "bookTitle": "Том 1: Эзоагностика Реальности. Основные концепции. Реальность",
+      "docId": "6128b40c-06cd-4aeb-958e-d7ed11d467c7",
+      "chunkCount": 1235,
+      "metadataCompleteness": {
+        "withSectionPath": 1235,
+        "withBookTitle": 1235,
+        "withChapterTitle": 1226,
+        "ratio": 1
+      },
+      "status": "ready"
+    },
+    {
+      "file": "tom-2.md",
+      "bookTitle": "Том 2: Эзоагностика Реальности. Основные концепции. Человек",
+      "docId": "4e38a362-8b53-4397-8f92-611a9b7ffe9d",
+      "chunkCount": 1259,
+      "metadataCompleteness": {
+        "withSectionPath": 1259,
+        "withBookTitle": 1259,
+        "withChapterTitle": 24,
+        "ratio": 1
+      },
+      "status": "ready"
+    },
+    {
+      "file": "tom-3_1-2.md",
+      "bookTitle": "Том 3 (шаг 1-2): Эзоагностика Реальности. Работа с собой",
+      "docId": "bd824310-29fa-4b9e-971a-0885c87c06eb",
+      "chunkCount": 1029,
+      "metadataCompleteness": {
+        "withSectionPath": 1029,
+        "withBookTitle": 1029,
+        "withChapterTitle": 1022,
+        "ratio": 1
+      },
+      "status": "ready"
+    },
+    {
+      "file": "tom-3_3-4.md",
+      "bookTitle": "Том 3 (шаг 3-4): Эзоагностика Реальности. Работа с собой",
+      "docId": "70c83e27-f970-4d48-960b-75f02f321404",
+      "chunkCount": 719,
+      "metadataCompleteness": {
+        "withSectionPath": 719,
+        "withBookTitle": 719,
+        "withChapterTitle": 714,
+        "ratio": 1
+      },
+      "status": "ready"
+    },
+    {
+      "file": "tom-3_5-6.md",
+      "bookTitle": "Том 3 (шаг 5-6): Эзоагностика Реальности. Работа с собой",
+      "docId": "564b7bb1-b723-4b6a-9efc-556a3e5883fe",
+      "chunkCount": 971,
+      "metadataCompleteness": {
+        "withSectionPath": 971,
+        "withBookTitle": 971,
+        "withChapterTitle": 967,
+        "ratio": 1
+      },
+      "status": "ready"
+    }
+  ],
+  "recallSmoke": []
+}

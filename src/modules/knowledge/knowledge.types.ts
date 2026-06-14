@@ -1,6 +1,5 @@
 import { IRetrievalChunk, IRetrievalResult, RetrievalMode, RetrievalMetadata, Provenance } from '../../types/knowledge.types';
-import logger = require('../../core/logger');
-
+import logger from '../../core/logger';
 const knowledgeTypesLogger = logger.scoped('KnowledgeTypes');
 
 type RetrievalChunkInput = Partial<IRetrievalChunk> & {
