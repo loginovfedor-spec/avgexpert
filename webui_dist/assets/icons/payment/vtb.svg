@@ -1,5 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 30">
-  <rect width="48" height="30" rx="4" fill="#0032A0"/>
-  <path d="M10 22V8h4.2l5.4 9.2L25 8h4.2v14h-3.6V13.4L20.4 22h-2.8l-5.2-8.6V22H10z" fill="#fff"/>
-  <path d="M28.5 8H38v2.8h-6v2.4h5.2v2.6H32v2.4h6.5V22H28.5V8z" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 40" width="64" height="40">
+  <!-- ВТБ -->
+  <defs>
+    <linearGradient id="vtb-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00B4D8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0096C7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="40" rx="8" fill="url(#vtb-gradient)"/>
+  <g transform="translate(10, 6)">
+    <!-- Символ ВТБ - буква В -->
+    <path d="M16 10 L24 10 L28 14 L24 18 L16 18 L16 28 L12 28 L12 10 Z" fill="white" opacity="0.95"/>
+    <path d="M28 10 L36 10 L40 14 L36 18 L36 28 L32 28 L32 18 L28 14 Z" fill="white" opacity="0.95"/>
+  </g>
 </svg>

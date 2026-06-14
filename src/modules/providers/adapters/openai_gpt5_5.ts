@@ -149,6 +149,8 @@ class OpenAIGPT55Provider extends BaseProvider {
 
     if (instructions) params.instructions = instructions;
 
+    if (options.max_tokens) params.max_output_tokens = options.max_tokens;
+
     if (config.parallel_tool_calls !== undefined) params.parallel_tool_calls = config.parallel_tool_calls;
     if (config.reasoning !== undefined) params.reasoning = config.reasoning;
     if (config.store !== undefined) params.store = config.store;
@@ -175,7 +177,7 @@ class OpenAIGPT55Provider extends BaseProvider {
 
     ProviderUtils.cleanUnsupportedParams(params, [
       'temperature', 'top_p', 'top_k', 'min_p', 'repeat_penalty', 'max_tokens',
-      'user', 'include', 'messages', 'vector_store_ids', 'web_search_enabled', 'image_upload_enabled', 'vision_enabled',
+      'user', 'messages', 'vector_store_ids', 'web_search_enabled', 'image_upload_enabled', 'vision_enabled',
     ]);
 
     try {

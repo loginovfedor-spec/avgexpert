@@ -120,6 +120,13 @@ export function discoverProviders(): Record<string, DiscoveredProvider> {
       if (parsed.PROMPT_CACHE_RETENTION !== undefined) {
         extra_params.prompt_cache_retention = parsed.PROMPT_CACHE_RETENTION.replace('-', '_');
       }
+      if (parsed.REASONING_EFFORT !== undefined && parsed.REASONING_EFFORT.trim() !== '') {
+        const reasoning = (extra_params.reasoning && typeof extra_params.reasoning === 'object')
+          ? { ...(extra_params.reasoning as Record<string, unknown>) }
+          : {};
+        reasoning.effort = parsed.REASONING_EFFORT.trim();
+        extra_params.reasoning = reasoning;
+      }
 
       providers[providerId] = {
         name: providerName,

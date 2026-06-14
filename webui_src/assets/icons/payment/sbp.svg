@@ -1,6 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 30">
-  <rect width="48" height="30" rx="4" fill="#5B57A2"/>
-  <path d="M24 7l-7 7h4.5V23h5V14h4.5L24 7z" fill="#fff"/>
-  <circle cx="34" cy="10" r="2.2" fill="#6FCF97"/>
-  <circle cx="14" cy="20" r="2.2" fill="#F2994A"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 40" width="64" height="40">
+  <!-- СБП - Система быстрых платежей -->
+  <defs>
+    <linearGradient id="sbp-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5EBB6C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4AA658;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="40" rx="8" fill="url(#sbp-gradient)"/>
+  <g transform="translate(14, 7)">
+    <!-- Белая стрелка/галочка -->
+    <path d="M10 18 L18 10 L22 14 L18 18 Z" fill="white"/>
+    <path d="M18 18 L26 10 L30 14" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
 </svg>

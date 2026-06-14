@@ -68,6 +68,10 @@ function validateProviderUrl(endpointUrl: unknown, allowLocal: boolean = false) 
     ];
     if (publicAllowList.includes(host)) return;
 
+    // Docker Compose internal egress (Envoy, local Llama)
+    const dockerInternalAllowList = ['envoy', 'llama-cpp'];
+    if (dockerInternalAllowList.includes(host)) return;
+
     // 2. Check for private/localhost if not explicitly allowed
     if (!allowLocal) {
       // Basic hostname checks

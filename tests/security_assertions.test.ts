@@ -52,6 +52,10 @@ test('SSRF Protection Tests', async (t) => {
     assert.doesNotThrow(() => validateProviderUrl('https://generativelanguage.googleapis.com/v1', false));
   });
 
+  await t.test('allows Docker internal Envoy egress for external providers', () => {
+    assert.doesNotThrow(() => validateProviderUrl('http://envoy:8080/openai/v1', false));
+  });
+
   await t.test('rejects invalid URL format', () => {
     assert.throws(() => validateProviderUrl('not-a-url', false), /Invalid URL/);
   });
