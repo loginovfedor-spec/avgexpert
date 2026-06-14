@@ -14,6 +14,7 @@ const MIGRATIONS: Array<{ id: string; file: string }> = [
   { id: '007_request_id_text', file: '007_request_id_text.sql' },
   { id: '008_payment_orders_credits', file: '008_payment_orders_credits.sql' },
   { id: '009_user_token_limits', file: '009_user_token_limits.sql' },
+  { id: '010_drop_user_n_ctx', file: '010_drop_user_n_ctx.sql' },
 ];
 
 const APP_MIGRATION_LOCK_KEY = 83457292;

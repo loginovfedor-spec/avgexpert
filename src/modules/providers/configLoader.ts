@@ -131,7 +131,7 @@ export function discoverProviders(): Record<string, DiscoveredProvider> {
       providers[providerId] = {
         name: providerName,
         adapter: adapterType,
-        endpoint_url: parsed.OPENAI_URL || parsed.DEEPSEEK_URL || parsed.QWEN_URL || parsed.GROK_URL || parsed.LLAMACPP_URL || parsed.YANDEX_CLOUD_BASE_URL || "",
+        endpoint_url: parsed.OPENAI_URL || parsed.DEEPSEEK_URL || parsed.QWEN_URL || parsed.GROK_URL || parsed.GEMINI_URL || parsed.LLAMACPP_URL || parsed.YANDEX_CLOUD_BASE_URL || "",
         api_key: parsed.OPENAI_API_KEY || parsed.DEEPSEEK_API_KEY || parsed.QWEN_API_KEY || parsed.GROK_API_KEY || parsed.LLAMACPP_API_KEY || parsed.YANDEX_CLOUD_API_KEY || parsed.YANDEX_API_KEY || parsed.GEMINI_API_KEY || "",
         defaultModel: defaultModel,
         yandex_folder_id: parsed.YANDEX_CLOUD_FOLDER || parsed.YANDEX_FOLDER_ID || "",
@@ -178,4 +178,3 @@ export function getAdapterConfig(providerId: string): Record<string, unknown> {
 
   return result;
 }
-

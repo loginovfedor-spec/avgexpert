@@ -49,6 +49,10 @@ type ProviderErrorSource = Error & {
   status?: number;
 };
 
+function joinUrl(baseUrl: string, path: string): string {
+  return `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+}
+
 class QwenProvider extends BaseProvider {
   defaultBaseUrl: string;
 
@@ -81,11 +85,11 @@ class QwenProvider extends BaseProvider {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${config.api_key}`,
     };
-    const url = `${config.endpoint_url || this.defaultBaseUrl}/chat/completions`;
+    const url = joinUrl(config.endpoint_url || this.defaultBaseUrl, 'chat/completions');
 
     try {
       const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(params) });
-      if (!response.ok) throw new Error(`Qwen API Error: ${response.statusText}`);
+      if (!response.ok) throw new Error(`Qwen API Error: ${response.status} ${response.statusText}`);
 
       if (params.stream) {
         if (!response.body) throw new Error('No response body');

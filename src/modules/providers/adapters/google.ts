@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, type RequestOptions } from '@google/generative-ai';
 import BaseProvider from '../base.provider';
 import ProviderEvents from '../providerEvents';
 import { ProviderError } from '../providerErrors';
@@ -10,6 +10,8 @@ type GoogleConfig = Record<string, unknown> & {
   api_key?: string;
   model_name?: string;
   defaultModel?: string;
+  endpoint_url?: string;
+  GEMINI_API_VERSION?: string;
   temperature?: number;
   top_p?: number;
   top_k?: number;
@@ -49,6 +51,21 @@ type ProviderErrorSource = Error & {
   message: string;
 };
 
+function resolveGoogleRequestOptions(config: GoogleConfig): RequestOptions | undefined {
+  const rawEndpoint = String(config.endpoint_url || '').trim();
+  if (!rawEndpoint) return undefined;
+
+  let baseUrl = rawEndpoint.replace(/\/+$/, '');
+  let apiVersion = String(config.GEMINI_API_VERSION || 'v1beta').trim() || 'v1beta';
+  const versionMatch = baseUrl.match(/\/(v1|v1beta)$/);
+  if (versionMatch) {
+    apiVersion = versionMatch[1];
+    baseUrl = baseUrl.slice(0, -versionMatch[0].length);
+  }
+
+  return { baseUrl, apiVersion };
+}
+
 class GoogleProvider extends BaseProvider {
   constructor() {
     super({
@@ -84,6 +101,7 @@ class GoogleProvider extends BaseProvider {
 
   async *handleChat(messages: ChatMessage[], config: GoogleConfig, options: GoogleOptions): AsyncIterable<StreamEvent> {
     const genAI = new GoogleGenerativeAI(config.api_key || '');
+    const requestOptions = resolveGoogleRequestOptions(config);
 
     const { systemInstruction, history } = this._convertMessages(messages);
 
@@ -114,7 +132,7 @@ class GoogleProvider extends BaseProvider {
     };
 
     try {
-      const model = genAI.getGenerativeModel(modelConfig);
+      const model = genAI.getGenerativeModel(modelConfig, requestOptions);
 
       if (options.stream) {
         const chat = model.startChat({ history });
@@ -165,7 +183,10 @@ class GoogleProvider extends BaseProvider {
     const genAI = new GoogleGenerativeAI(config.api_key);
     try {
       const modelName = config.model_name || config.defaultModel || this.defaultModel;
-      const model = genAI.getGenerativeModel({ model: modelName });
+      const model = genAI.getGenerativeModel(
+        { model: modelName },
+        resolveGoogleRequestOptions(config)
+      );
       await (model as { getMetadata?: () => Promise<unknown> }).getMetadata?.();
       return true;
     } catch {
